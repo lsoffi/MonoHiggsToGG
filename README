@@ -1,5 +1,12 @@
-MonoHiggsToGG analysis
-
+///////////////////////////////////////////////////////////
+//
+//        MonoHiggsToGG analysis
+//
+//  This repo comes from: https://github.com/mez34/MonoHgg
+//  Check there for History before 17 Nov 2015
+//
+///////////////////////////////////////////////////////////
+---------------------------------------
 ---------------------------------------
 From MicroAOD to diPhotonAnaTrees 
 (follow what is done here from P. Musella: https://github.com/cms-analysis/flashgg/tree/master/MetaData 
