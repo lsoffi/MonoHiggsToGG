@@ -1,4 +1,4 @@
-MonoHgg analysis
+MonoHiggsToGG analysis
 
 ---------------------------------------
 From MicroAOD to diPhotonAnaTrees 
@@ -48,7 +48,7 @@ From MicroAOD to diPhotonAnaTrees
    NB. The structure of how to use these scripts can be seen in doAll.sh
 
 7. Produce plots 
-   in CMSSW_7_4_6_patch2
+   in CMSSW_7_4_12
    7.1 make (to compile) 
    7.2 ./main (to run)
      In main.cpp if
@@ -59,7 +59,7 @@ From MicroAOD to diPhotonAnaTrees
      (doABCD)		calls ABCDMethod.cpp	(do ABCD/C&C analysis) 
      style set with Style.cpp
 
-   in CMSSW_7_4_0_pre9
+   Old instructions (for running in CMSSW_7_4_0_pre9)
    7.1 Run drawOneHisto.C to plot a single variable for a single sample
 	OR
    7.1 Compile (with make) and run ./main to plot all relevant variables for a single sample (with weighting) 
@@ -90,7 +90,7 @@ bash flashgg/setup.sh | tee setup.log
 
 # clone this repository
 cd ${CMSSW_BASE}/src
-git clone git@github.com:mez34/MonoHgg.git
+git clone git@github.com:mez34/MonoHiggsToGG.git
 
 # add Math package
 git cms-addpkg DataFormats/Math
