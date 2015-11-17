@@ -109,6 +109,8 @@ struct diphoTree_struc_ {
   int sel2;
   int tightsel1;
   int tightsel2;
+  int loosesel1;
+  int loosesel2;
   int vtxIndex;
   float vtxX; 
   float vtxY; 
@@ -141,6 +143,16 @@ struct diphoTree_struc_ {
   int passTightSieie2;
   int passTightHoe1;
   int passTightHoe2;
+  int passLooseCHiso1;
+  int passLooseCHiso2;
+  int passLooseNHiso1; 
+  int passLooseNHiso2;
+  int passLoosePHiso1;
+  int passLoosePHiso2;
+  int passLooseSieie1;
+  int passLooseSieie2;
+  int passLooseHoe1;
+  int passLooseHoe2;
 };
 
 class NewDiPhoAnalyzer : public edm::EDAnalyzer {
@@ -182,6 +194,11 @@ private:
   int passTightNHisoCuts(float sceta, float nhiso, float pt);
   int passTightPHisoCuts(float sceta, float phiso, float pt);
   int passTightHoeCuts(float sceta, float hoe);
+  int passLooseSieieCuts(float sceta, float sieie);
+  int passLooseCHisoCuts(float sceta, float chiso, float pt);
+  int passLooseNHisoCuts(float sceta, float nhiso, float pt);
+  int passLoosePHisoCuts(float sceta, float phiso, float pt);
+  int passLooseHoeCuts(float sceta, float hoe);
 
   // collections
   //edm::EDGetTokenT<EcalRecHitCollection> ecalHitEBToken_;
@@ -504,13 +521,22 @@ void NewDiPhoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
         int passTightLeadNHiso = passTightNHisoCuts( leadScEta, leadNeuIso, leadPt );
         int passTightLeadPHiso = passTightPHisoCuts( leadScEta, leadPhoIso, leadPt );
 	int passTightLeadHoe   = passTightHoeCuts( leadScEta, leadHoE );
+	// loose working point selection
+	int passLooseLeadSieie = passLooseSieieCuts( leadScEta, leadSieienoZS );
+        int passLooseLeadCHiso = passLooseCHisoCuts( leadScEta, leadChIso, leadPt );
+        int passLooseLeadNHiso = passLooseNHisoCuts( leadScEta, leadNeuIso, leadPt );
+        int passLooseLeadPHiso = passLoosePHisoCuts( leadScEta, leadPhoIso, leadPt );
+	int passLooseLeadHoe   = passLooseHoeCuts( leadScEta, leadHoE );
 
         int passLeadElVeto = 0;
+        int numberpassingEV1 = 0;
 	if (diphoPtr->leadingPhoton()->passElectronVeto()) passLeadElVeto = 1;
+        if (passLeadElVeto) numberpassingEV1++;
 	//int passLeadPixelSeed = 1;
         //if (diphoPtr->leadingPhoton()->hasPixelSeed()) passLeadPixelSeed = 0;// veto events which have a PixelSeed
         bool leadSelel      = testPhotonIsolation( passLeadSieie, passLeadCHiso, passLeadNHiso, passLeadPHiso, passLeadHoe, 1);//passLeadElVeto);// FIXME 
-        bool leadTightSelel = testPhotonIsolation( passTightLeadSieie, passTightLeadCHiso, passTightLeadNHiso, passTightLeadPHiso, passTightLeadHoe, passLeadElVeto); 
+        bool leadTightSelel = testPhotonIsolation( passTightLeadSieie, passTightLeadCHiso, passTightLeadNHiso, passTightLeadPHiso, passTightLeadHoe, 1); 
+        bool leadLooseSelel = testPhotonIsolation( passLooseLeadSieie, passLooseLeadCHiso, passLooseLeadNHiso, passLooseLeadPHiso, passLooseLeadHoe, 1); 
 
 	float subleadPt     = diphoPtr->subLeadingPhoton()->et();
 	float subleadScEta  = (diphoPtr->subLeadingPhoton()->superCluster())->eta();   
@@ -536,20 +562,31 @@ void NewDiPhoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
         int passTightSubLeadNHiso = passTightNHisoCuts( subleadScEta, subleadNeuIso, subleadPt );
         int passTightSubLeadPHiso = passTightPHisoCuts( subleadScEta, subleadPhoIso, subleadPt );
 	int passTightSubLeadHoe   = passTightHoeCuts( subleadScEta, subleadHoE );
+	// loose working point selection
+	int passLooseSubLeadSieie = passLooseSieieCuts( subleadScEta, subleadSieienoZS );
+        int passLooseSubLeadCHiso = passLooseCHisoCuts( subleadScEta, subleadChIso, subleadPt );
+        int passLooseSubLeadNHiso = passLooseNHisoCuts( subleadScEta, subleadNeuIso, subleadPt );
+        int passLooseSubLeadPHiso = passLoosePHisoCuts( subleadScEta, subleadPhoIso, subleadPt );
+	int passLooseSubLeadHoe   = passLooseHoeCuts( subleadScEta, subleadHoE );
 
         int passSubLeadElVeto = 0;
+        int numberpassingEV2 = 0;
 	if (diphoPtr->subLeadingPhoton()->passElectronVeto()) passSubLeadElVeto = 1;
+	if (passSubLeadElVeto) numberpassingEV2++;
 	//int passSubLeadPixelSeed = 1;
         //if (diphoPtr->subLeadingPhoton()->hasPixelSeed()) passSubLeadPixelSeed = 0;// veto events which have a PixelSeed
         bool subleadSelel      = testPhotonIsolation( passSubLeadSieie, passSubLeadCHiso, passSubLeadNHiso, passSubLeadPHiso, passSubLeadHoe, 1);// passSubLeadElVeto);// FIXME
-        bool subleadTightSelel = testPhotonIsolation( passTightSubLeadSieie, passTightSubLeadCHiso, passTightSubLeadNHiso, passTightSubLeadPHiso, passTightSubLeadHoe, passSubLeadElVeto);
+        bool subleadTightSelel = testPhotonIsolation( passTightSubLeadSieie, passTightSubLeadCHiso, passTightSubLeadNHiso, passTightSubLeadPHiso, passTightSubLeadHoe, 1);
+        bool subleadLooseSelel = testPhotonIsolation( passLooseSubLeadSieie, passLooseSubLeadCHiso, passLooseSubLeadNHiso, passLooseSubLeadPHiso, passLooseSubLeadHoe, 1);
 
         int numpassingmed = 0;
 	int numpassing = 0;
+        int numpassingloose = 0;
 	if (leadSelel || subleadSelel) numpassingmed++;
 	if (leadTightSelel || subleadTightSelel) numpassing++;
+	if (leadLooseSelel || subleadLooseSelel) numpassingloose++;
 	
-	if (!leadSelel || !subleadSelel ) continue; //Livia Correction: applies pho ID selection 
+	if (!leadLooseSelel || !subleadLooseSelel ) continue; //Livia Correction: applies pho ID selection 
 	//if (!leadTightSelel || !subleadTightSelel ) continue;  
 	// chiara: end comment x efficiencies
 
@@ -651,7 +688,7 @@ void NewDiPhoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
 		float sceta2;
 		float r92, sieie2, hoe2, scRawEne2;
 		float chiso2, phoiso2, neuiso2;
-		int presel1, presel2, sel1, sel2, tightsel1, tightsel2;
+		int presel1, presel2, sel1, sel2, tightsel1, tightsel2, loosesel1, loosesel2;
 		int vtxIndex;
 		float vtxX, vtxY, vtxZ;
 		int genmatch1, genmatch2;
@@ -662,6 +699,7 @@ void NewDiPhoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
 		float pfmet,pfmetPhi, pfmetSumEt,t1pfmet,t1pfmetPhi, t1pfmetSumEt,calomet,calometPhi, calometSumEt;
                 int passCHiso1, passCHiso2, passNHiso1, passNHiso2, passPHiso1, passPHiso2, passSieie1, passSieie2, passHoe1, passHoe2;
                 int passTightCHiso1, passTightCHiso2, passTightNHiso1, passTightNHiso2, passTightPHiso1, passTightPHiso2, passTightSieie1, passTightSieie2, passTightHoe1, passTightHoe2;
+                int passLooseCHiso1, passLooseCHiso2, passLooseNHiso1, passLooseNHiso2, passLoosePHiso1, passLoosePHiso2, passLooseSieie1, passLooseSieie2, passLooseHoe1, passLooseHoe2;
 
 		// fully selected event: tree re-initialization                                                                          
 		initTreeStructure();        
@@ -775,11 +813,25 @@ void NewDiPhoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
 		passTightHoe1   = passTightHoeCuts( sceta1, hoe1);
 		passTightHoe2   = passTightHoeCuts( sceta2, hoe2);
 
+		// loose working point selection
+		passLooseSieie1 = passLooseSieieCuts( sceta1, sieie1);
+		passLooseSieie2 = passLooseSieieCuts( sceta2, sieie2);
+                passLooseCHiso1 = passLooseCHisoCuts( sceta1, chiso1, pt1);
+                passLooseCHiso2 = passLooseCHisoCuts( sceta2, chiso2, pt2);
+		passLooseNHiso1 = passLooseNHisoCuts( sceta1, neuiso1, pt1);
+		passLooseNHiso2 = passLooseNHisoCuts( sceta2, neuiso2, pt2);
+		passLoosePHiso1 = passLoosePHisoCuts( sceta1, phoiso1, pt1);
+		passLoosePHiso2 = passLoosePHisoCuts( sceta2, phoiso2, pt2);
+		passLooseHoe1   = passLooseHoeCuts( sceta1, hoe1);
+		passLooseHoe2   = passLooseHoeCuts( sceta2, hoe2);
+
  		//-------> pass all photon ID cuts above + electronVeto
 		sel1 = testPhotonIsolation( passSieie1, passCHiso1, passNHiso1, passPHiso1, passHoe1, eleveto1 );
 		sel2 = testPhotonIsolation( passSieie2, passCHiso2, passNHiso2, passPHiso2, passHoe2, eleveto2 );
 		tightsel1 = testPhotonIsolation( passTightSieie1, passTightCHiso1, passTightNHiso1, passTightPHiso1, passTightHoe1, eleveto1 );
 		tightsel2 = testPhotonIsolation( passTightSieie2, passTightCHiso2, passTightNHiso2, passTightPHiso2, passTightHoe2, eleveto2 );
+		loosesel1 = testPhotonIsolation( passLooseSieie1, passLooseCHiso1, passLooseNHiso1, passLoosePHiso1, passLooseHoe1, eleveto1 );
+		loosesel2 = testPhotonIsolation( passLooseSieie2, passLooseCHiso2, passLooseNHiso2, passLoosePHiso2, passLooseHoe2, eleveto2 );
 
 		//-------> event class
 		float maxEta = sceta1;
@@ -983,6 +1035,8 @@ void NewDiPhoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
 		treeDipho_.sel2 = sel2;
 		treeDipho_.tightsel1 = tightsel1;
 		treeDipho_.tightsel2 = tightsel2;
+		treeDipho_.loosesel1 = loosesel1;
+		treeDipho_.loosesel2 = loosesel2;
 		treeDipho_.vtxIndex = vtxIndex;
 		treeDipho_.vtxX = vtxX;
 		treeDipho_.vtxY = vtxY;
@@ -1015,6 +1069,16 @@ void NewDiPhoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
 		treeDipho_.passTightSieie2 = passTightSieie2;
 		treeDipho_.passTightHoe1 = passTightHoe1;
 		treeDipho_.passTightHoe2 = passTightHoe2;	
+		treeDipho_.passLooseCHiso1 = passLooseCHiso1;
+		treeDipho_.passLooseCHiso2 = passLooseCHiso2;
+		treeDipho_.passLooseNHiso1 = passLooseNHiso1;
+		treeDipho_.passLooseNHiso2 = passLooseNHiso2;
+		treeDipho_.passLoosePHiso1 = passLoosePHiso1;
+		treeDipho_.passLoosePHiso2 = passLoosePHiso2;
+		treeDipho_.passLooseSieie1 = passLooseSieie1;
+		treeDipho_.passLooseSieie2 = passLooseSieie2;
+		treeDipho_.passLooseHoe1 = passLooseHoe1;
+		treeDipho_.passLooseHoe2 = passLooseHoe2;	
 	
 		// Filling the trees
 		DiPhotonTree->Fill();
@@ -1119,6 +1183,8 @@ void NewDiPhoAnalyzer::beginJob() {
   DiPhotonTree->Branch("sel2",&(treeDipho_.sel2),"sel2/I");
   DiPhotonTree->Branch("tightsel1",&(treeDipho_.tightsel1),"tightsel1/I");
   DiPhotonTree->Branch("tightsel2",&(treeDipho_.tightsel2),"tightsel2/I");
+  DiPhotonTree->Branch("loosesel1",&(treeDipho_.loosesel1),"loosesel1/I");
+  DiPhotonTree->Branch("loosesel2",&(treeDipho_.loosesel2),"loosesel2/I");
   DiPhotonTree->Branch("genmatch1",&(treeDipho_.genmatch1),"genmatch1/I");
   DiPhotonTree->Branch("genmatch2",&(treeDipho_.genmatch2),"genmatch12/I");
   DiPhotonTree->Branch("genmgg",&(treeDipho_.genmgg),"genmgg/F");
@@ -1151,6 +1217,16 @@ void NewDiPhoAnalyzer::beginJob() {
   DiPhotonTree->Branch("passTightSieie2",&(treeDipho_.passTightSieie2),"passTightSieie2/I");
   DiPhotonTree->Branch("passTightHoe1",&(treeDipho_.passTightHoe1),"passTightHoe1/I");
   DiPhotonTree->Branch("passTightHoe2",&(treeDipho_.passTightHoe2),"passTightHoe2/I");
+  DiPhotonTree->Branch("passLooseCHiso1",&(treeDipho_.passLooseCHiso1),"passLooseCHiso1/I");
+  DiPhotonTree->Branch("passLooseCHiso2",&(treeDipho_.passLooseCHiso2),"passLooseCHiso2/I");
+  DiPhotonTree->Branch("passLooseNHiso1",&(treeDipho_.passLooseNHiso1),"passLooseNHiso1/I");
+  DiPhotonTree->Branch("passLooseNHiso2",&(treeDipho_.passLooseNHiso2),"passLooseNHiso2/I");
+  DiPhotonTree->Branch("passLoosePHiso1",&(treeDipho_.passLoosePHiso1),"passLoosePHiso1/I");
+  DiPhotonTree->Branch("passLoosePHiso2",&(treeDipho_.passLoosePHiso2),"passLoosePHiso2/I");
+  DiPhotonTree->Branch("passLooseSieie1",&(treeDipho_.passLooseSieie1),"passLooseSieie1/I");
+  DiPhotonTree->Branch("passLooseSieie2",&(treeDipho_.passLooseSieie2),"passLooseSieie2/I");
+  DiPhotonTree->Branch("passLooseHoe1",&(treeDipho_.passLooseHoe1),"passLooseHoe1/I");
+  DiPhotonTree->Branch("passLooseHoe2",&(treeDipho_.passLooseHoe2),"passLooseHoe2/I");
 }
 
 void NewDiPhoAnalyzer::endJob() { }
@@ -1220,6 +1296,8 @@ void NewDiPhoAnalyzer::initTreeStructure() {
   treeDipho_.sel2 = -500;
   treeDipho_.tightsel1 = -500;
   treeDipho_.tightsel2 = -500;
+  treeDipho_.loosesel1 = -500;
+  treeDipho_.loosesel2 = -500;
   treeDipho_.vtxIndex = -500;
   treeDipho_.vtxX = -500.;
   treeDipho_.vtxY = -500.;
@@ -1252,6 +1330,16 @@ void NewDiPhoAnalyzer::initTreeStructure() {
   treeDipho_.passTightSieie2 = -500;
   treeDipho_.passTightHoe1 = -500;
   treeDipho_.passTightHoe2 = -500;
+  treeDipho_.passLooseCHiso1 = -500;
+  treeDipho_.passLooseCHiso2 = -500;
+  treeDipho_.passLooseNHiso1 = -500;
+  treeDipho_.passLooseNHiso2 = -500;
+  treeDipho_.passLoosePHiso1 = -500;
+  treeDipho_.passLoosePHiso2 = -500;
+  treeDipho_.passLooseSieie1 = -500;
+  treeDipho_.passLooseSieie2 = -500;
+  treeDipho_.passLooseHoe1 = -500;
+  treeDipho_.passLooseHoe2 = -500;
 }
 
 void NewDiPhoAnalyzer::SetPuWeights(std::string puWeightFile) {
@@ -1318,35 +1406,36 @@ bool NewDiPhoAnalyzer::isGammaPresel( float sceta, float pt, float r9, float chi
   return isPresel;
 }
 
-double NewDiPhoAnalyzer::getChargedHadronEAForPhotonIso(float eta) {
-if (fabs(eta) < 1.0) return 0.0158;
-else if (fabs(eta) >= 1.0 && fabs(eta) < 1.479) return 0.0143;
-else if (fabs(eta) >= 1.479 && fabs(eta) < 2.0 ) return 0.0115;
-else if (fabs(eta) >= 2.0 && fabs(eta) < 2.2 ) return 0.0094;
-else if (fabs(eta) >= 2.2 && fabs(eta) < 2.3 ) return 0.0095;
-else if (fabs(eta) >= 2.3 && fabs(eta) < 2.4 ) return 0.0068;
-else if (fabs(eta) >= 2.4) return 0.0053;
+double NewDiPhoAnalyzer::getChargedHadronEAForPhotonIso(float eta){
+// There is NO correction of EffArea for the CH iso in Spr15 25ns ID
+if (fabs(eta) < 1.0) return 0.0;
+else if (fabs(eta) >= 1.0 && fabs(eta) < 1.479)  return 0.0;
+else if (fabs(eta) >= 1.479 && fabs(eta) < 2.0 ) return 0.0;
+else if (fabs(eta) >= 2.0 && fabs(eta) < 2.2 )   return 0.0;
+else if (fabs(eta) >= 2.2 && fabs(eta) < 2.3 )   return 0.0;
+else if (fabs(eta) >= 2.3 && fabs(eta) < 2.4 )   return 0.0;
+else if (fabs(eta) >= 2.4) return 0.0;
 else return 0.;
 }
 double NewDiPhoAnalyzer::getNeutralHadronEAForPhotonIso(float eta) {
-if (fabs(eta) < 1.0) return 0.0143;
-else if (fabs(eta) >= 1.0 && fabs(eta) < 1.479) return 0.0210;
-else if (fabs(eta) >= 1.479 && fabs(eta) < 2.0 ) return 0.0147;
-else if (fabs(eta) >= 2.0 && fabs(eta) < 2.2 ) return 0.0082;
-else if (fabs(eta) >= 2.2 && fabs(eta) < 2.3 ) return 0.0124;
-else if (fabs(eta) >= 2.3 && fabs(eta) < 2.4 ) return 0.0186;
-else if (fabs(eta) >= 2.4) return 0.0320;
+if (fabs(eta) < 1.0) return 0.0599;
+else if (fabs(eta) >= 1.0 && fabs(eta) < 1.479)  return 0.0819;
+else if (fabs(eta) >= 1.479 && fabs(eta) < 2.0 ) return 0.0696;
+else if (fabs(eta) >= 2.0 && fabs(eta) < 2.2 )   return 0.0360;
+else if (fabs(eta) >= 2.2 && fabs(eta) < 2.3 )   return 0.0360;
+else if (fabs(eta) >= 2.3 && fabs(eta) < 2.4 )   return 0.0462;
+else if (fabs(eta) >= 2.4) return 0.0656;
 else return 0.;
 }
 
 double NewDiPhoAnalyzer::getGammaEAForPhotonIso(float eta) {
-if (fabs(eta) < 1.0) return 0.0725;
-else if (fabs(eta) >= 1.0 && fabs(eta) < 1.479) return 0.0604;
-else if (fabs(eta) >= 1.479 && fabs(eta) < 2.0 ) return 0.0320;
-else if (fabs(eta) >= 2.0 && fabs(eta) < 2.2 ) return 0.0512;
-else if (fabs(eta) >= 2.2 && fabs(eta) < 2.3 ) return 0.0766;
-else if (fabs(eta) >= 2.3 && fabs(eta) < 2.4 ) return 0.0949;
-else if (fabs(eta) >= 2.4) return 0.1160;
+if (fabs(eta) < 1.0) return 0.1271;
+else if (fabs(eta) >= 1.0 && fabs(eta) < 1.479)  return 0.1101;
+else if (fabs(eta) >= 1.479 && fabs(eta) < 2.0 ) return 0.0756;
+else if (fabs(eta) >= 2.0 && fabs(eta) < 2.2 )   return 0.1175;
+else if (fabs(eta) >= 2.2 && fabs(eta) < 2.3 )   return 0.1498;
+else if (fabs(eta) >= 2.3 && fabs(eta) < 2.4 )   return 0.1857;
+else if (fabs(eta) >= 2.4) return 0.2183;
 else return 0.;
 }
 
@@ -1383,66 +1472,65 @@ bool NewDiPhoAnalyzer::SubLeadPhoTriggerSel(float eta, float hoe, float r9, floa
 
 
 
+// selection for 25ns implemented from EGamma suggestions
+// https://twiki.cern.ch/twiki/bin/viewauth/CMS/CutBasedPhotonIdentificationRun2
 
-//Livia CorrectionL write beeter the photon ID cuts
+
+// medium working point
 int NewDiPhoAnalyzer::passSieieCuts(float sceta, float sieie){
   int passes = 1;
-  if (fabs(sceta)<1.4442 && sieie>0.0100) passes = 0;
-  if ((fabs(sceta)>1.566 && fabs(sceta)<2.5) && sieie>0.0267) passes = 0;
+  if (fabs(sceta)<1.4442 && sieie>0.0102) passes = 0;
+  if ((fabs(sceta)>1.566 && fabs(sceta)<2.5) && sieie>0.0268) passes = 0;
   return passes;
 }
 int NewDiPhoAnalyzer::passCHisoCuts(float sceta, float chiso, float pt){
   int passes = 1;
-  if (fabs(sceta)<1.4442 && chiso>1.31) passes = 0;
-  if ((fabs(sceta)>1.566 && fabs(sceta)<2.5) && chiso>1.25) passes = 0;
+  if (fabs(sceta)<1.4442 && chiso>1.37) passes = 0;
+  if ((fabs(sceta)>1.566 && fabs(sceta)<2.5) && chiso>1.10) passes = 0;
   return passes;
 }
 int NewDiPhoAnalyzer::passNHisoCuts(float sceta, float nhiso, float pt){
   int passes = 1;
-  if (fabs(sceta)<1.4442 && nhiso > 0.60+exp(0.0044*pt+0.5809)) passes = 0;
-  if ((fabs(sceta)>1.566 && fabs(sceta)<2.5) &&  nhiso > 1.65 + exp(0.0040*pt+0.9402)) passes = 0;
+  if (fabs(sceta)<1.4442 && nhiso > (1.06 + 0.014*pt + 0.000019*pt*pt)) passes = 0;
+  if ((fabs(sceta)>1.566 && fabs(sceta)<2.5) && nhiso > (2.69 + 0.0139*pt + 0.000025*pt*pt)) passes = 0;
   return passes;
 }
 int NewDiPhoAnalyzer::passPHisoCuts(float sceta, float phiso, float pt){
   int passes = 1;
-  if (fabs(sceta)<1.4442 && phiso > 1.33+0.0043*pt) passes = 0;
-  if ((fabs(sceta)>1.566 && fabs(sceta)<2.5) &&  phiso > 1.02+0.0041*pt) passes = 0;
+  if (fabs(sceta)<1.4442 && phiso > (0.28 + 0.0053*pt)) passes = 0;
+  if ((fabs(sceta)>1.566 && fabs(sceta)<2.5) && phiso > (0.39 + 0.0034*pt)) passes = 0;
   return passes;
 }
 int NewDiPhoAnalyzer::passHoeCuts(float sceta, float hoe){
   int passes = 1;
   if (fabs(sceta)<1.4442 && hoe>0.05) passes = 0;
-  if ((fabs(sceta)>1.566 && fabs(sceta)<2.5) &&hoe>0.05) passes = 0;
+  if ((fabs(sceta)>1.566 && fabs(sceta)<2.5) && hoe>0.05) passes = 0;
   return passes;
 }
 
-bool NewDiPhoAnalyzer::testPhotonIsolation(int passSieie, int passCHiso, int passNHiso, int passPHiso, int passHoe, int passEleVeto){
-  if (passSieie == 1 && passHoe == 1 && passCHiso == 1 && passNHiso == 1 && passPHiso == 1 && passEleVeto == 1) return true; //passes all selection
-  else return false;
-}
-
+// tight working point
 int NewDiPhoAnalyzer::passTightSieieCuts(float sceta, float sieie){
   int passes = 1;
   if (fabs(sceta)<1.4442 && sieie>0.0100) passes = 0;
-  if ((fabs(sceta)>1.566 && fabs(sceta)<2.5) && sieie>0.0267) passes = 0;
+  if ((fabs(sceta)>1.566 && fabs(sceta)<2.5) && sieie>0.0268) passes = 0;
   return passes;
 }
 int NewDiPhoAnalyzer::passTightCHisoCuts(float sceta, float chiso, float pt){
   int passes = 1;
-  if (fabs(sceta)<1.4442 && chiso>0.91) passes = 0;
-  if ((fabs(sceta)>1.566 && fabs(sceta)<2.5) && chiso>0.65) passes = 0;
+  if (fabs(sceta)<1.4442 && chiso>0.76) passes = 0;
+  if ((fabs(sceta)>1.566 && fabs(sceta)<2.5) && chiso>0.56) passes = 0;
   return passes;
 }
 int NewDiPhoAnalyzer::passTightNHisoCuts(float sceta, float nhiso, float pt){
   int passes = 1;
-  if (fabs(sceta)<1.4442 && nhiso > 0.33+exp(0.0044*pt+0.5809)) passes = 0;
-  if ((fabs(sceta)>1.566 && fabs(sceta)<2.5) &&  nhiso > 0.93 + exp(0.0040*pt+0.9402)) passes = 0;
+  if (fabs(sceta)<1.4442 && nhiso > (0.97 + 0.014*pt + 0.000019*pt*pt)) passes = 0;
+  if ((fabs(sceta)>1.566 && fabs(sceta)<2.5) &&  nhiso > (2.09 + 0.0139*pt + 0.000025*pt*pt)) passes = 0;
   return passes;
 }
 int NewDiPhoAnalyzer::passTightPHisoCuts(float sceta, float phiso, float pt){
   int passes = 1;
-  if (fabs(sceta)<1.4442 && phiso > 0.61+0.0043*pt) passes = 0;
-  if ((fabs(sceta)>1.566 && fabs(sceta)<2.5) &&  phiso > 0.54+0.0041*pt) passes = 0;
+  if (fabs(sceta)<1.4442 && phiso > (0.08 + 0.0053*pt)) passes = 0;
+  if ((fabs(sceta)>1.566 && fabs(sceta)<2.5) &&  phiso > (0.16 + 0.0034*pt)) passes = 0;
   return passes;
 }
 int NewDiPhoAnalyzer::passTightHoeCuts(float sceta, float hoe){
@@ -1450,6 +1538,44 @@ int NewDiPhoAnalyzer::passTightHoeCuts(float sceta, float hoe){
   if (fabs(sceta)<1.4442 && hoe>0.05) passes = 0;
   if ((fabs(sceta)>1.566 && fabs(sceta)<2.5) &&hoe>0.05) passes = 0;
   return passes;
+}
+
+// loose working point
+int NewDiPhoAnalyzer::passLooseSieieCuts(float sceta, float sieie){
+  int passes = 1;
+  if (fabs(sceta)<1.4442 && sieie>0.0102) passes = 0;
+  if ((fabs(sceta)>1.566 && fabs(sceta)<2.5) && sieie>0.0274) passes = 0;
+  return passes;
+}
+int NewDiPhoAnalyzer::passLooseCHisoCuts(float sceta, float chiso, float pt){
+  int passes = 1;
+  if (fabs(sceta)<1.4442 && chiso>3.32) passes = 0;
+  if ((fabs(sceta)>1.566 && fabs(sceta)<2.5) && chiso>1.97) passes = 0;
+  return passes;
+}
+int NewDiPhoAnalyzer::passLooseNHisoCuts(float sceta, float nhiso, float pt){
+  int passes = 1;
+  if (fabs(sceta)<1.4442 && nhiso > (1.92 + 0.014*pt + 0.000019*pt*pt)) passes = 0;
+  if ((fabs(sceta)>1.566 && fabs(sceta)<2.5) &&  nhiso > (11.86 + 0.0139*pt + 0.000025*pt*pt)) passes = 0;
+  return passes;
+}
+int NewDiPhoAnalyzer::passLoosePHisoCuts(float sceta, float phiso, float pt){
+  int passes = 1;
+  if (fabs(sceta)<1.4442 && phiso > (0.81 + 0.0053*pt)) passes = 0;
+  if ((fabs(sceta)>1.566 && fabs(sceta)<2.5) &&  phiso > (0.83 + 0.0034*pt)) passes = 0;
+  return passes;
+}
+int NewDiPhoAnalyzer::passLooseHoeCuts(float sceta, float hoe){
+  int passes = 1;
+  if (fabs(sceta)<1.4442 && hoe>0.05) passes = 0;
+  if ((fabs(sceta)>1.566 && fabs(sceta)<2.5) &&hoe>0.05) passes = 0;
+  return passes;
+}
+
+// PhotonID: if all true then valid photonID
+bool NewDiPhoAnalyzer::testPhotonIsolation(int passSieie, int passCHiso, int passNHiso, int passPHiso, int passHoe, int passEleVeto){
+  if (passSieie == 1 && passHoe == 1 && passCHiso == 1 && passNHiso == 1 && passPHiso == 1 && passEleVeto == 1) return true; //passes all selection
+  else return false;
 }
 
 /*
