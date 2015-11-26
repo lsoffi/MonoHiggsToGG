@@ -5,7 +5,7 @@
 
 using namespace std;
 
-void fitterFormatting(const char* filename, TString type, TString theSample) {
+void fitterFormatting(const char* filename, TString type, TString theSample, TString outFile) {
   cout << "Formatting " << filename << endl;
   cout << "Move to Pasquale's format for fit." << endl;
 
@@ -57,9 +57,8 @@ void fitterFormatting(const char* filename, TString type, TString theSample) {
   }
 
   // make output file and new trees
-  TString theNewFile = TString::Format("outputtest.root");
-  cout << "OutputFile: " << theNewFile << endl;
-  TFile *fileNew = TFile::Open(theNewFile,"RECREATE");
+  cout << "OutputFile: " << outFile << endl;
+  TFile *fileNew = TFile::Open(outFile,"RECREATE");
   vector<vector<TTree*> > trees;
   vector<TDirectory*> newDir;
   newDir.resize(numMetCat);  
