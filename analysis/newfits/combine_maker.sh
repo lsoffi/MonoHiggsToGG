@@ -4,7 +4,9 @@
 version=$1 && shift
 
 fitname=2D 
-www=~/www/exo/spring15_7415
+www=~/www/Plots/fits/
+treesdir=../macro/data/25ns_v7/
+
 if [[ $(whoami) == "mquittna" ]]; then
     www=/afs/cern.ch/user/m/mquittna/www/diphoton/Phys14/
 fi
@@ -123,7 +125,7 @@ label="$shapes"
 
 input=${version}_${fitname}_final_ws.root
 input_log=${version}_${fitname}_final_ws.log
-treesdir=~musella/public/workspace/exo/
+
 ls $treesdir/$version
 [[ ! -d $treesdir/$version ]] && treesdir=$PWD
 workdir=${version}_${fitname}_${label}_lumi_${lumi}

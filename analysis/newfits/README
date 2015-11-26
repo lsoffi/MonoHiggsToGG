@@ -1,0 +1,18 @@
+----------------------------------------------------------
+To make fits:
+----------------------------------------------------------
+
+Step 1) 
+  Convert ntuples from FLASHgg format to format for fits by using fitterFormatting.cc 
+  This can be called by:  ./formatNtupleForFitting.sh
+  
+  specifying fitterFormatting input arguements:
+    1st: file to convert
+    2nd: type (sig, bkg, dat)
+    3rd: sample name
+    4th: output file name
+
+Step 2) 
+
+
+Step 3)
