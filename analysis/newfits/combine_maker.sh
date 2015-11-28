@@ -5,7 +5,7 @@ version=$1 && shift
 
 fitname=2D 
 www=~/www/Plots/fits/
-treesdir=../macro/data/25ns_v7/
+treesdir=../newfits/
 
 if [[ $(whoami) == "mquittna" ]]; then
     www=/afs/cern.ch/user/m/mquittna/www/diphoton/Phys14/

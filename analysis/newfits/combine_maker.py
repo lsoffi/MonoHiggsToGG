@@ -1,6 +1,6 @@
 #!/bin/env python
 
-from diphotons.Utils.pyrapp import *
+from MonoHiggsToGG.utils.pyrapp import *
 from optparse import OptionParser, make_option
 from copy import deepcopy as copy
 import os, json
@@ -57,10 +57,10 @@ class CombineApp(TemplatesApp):
                                     help="Run KS test on  background fit",
                                     ),                       
                         make_option("--use-custom-pdfs",dest="use_custom_pdfs",action="store_true",default=True,
-                                    help="Use custom pdfs from diphotons/Utils",
+                                    help="Use custom pdfs from MonoHiggsToGG/utils",
                                     ),                        
                         make_option("--no-use-custom-pdfs",dest="use_custom_pdfs",action="store_false",
-                                    help="Do not use custom pdfs from diphotons/Utils",
+                                    help="Do not use custom pdfs from MonoHiggsToGG/utils",
                                     ),                        
                         make_option("--use-templates",dest="use_templates",action="store_true",default=False,
                                     help="Use hybrid fit",
@@ -328,7 +328,7 @@ class CombineApp(TemplatesApp):
         import ROOT
         from ROOT import RooFit
         
-        import diphotons.Utils.pyrapp.style_utils as style_utils
+        import MonoHiggsToGG.utils.pyrapp.style_utils as style_utils
         ROOT.gSystem.Load("libdiphotonsUtils")
         if ROOT.gROOT.GetVersionInt() >= 60000:
             ROOT.gSystem.Load("libdiphotonsRooUtils")
