@@ -1,5 +1,5 @@
 #!/bin/env python
-from MonoHiggsToGG.utils.pyrapp import *
+from MonoHiggsToGG.Utils.pyrapp import *
 from optparse import OptionParser, make_option
 from copy import deepcopy as copy
 import os, json
@@ -209,13 +209,13 @@ class TemplatesApp(PlotApp):
         import ROOT
         from ROOT import RooFit
         from ROOT import RooAbsData
-        import MonoHiggsToGG.utils.pyrapp.style_utils as style_utils
-        ROOT.gSystem.Load("libdiphotonsUtils")
+        import MonoHiggsToGG.Utils.pyrapp.style_utils as style_utils
+        ROOT.gSystem.Load("libMonoHiggsToGGUtils")
         if ROOT.gROOT.GetVersionInt() >= 60000:
             ROOT.gSystem.Load("libdiphotonsRooUtils")
             ROOT.gSystem.AddIncludePath("-I$CMSSW_BASE/include")
-            ROOT.gROOT.ProcessLine('#include "MonoHiggsToGG/utils/interface/DataSetFiller.h"')
-            ROOT.gROOT.ProcessLine('#include "MonoHiggsToGG/utils/interface/DataSetMixer.h"')
+            ROOT.gROOT.ProcessLine('#include "MonoHiggsToGG/Utils/interface/DataSetFiller.h"')
+            ROOT.gROOT.ProcessLine('#include "MonoHiggsToGG/Utils/interface/DataSetMixer.h"')
 
         ROOT.gStyle.SetOptStat(111111)
 
