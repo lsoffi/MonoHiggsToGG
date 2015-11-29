@@ -79,35 +79,54 @@ void fitterFormatting(const char* filename, TString type, TString theSample, TSt
   }
 
   // original tree leaves
+  Int_t   run		= 0.;
+  Int_t   event		= 0.;   
+  Int_t	  nvtx		= 0.;
   Float_t weight	= 0.;
+  Float_t rho		= 0.;
   Float_t mgg		= 0.;
   Float_t eta1		= 0.;
   Float_t eta2		= 0.;
   Float_t r91		= 0.;
   Float_t r92		= 0.;
   Float_t t1pfmet	= 0.;
+  Float_t pt1		= 0.;
+  Float_t pt2		= 0.;
 
   // branches from original tree
+  TBranch *b_run;
+  TBranch *b_event;
+  TBranch *b_nvtx;
+  TBranch *b_rho;
   TBranch *b_weight;
   TBranch *b_mgg;
   TBranch *b_eta1;
   TBranch *b_eta2;
   TBranch *b_r91;
   TBranch *b_r92;
+  TBranch *b_pt1;
+  TBranch *b_pt2;
   TBranch *b_t1pfmet;
 
-
   // set branch addresses and branch pointers
+  treeOrig->SetBranchAddress("run",	&run,		&b_run);
+  treeOrig->SetBranchAddress("event",	&event,		&b_event);
   treeOrig->SetBranchAddress("weight",	&weight,	&b_weight);
+  treeOrig->SetBranchAddress("nvtx",	&nvtx,		&b_nvtx);
+  treeOrig->SetBranchAddress("rho",	&rho,		&b_rho);
   treeOrig->SetBranchAddress("mgg", 	&mgg,		&b_mgg);
   treeOrig->SetBranchAddress("eta1",	&eta1,		&b_eta1); 
   treeOrig->SetBranchAddress("eta2",	&eta2,		&b_eta2); 
   treeOrig->SetBranchAddress("r91",	&r91,		&b_r91);
   treeOrig->SetBranchAddress("r92",	&r92,		&b_r92);
+  treeOrig->SetBranchAddress("pt1",	&pt1,		&b_pt1);
+  treeOrig->SetBranchAddress("pt2",	&pt2,		&b_pt2);
   treeOrig->SetBranchAddress("t1pfmet",	&t1pfmet,	&b_t1pfmet);
 
   // new variables (needed if variable has diff name in new tree) 
-  float mass; 
+  float mass;
+  float leadPt, subleadPt;
+  float leadEta, subleadEta; 
 
   // setup new trees
   vector<vector<TTree*> > theTreeNew;
@@ -116,8 +135,17 @@ void fitterFormatting(const char* filename, TString type, TString theSample, TSt
     theTreeNew[i].resize(numPhoCat);
     for (UInt_t j=0; j<numPhoCat;j++) {
       theTreeNew[i][j] = trees[i][j];
-      theTreeNew[i][j]->Branch("mass", &mass, "mass/F");
-      theTreeNew[i][j]->Branch("weight", &weight, "weight/F");
+      theTreeNew[i][j]->Branch("run",		&run,		"run/I");
+      theTreeNew[i][j]->Branch("event",		&event,		"event/I");
+      theTreeNew[i][j]->Branch("weight", 	&weight, 	"weight/F");
+      theTreeNew[i][j]->Branch("rho",		&rho,		"rho/F");
+      theTreeNew[i][j]->Branch("mass", 		&mass, 		"mass/F");
+      theTreeNew[i][j]->Branch("nvtx",		&nvtx,		"nvtx/I");
+      theTreeNew[i][j]->Branch("leadEta", 	&leadEta, 	"leadEta/F");
+      theTreeNew[i][j]->Branch("subleadEta", 	&subleadEta, 	"subleadEta/F");
+      theTreeNew[i][j]->Branch("leadPt",	&leadPt,	"leadPt/F");
+      theTreeNew[i][j]->Branch("subleadPt",	&subleadPt,	"subleadPt/F");
+   
     }// end loop oever new trees in pho cat 
   }// end loop over new trees in met cat
 
@@ -149,8 +177,13 @@ void fitterFormatting(const char* filename, TString type, TString theSample, TSt
         else if (t1pfmet >= met*metSpacing && t1pfmet < (met+1)*metSpacing ) passMet[met]=true; // look at bins in met with value of metSpacing
       }// end met loop
 
+      // set the new variables (i.e. renamed from old tree)
       mass = mgg;
-
+      leadPt = pt1;
+      subleadPt = pt2;
+      leadEta = eta1;
+      subleadEta = eta2;   
+      
       // fill the trees for events in the different categories
       for (UInt_t met=0; met<numMetCat; met++){
         newDir[met]->cd();
