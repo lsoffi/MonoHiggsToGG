@@ -331,7 +331,7 @@ class CombineApp(TemplatesApp):
         import MonoHiggsToGG.Utils.pyrapp.style_utils as style_utils
         ROOT.gSystem.Load("libMonoHiggsToGGUtils")
         if ROOT.gROOT.GetVersionInt() >= 60000:
-            ROOT.gSystem.Load("libdiphotonsRooUtils")
+            ROOT.gSystem.Load("libMonoHiggsToGGRooUtils")
         ROOT.gSystem.Load("libHiggsAnalysisCombinedLimit")
         
         self.pdfPars_ = ROOT.RooArgSet()
