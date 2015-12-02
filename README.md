@@ -2,8 +2,11 @@
 # MonoHiggsToGG analysis
 -----------------------------------------------------------
 This repo is https://github.com/mez34/MonoHiggsToGG
+
 But originally comes from: https://github.com/mez34/MonoHgg
+
 Check there for History before 17 Nov 2015
+
 -----------------------------------------------------------
 
 
@@ -11,7 +14,7 @@ Check there for History before 17 Nov 2015
 # Run the Analysis
 -----------------------------------------------------------
 
-# MicroAOD to diPhotonAnaTrees 
+# MicroAOD to diPhotonTrees 
 This package depends on [flashgg](https://github.com/cms-analysis/flashgg).
 
 (Follow what is done here from P. Musella: https://github.com/cms-analysis/flashgg/tree/master/MetaData 
@@ -27,19 +30,16 @@ Once MicroAOD files are produced run these scripts to create the json file (cata
 ## Step 2) Copy json to the scripts/list* directory
 - Copy directly from FLASHgg catalogue or list as produced in Step 1.
 - If json file is not separated by name can extract smaller json files with:
-`./runExtractJSONS` which calls:
-```
-python extractJSONS.py -i input.json -o samplename -d outputdir 
-```
-for the samples (currently in RunII_25ns catalog)
+`./runExtractJSONS.sh` which calls: `python extractJSONS.py -i input.json -o samplename -d outputdir` 
 
 ## Step 3) Extract files and weights
 This creates .list and .weight files in list* directory
+
 Write the proper name of the catalogue in the extract*.py scripts and write the name of the samples in:
 - `python extractWeights.py`
 - `python extractFiles.py`
-OR run 
-`./runExtractFilesAndWeights.sh` does the same thing (takes input list of .json files and outputs weight and files in same list dir.)
+
+OR run `./runExtractFilesAndWeights.sh` does the same thing (takes input list of .json files and outputs weight and files in same list dir.)
 
 ## Step 4) Run in local the diphoton analyzer (from python directory):
 - Write by hand one microAOD file that can be taken from the json file
@@ -64,10 +64,13 @@ NB. The name GJets_HT-100to200 has to match the one of the .list and the .weight
 
 Can also run: `./submitAll_DiPhioton.py`
       
-## Step 6) Manage the output trees before making plots (from smacro directory):
+## Step 6) Manage the output trees before making plots 
+From the macro directory:
+
 - Merge the output files with `mergeTrees.sh`
 - Add the weights to the trees with addWeightsToTree.cc run by `weighTrees.sh`
 - Merge the species with `mergeSpecies.sh`
+
 NB. The structure of how to use these scripts can be seen in `doAll.sh`
 
 ## Step 7) Produce plots 
@@ -75,13 +78,14 @@ The analysis is done in CMSSW_7_4_12
 - make (to compile) 
 - ./main (to run)
 
-In main.cpp set the following bools 
-  (makePURWfiles)	calls ReweightPU.cpp	(makes PURW files for samples)
-  (doReweightPU)  	opens PURW files  	(doPURW instead of weighting=1)
-  (doBlind)	        blinds data in Plotter	(blinds the data mass & met distributions)
-  (doPlots) 		calls Plotter.cpp 	(histos for each sample individually)
-  (doComb)  		calls Combiner.cpp 	(overlay and stack samples)
-  (doABCD)		calls ABCDMethod.cpp	(do ABCD/C&C analysis) 
+In main.cpp set the following bools:
+- (makePURWfiles)	calls ReweightPU.cpp	(makes PURW files for samples)
+- (doReweightPU)  	opens PURW files  	(doPURW instead of weighting=1)
+- (doBlind)	        blinds data in Plotter	(blinds the data mass & met distributions)
+- (doPlots) 		calls Plotter.cpp 	(histos for each sample individually)
+- (doComb)  		calls Combiner.cpp 	(overlay and stack samples)
+- (doABCD)		calls ABCDMethod.cpp	(do ABCD/C&C analysis) 
+
 The style for the plots is set with Style.cpp.
 
 -----------------------------------------------------------
