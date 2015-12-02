@@ -67,24 +67,24 @@ Can also run: `./submitAll_DiPhioton.py`
 ## Step 6) Manage the output trees before making plots 
 From the macro directory:
 
-- Merge the output files with `mergeTrees.sh`
-- Add the weights to the trees with addWeightsToTree.cc run by `weighTrees.sh`
-- Merge the species with `mergeSpecies.sh`
+- Merge the output files with `./mergeTrees.sh`
+- Add the weights to the trees with addWeightsToTree.cc run by `./weighTrees.sh` which addWeights for lumi (in pb^-1)
+- Merge the species with `./mergeSpecies.sh`
 
 NB. The structure of how to use these scripts can be seen in `doAll.sh`
 
 ## Step 7) Produce plots 
 The analysis is done in CMSSW_7_4_12
-- make (to compile) 
-- ./main (to run)
+- `make` (to compile) 
+- `./main` (to run)
 
 In main.cpp set the following bools:
-- (makePURWfiles): calls ReweightPU.cpp  --- makes PURW files for samples)
-- (doReweightPU) : opens PURW files      --- does PURW instead of weighting=1
-- (doBlind)	 : blinds data in Plots  --- blinds the data mass & met distributions
-- (doPlots) 	 : calls Plotter.cpp 	 --- makes the histos for each sample individually
-- (doComb)  	 : calls Combiner.cpp 	 --- overlays and stacks samples in plots
-- (doABCD)	 : calls ABCDMethod.cpp	 --- does the ABCD/C&C analysis
+- (makePURWfiles) : calls ReweightPU.cpp  --- makes PURW files for samples)
+- (doReweightPU)  : opens PURW files      --- does PURW instead of weighting=1
+- (doBlind)	  : blinds data in Plots  --- blinds the data mass & met distributions
+- (doPlots) 	  : calls Plotter.cpp 	 --- makes the histos for each sample individually
+- (doComb)  	  : calls Combiner.cpp 	 --- overlays and stacks samples in plots
+- (doABCD)	  : calls ABCDMethod.cpp	 --- does the ABCD/C&C analysis
 
 The style for the plots is set with Style.cpp.
 
