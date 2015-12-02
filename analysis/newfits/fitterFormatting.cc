@@ -45,14 +45,15 @@ void fitterFormatting(const char* filename, TString type, TString theSample, TSt
   thePhotonCat[4]="EELowR9";
 
   // vector for new met categories out
-  UInt_t numMetCat = 11;
+  UInt_t numMetCat = 12;
   UInt_t metSpacing = 100; // spacing of met bins in GeV
   vector<TString> theMetCat;
   theMetCat.resize(numMetCat);
   for (UInt_t met=0; met<numMetCat; met++){
      UInt_t metmin = met*metSpacing;
      UInt_t metmax = (met+1)*metSpacing;
-     if (met==numMetCat-1) theMetCat[met]=TString::Format("%i",metmin);
+     if (met==numMetCat-2) theMetCat[met]=TString::Format("%i",metmin);
+     if (met==numMetCat-1) tehMetCat[met]="all";
      else theMetCat[met]=TString::Format("%i_%i",metmin,metmax);
   }
 
@@ -145,7 +146,6 @@ void fitterFormatting(const char* filename, TString type, TString theSample, TSt
       theTreeNew[i][j]->Branch("subleadEta", 	&subleadEta, 	"subleadEta/F");
       theTreeNew[i][j]->Branch("leadPt",	&leadPt,	"leadPt/F");
       theTreeNew[i][j]->Branch("subleadPt",	&subleadPt,	"subleadPt/F");
-   
     }// end loop oever new trees in pho cat 
   }// end loop over new trees in met cat
 
@@ -153,8 +153,11 @@ void fitterFormatting(const char* filename, TString type, TString theSample, TSt
   vector<bool> passMet;
   passMet.resize(numMetCat);
 
-  bool inEE;
-  bool hiR9;
+  bool EB1, EB2;
+  bool EE1, EE2;
+
+  bool inEB, inEE;
+  bool hiR9, loR9;
 
   for (UInt_t i=0; i<nentriesOrig; i++){
     treeOrig->GetEntry(i);
@@ -162,18 +165,30 @@ void fitterFormatting(const char* filename, TString type, TString theSample, TSt
     if (mgg >= 100 && mgg <= 200){
 
       // split events by eta
+      EB1 = false;
+      EB2 = false;
+      EE1 = false;
+      EE2 = false;
+      if (fabs(eta1)>=1.5) EE1=true;
+      if (fabs(eta2)>=1.5) EE2=true;
+      if (fabs(eta1)<1.5)  EB1=true;
+      if (fabs(eta2)<1.5)  EB2=true; 
       inEE=false;
-      if (fabs(eta1)>1.5 && fabs(eta2)>1.5) inEE=true; 
+      inEB=false;
+      if (EB1 && EB2) inEB=true;
+      else if (EE1 || EE2) inEE=true;
       
       // split events by r9
       hiR9 = false;
+      loR9 = false;
       if (r91 > 0.94 && r92 > 0.94) hiR9 = true;
+      else if (r91 > 0.94 || r92 > 0.94) loR9 = true;
 
       // split events in categories of met
       for (UInt_t met=0; met<numMetCat; met++){
 	passMet[met]=false;
-        //if (met = 0) passMet[met]=true;
-        if (met == numMetCat-1 && t1pfmet >= met*metSpacing) passMet[met]=true;// for last bin take all events above met cut
+        if (met == numMetCat-2 && t1pfmet >= met*metSpacing) passMet[met]=true;			// for 2nd to last bin take all events above met cut
+        if (met == numMetCat-1) passMet[met] = true; 						// for last bin take all events NO met cut
         else if (t1pfmet >= met*metSpacing && t1pfmet < (met+1)*metSpacing ) passMet[met]=true; // look at bins in met with value of metSpacing
       }// end met loop
 
@@ -188,11 +203,11 @@ void fitterFormatting(const char* filename, TString type, TString theSample, TSt
       for (UInt_t met=0; met<numMetCat; met++){
         newDir[met]->cd();
         if (passMet[met]){
-            theTreeNew[met][0]->Fill();			   // pho=0 noPhoSel 
-	    if (!inEE && hiR9)  theTreeNew[met][1]->Fill();// pho=1 EBHighR9
-	    if (!inEE && !hiR9) theTreeNew[met][2]->Fill();// pho=2 EBLowR9
-	    if (inEE && hiR9)   theTreeNew[met][3]->Fill();// pho=3 EEHighR9
-	    if (inEE && !hiR9)  theTreeNew[met][4]->Fill();// pho=4 EELowR9
+            theTreeNew[met][0]->Fill();			 // pho=0 noPhoSel 
+	    if (inEB && hiR9) theTreeNew[met][1]->Fill();// pho=1 EBHighR9
+	    if (inEB && loR9) theTreeNew[met][2]->Fill();// pho=2 EBLowR9
+	    if (inEE && hiR9) theTreeNew[met][3]->Fill();// pho=3 EEHighR9
+	    if (inEE && loR9) theTreeNew[met][4]->Fill();// pho=4 EELowR9
         }
       }//end filling loop
 

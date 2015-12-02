@@ -354,7 +354,8 @@ class TemplatesApp(PlotApp):
             fin = self.open(read_ws,folder=options.ws_dir)
         else:
             fin = self.open(read_ws)
-        cfg = json.loads( str(fin.Get("cfg").GetString()) )
+        #cfg = json.loads( str(fin.Get("cfg").GetString()) )
+        cfg = json.loads( str(fin.Get("cfg").GetName()) )
         for name,val in cfg["fits"].iteritems():
             options.fits[name] = val
         ws = fin.Get("wtemplates")

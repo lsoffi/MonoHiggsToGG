@@ -852,7 +852,7 @@ kmax * number of nuisance parameters (source of systematic uncertainties)
         
         observed = self.computeKSD(datacdf,modelcdf,obs)
         
-        tmp = self.open("/tmp/musella/pippo.root","recreate")
+        tmp = self.open("/tmp/mzientek/pippo.root","recreate")
         
         ksdistrib = []
         ndata = data.sumEntries()
@@ -1906,7 +1906,7 @@ kmax * number of nuisance parameters (source of systematic uncertainties)
     def generateParametricSignal(self,options,args):
         
         from templates_maker import WsList
-        tmp = self.open("/tmp/musella/cache.root","recreate")
+        tmp = self.open("/tmp/mzientek/cache.root","recreate")
         ws = ROOT.RooWorkspace("w","w")
         workspace = WsList(ws)
         exp = map(lambda x: glob.glob("%s/*.root" % x) if x.endswith("/") else [x], options.parametric_signal)
