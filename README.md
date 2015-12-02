@@ -79,12 +79,12 @@ The analysis is done in CMSSW_7_4_12
 - ./main (to run)
 
 In main.cpp set the following bools:
-- (makePURWfiles)	calls ReweightPU.cpp	(makes PURW files for samples)
-- (doReweightPU)  	opens PURW files  	(doPURW instead of weighting=1)
-- (doBlind)	        blinds data in Plotter	(blinds the data mass & met distributions)
-- (doPlots) 		calls Plotter.cpp 	(histos for each sample individually)
-- (doComb)  		calls Combiner.cpp 	(overlay and stack samples)
-- (doABCD)		calls ABCDMethod.cpp	(do ABCD/C&C analysis) 
+- (makePURWfiles): calls ReweightPU.cpp  --- makes PURW files for samples)
+- (doReweightPU) : opens PURW files      --- does PURW instead of weighting=1
+- (doBlind)	 : blinds data in Plots  --- blinds the data mass & met distributions
+- (doPlots) 	 : calls Plotter.cpp 	 --- makes the histos for each sample individually
+- (doComb)  	 : calls Combiner.cpp 	 --- overlays and stacks samples in plots
+- (doABCD)	 : calls ABCDMethod.cpp	 --- does the ABCD/C&C analysis
 
 The style for the plots is set with Style.cpp.
 
