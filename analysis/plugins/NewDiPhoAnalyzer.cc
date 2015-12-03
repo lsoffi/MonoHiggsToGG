@@ -224,6 +224,7 @@ private:
 
   // to compute weights for pileup
   std::vector<Double_t> puweights_;
+  bool doOfficialPUrecipe = false;
 
   // output tree with several diphoton infos
   TTree *DiPhotonTree;
@@ -382,8 +383,10 @@ void NewDiPhoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
 	pu_n = PileupInfos->ptrAt( PVI )->getTrueNumInteractions();
       }
     }
-  if (dopureweight_) 
-      pu_weight = GetPUWeight(pu_n);         
+    if (dopureweight_){
+        if (doOfficialPUrecipe) pu_weight = GetPUWeight(pu_n);// for Chiara's official PU recipe          
+        else pu_weight = GetPUWeight(nvtx); 
+    }
   }
   //std::cout << pu_n << " " << nvtx << " weight = " << pu_weight << std::endl; 
  
@@ -1354,22 +1357,31 @@ void NewDiPhoAnalyzer::SetPuWeights(std::string puWeightFile) {
   f_pu->cd();
 
   TH1D *puweights = 0;
-  TH1D *gen_pu = 0;
-  gen_pu    = (TH1D*) f_pu->Get("generated_pu");
-  puweights = (TH1D*) f_pu->Get("weights");
-  //puweights = (TH1D*) f_pu->Get("nvtx_dataOverMC");
-  //puweights = (TH1D*) f_pu->Get("puhist"); // for Livia's old PU file
+  TH1D *gen_pu = 0; 
+  if (doOfficialPUrecipe){ 
+    gen_pu    = (TH1D*) f_pu->Get("generated_pu");// for Chiara's offical PU recipe
+    puweights = (TH1D*) f_pu->Get("weights");// for Chiara's official PU recipe
+  }
+  else puweights = (TH1D*) f_pu->Get("nvtx_dataOverMC");// for weighting with nvtx
+  //puweights = (TH1D*) f_pu->Get("puhist");// for Livia's old PU file
 
-  if (!puweights || !gen_pu) {
-    std::cout << "weights histograms  not found in file " << puWeightFile << std::endl;
+  if (!puweights){
+    std::cout << "puweights histogram not found in file " << puWeightFile << std::endl;
+    if (doOfficialPUrecipe && !gen_pu) {
+      std::cout << "gen_pu histograms  not found in file " << puWeightFile << std::endl;
+      return;
+    }
     return;
   }
-  TH1D* weightedPU= (TH1D*)gen_pu->Clone("weightedPU");
-  weightedPU->Multiply(puweights);
 
-  // Rescaling weights in order to preserve same integral of events                               
-  TH1D* weights = (TH1D*)puweights->Clone("rescaledWeights");
-  weights->Scale( gen_pu->Integral(1,MAX_PU_REWEIGHT) / weightedPU->Integral(1,MAX_PU_REWEIGHT) );
+  if (doOfficialPUrecipe){
+    TH1D* weightedPU= (TH1D*)gen_pu->Clone("weightedPU");
+    weightedPU->Multiply(puweights);
+
+    // Rescaling weights in order to preserve same integral of events                               
+    TH1D* weights = (TH1D*)puweights->Clone("rescaledWeights");
+    weights->Scale( gen_pu->Integral(1,MAX_PU_REWEIGHT) / weightedPU->Integral(1,MAX_PU_REWEIGHT) );
+  }
 
   float sumPuWeights=0.;
   for (int i = 0; i<MAX_PU_REWEIGHT; i++) {
