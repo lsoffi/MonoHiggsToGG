@@ -73,6 +73,7 @@ int main(){
       doPlots = false;
       doComb = false;
       doABCD = false;
+      doCompare = false;
       doReweightPU = false;
       makePURWfiles = false;
     }
@@ -180,7 +181,7 @@ int main(){
   //
   /////////////////////////////////////////////////////
 
-  if (doFakeData && doPlots){
+  if (doFakeData){
     std::cout << "Working on FakeData sample" << std::endl;
     Plotter * FakeData = new Plotter(inDir,outDir,"FakeData",puweights_Data,lumi,false,true,doBlind,type);
     FakeData->DoPlots();
@@ -429,7 +430,7 @@ int main(){
 
   if (doCompare){
     std::cout << "Working on Comparing All Samples" << std::endl;
-    Comparer *comp = new Comparer(Samples,colorMap,lumi,puweights_MC,inDir,outDir,type);
+    Comparer *comp = new Comparer(Samples,colorMap,lumi,puweights_MC,inDir,outDir,doBlind,type);
     comp->DoComparison();
     delete comp;
     std::cout << "Finished Comparing Samples" << std::endl;
