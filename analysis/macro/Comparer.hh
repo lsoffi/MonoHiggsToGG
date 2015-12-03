@@ -50,6 +50,7 @@ private:
   Double_t	lumi;
   TString	fType;
   Bool_t	doBlind;
+  DblVec	fPUWeights;
 
   TStrMap	fSampleTitleMap;
   ColorMap	fColorMap;
@@ -73,7 +74,8 @@ private:
   TTreeVec	fDataTrees;
   TTreeVec	fBkgTrees;
   TTreeVec	fSigTrees;
-  TChain	fAllChain;
+  TChain * 	fAllChain;
+  UInt_t	nentries;
 
   TStrVec	fTH1DNames;
   UInt_t	fNTH1D;

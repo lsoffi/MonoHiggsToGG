@@ -279,7 +279,6 @@ int main(){
     //delete DMH_mZP2500;
     //std::cout << "Finished DMHgg 2HDM MZP2500 sample" << std::endl;
 
-
     //std::cout << "Working on DMHgg M1000 sample" << std::endl;
     //Plotter * DMH_M1000 = new Plotter(inDir,outDir,"DMHtoGG_M1000",puweights_sig,lumi,true,false,doBlind,type);
     //DMH_M1000->DoPlots();
@@ -306,10 +305,6 @@ int main(){
 
   }// end doPlots
 
-  //clear the vectors after they have been used
-  puweights_Data.clear();
-  puweights_MC.clear();
-  //puweights_sig.clear();
 
   // setup all samples for Combiner and ABCD
   ColorMap colorMap;
@@ -490,5 +485,11 @@ int main(){
     delete abcd; 
   }// end doABCD
 
+  //clear the vectors after they have been used
+  puweights_Data.clear();
+  puweights_MC.clear();
+  //puweights_sig.clear();
+
   delete tdrStyle;
+
 }// end main
