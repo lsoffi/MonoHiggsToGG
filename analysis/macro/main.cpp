@@ -38,15 +38,15 @@ int main(){
   //////////////////////////////////////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////////////////////////////////
 
-  TString inDir = "./data/25ns_v7_noEV/"; 		// input directory of the samples
-  TString outDir = "./diPhoPlots/25ns_v7_noEV/";	// output directory to send results
+  TString inDir = "./data/25ns_v7_LooseSel/"; 		// input directory of the samples
+  TString outDir = "./diPhoPlots/25ns_v7_LooseSel/";	// output directory to send results
 
   bool doFakeData = false;	// use FakeData to test combiner (mimicks data)
   bool sortMC = false;		// use if want to sort bkg smallest to biggest, else uses order given
   bool doBlind = true;		// use to blind the analysis for Data (don't use distributions for met>100 & 110<mgg<150)
   bool makePURWfiles = false;	// recompute PURW and make files (need also doReweightPU=true for this to run)
   bool doReweightPU = true;	// use PURW from old files if !makePURWfiles
-  bool doPlots = false;		// make plots for each sample individually
+  bool doPlots = true;		// make plots for each sample individually
   bool doComb = true;		// make stack/overlay plots
   bool doABCD = false;		// run ABCD method 
 
@@ -185,11 +185,11 @@ int main(){
     std::cout << "Finished FakeData sample" << std::endl;
   }
   if (doPlots){
-    //std::cout << "Working on DoubleEG sample" << std::endl;
-    //Plotter * dEG = new Plotter(inDir,outDir,"DoubleEG",puweights_Data,lumi,false,true,doBlind,type);
-    //dEG->DoPlots();
-    //delete dEG;
-    //std::cout << "Finished DoubleEG sample" << std::endl;
+    std::cout << "Working on DoubleEG sample" << std::endl;
+    Plotter * dEG = new Plotter(inDir,outDir,"DoubleEG",puweights_Data,lumi,false,true,doBlind,type);
+    dEG->DoPlots();
+    delete dEG;
+    std::cout << "Finished DoubleEG sample" << std::endl;
 
     std::cout << "Working on GJets sample" << std::endl;
     Plotter * GJets = new Plotter(inDir,outDir,"GJets",puweights_MC,lumi,false,false,doBlind,type);
