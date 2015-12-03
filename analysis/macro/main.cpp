@@ -9,6 +9,7 @@
 
 #include "Plotter.hh"
 #include "Combiner.hh"
+#include "Comparer.hh"
 #include "ReweightPU.hh"
 #include "ABCDMethod.hh"
 #include "Style.hh"
@@ -46,9 +47,10 @@ int main(){
   bool doBlind = true;		// use to blind the analysis for Data (don't use distributions for met>100 & 110<mgg<150)
   bool makePURWfiles = false;	// recompute PURW and make files (need also doReweightPU=true for this to run)
   bool doReweightPU = true;	// use PURW from old files if !makePURWfiles
-  bool doPlots = true;		// make plots for each sample individually
-  bool doComb = true;		// make stack/overlay plots
+  bool doPlots = false;		// make plots for each sample individually
+  bool doComb = false;		// make stack/overlay plots
   bool doABCD = false;		// run ABCD method 
+  bool doCompare = true;	// call Comparer 
 
   Double_t lumi = 1263.9; // in pb^-1 
   UInt_t nBins_vtx = 60; // number of bins for PURW 
@@ -160,6 +162,7 @@ int main(){
   //}
 
   if (doReweightPU) std::cout << "Finished PU Reweighting" << std::endl;
+
 
   /////////////////////////////////////////////////////
   //
@@ -408,6 +411,29 @@ int main(){
     Samples.push_back(SigSamples[mc]);
   }
   }// end if sortMC
+
+  /////////////////////////////////////////////////////
+  //
+  // Make comparison plots for all samples
+  //
+  // Arguments to Plotter:
+  // 1st : SamplePairVec (Samples) that has Name,VALUE
+  // 2nd : ColorMap for samples
+  // 3rd : lumi
+  // 4th : PU weight vector
+  // 5th : input directory
+  // 5th : output directory
+  // 6th : type of plots out 
+  //
+  /////////////////////////////////////////////////////
+
+  if (doCompare){
+    std::cout << "Working on Comparing All Samples" << std::endl;
+    Comparer *comp = new Comparer(Samples,colorMap,lumi,puweights_MC,inDir,outDir,type);
+    comp->DoComparison();
+    delete comp;
+    std::cout << "Finished Comparing Samples" << std::endl;
+  }
 
   ////////////////////////////////////////////////////
   //
