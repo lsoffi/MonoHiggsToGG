@@ -2,6 +2,10 @@
 
 Comparer::Comparer( SamplePairVec Samples, const ColorMap colorMap, const Double_t inLumi, const DblVec puweights, const TString indir, const TString outdir, const Bool_t Blind, const TString type){
 
+  // Load RooFit
+  gSystem->Load("libRooFit");
+
+  // Store input variables
   fType = type;
   lumi = inLumi;
   fInDir = indir;
@@ -100,7 +104,7 @@ void Comparer::DoComparison(){
            
          }
          else{
-
+           
          }
  
       }// end mgg selection
@@ -109,6 +113,10 @@ void Comparer::DoComparison(){
   }// end loop over entries in TChain
 
 }// end Comparer::DoComparison
+
+void Comparer::AddRooWorkspace( RooWorkspace* w){
+
+}// end Comparer::AddRooWorkspace
 
 void Comparer::GetInFilesAndMakeTChain(){
  // open input files into TFileVec for data

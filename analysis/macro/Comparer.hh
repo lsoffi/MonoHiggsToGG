@@ -22,8 +22,12 @@
 #include "TLine.h"
 #include "TChain.h"
 
+#include "RooRealVar.h"
+
 #include <iostream>
 #include <cmath>
+
+using namespace RooFit;
 
 typedef std::vector<TFile*>   TFileVec;
 typedef std::vector<TH1D*>    TH1DVec;
@@ -42,6 +46,7 @@ public:
   void DoComparison();
   void GetInFilesAndMakeTChain();
   void SetTChainBranchAddresses(); 
+  void AddRooWorkspace(RooWorkspace* w);
   TH1D * MakeTH1DPlot(const TString hname, const TString htitle, const Int_t nbins, const Double_t xlow, const Double_t xhigh, const TString xtitle, const TString ytitle);
   void InitVariables();
   ~Comparer();
