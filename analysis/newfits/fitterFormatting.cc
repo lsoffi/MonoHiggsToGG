@@ -111,6 +111,7 @@ void fitterFormatting(const char* filename, TString type, TString theSample, TSt
   Float_t sceta2	= 0.;
   Int_t   eleveto1	= 0.;
   Int_t   eleveto2	= 0.;
+  Int_t   hltDiphoton30Mass95 = 0.;
 
   // branches from original tree
   TBranch *b_run;
@@ -144,6 +145,7 @@ void fitterFormatting(const char* filename, TString type, TString theSample, TSt
   TBranch *b_sceta2; 
   TBranch *b_eleveto1;
   TBranch *b_eleveto2;
+  TBranch *b_hltDiphoton30Mass95;
 
   // set branch addresses and branch pointers
   treeOrig->SetBranchAddress("run",		&run,		&b_run);
@@ -177,6 +179,7 @@ void fitterFormatting(const char* filename, TString type, TString theSample, TSt
   treeOrig->SetBranchAddress("sceta2",		&sceta2,	&b_sceta2);
   treeOrig->SetBranchAddress("eleveto1",	&eleveto1,	&b_eleveto1);
   treeOrig->SetBranchAddress("eleveto2",	&eleveto2,	&b_eleveto2);
+  treeOrig->SetBranchAddress("hltDiphoton30Mass95",	&hltDiphoton30Mass95,	&b_hltDiphoton30Mass95);  
 
   // new variables (needed if variable has diff name in new tree) 
   float mass;
@@ -190,6 +193,7 @@ void fitterFormatting(const char* filename, TString type, TString theSample, TSt
   float leadHoE, subleadHoE;
   float leadSigmaIeIe, subleadSigmaIeIe;
   int   leadPassEleVeto, subleadPassEleVeto;
+  int   passHlt;
  
   // setup new trees
   vector<vector<TTree*> > theTreeNew;
@@ -227,6 +231,7 @@ void fitterFormatting(const char* filename, TString type, TString theSample, TSt
       theTreeNew[i][j]->Branch("subleadScEta",		&subleadScEta,		"subleadScEta/F"); 
       theTreeNew[i][j]->Branch("leadPassEleVeto",	&leadPassEleVeto,	"leadPassEleVeto/I");
       theTreeNew[i][j]->Branch("subleadPassEleVeto",	&subleadPassEleVeto,	"subleadPassEleVeto/I");
+      theTreeNew[i][j]->Branch("passHlt",		&passHlt,		"passHlt/I");
     }// end loop oever new trees in pho cat 
   }// end loop over new trees in met cat
 
@@ -250,10 +255,10 @@ void fitterFormatting(const char* filename, TString type, TString theSample, TSt
       EB2 = false;
       EE1 = false;
       EE2 = false;
-      if (fabs(eta1)>=1.5) EE1=true;
-      if (fabs(eta2)>=1.5) EE2=true;
-      if (fabs(eta1)<1.5)  EB1=true;
-      if (fabs(eta2)<1.5)  EB2=true; 
+      if (fabs(eta1)>1.566)  EE1=true;
+      if (fabs(eta2)>1.566)  EE2=true;
+      if (fabs(eta1)<1.4442) EB1=true;
+      if (fabs(eta2)<1.4442) EB2=true; 
       inEE=false;
       inEB=false;
       if (EB1 && EB2) inEB=true;
@@ -266,6 +271,13 @@ void fitterFormatting(const char* filename, TString type, TString theSample, TSt
       else if (r91 > 0.94 || r92 > 0.94) loR9 = true;
 
       // split events in categories of met
+      std::vector<TString> MetCat;
+      MetCat.push_back("&& t1pfmet>=0");			// no selection
+      MetCat.push_back("&& t1pfmet>=0   && t1pfmet<100");	// met [0,100] 
+      MetCat.push_back("&& t1pfmet>=100 && t1pfmet<250"); 	// met [100,250]
+      MetCat.push_back("&& t1pfmet>=250"); 			// met > 250
+      UInt_t nMetCat = MetCat.size();
+
       for (UInt_t met=0; met<numMetCat; met++){
 	passMet[met]=false;
         if (met == numMetCat-2 && t1pfmet >= met*metSpacing) passMet[met]=true;			// for 2nd to last bin take all events above met cut
@@ -285,6 +297,7 @@ void fitterFormatting(const char* filename, TString type, TString theSample, TSt
       leadHoE = hoe1;			subleadHoE = hoe2;
       leadPassEleVeto = eleveto1;	subleadPassEleVeto = eleveto2;
       leadScEta = sceta1;		subleadScEta = sceta2;
+      passHlt = hltDiphoton30Mass95;
       
       // fill the trees for events in the different categories
       for (UInt_t met=0; met<numMetCat; met++){
