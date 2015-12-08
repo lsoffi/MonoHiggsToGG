@@ -35,27 +35,27 @@ void fitterFormatting(const char* filename, TString type, TString theSample, TSt
   UInt_t nentriesOrig = treeOrig->GetEntries();
 
   // vector for new photon categories out
-  UInt_t numPhoCat = 5;
   vector<TString> thePhotonCat;
-  thePhotonCat.resize(numPhoCat);
-  thePhotonCat[0]="all";
-  thePhotonCat[1]="EBHighR9";
-  thePhotonCat[2]="EBLowR9";
-  thePhotonCat[3]="EEHighR9";
-  thePhotonCat[4]="EELowR9";
+  thePhotonCat.push_back("all");
+  thePhotonCat.push_back("EBHighR9");
+  thePhotonCat.push_back("EBLowR9");
+  thePhotonCat.push_back("EEHighR9");
+  thePhotonCat.push_back("EELowR9");
+  UInt_t numPhoCat = thePhotonCat.size();
 
   // vector for new met categories out
-  UInt_t numMetCat = 12;
-  UInt_t metSpacing = 100; // spacing of met bins in GeV
-  vector<TString> theMetCat;
-  theMetCat.resize(numMetCat);
-  for (UInt_t met=0; met<numMetCat; met++){
-     UInt_t metmin = met*metSpacing;
-     UInt_t metmax = (met+1)*metSpacing;
-     if (met==numMetCat-2) theMetCat[met]=TString::Format("%i",metmin);
-     if (met==numMetCat-1) theMetCat[met]="_all";
-     else theMetCat[met]=TString::Format("%i_%i",metmin,metmax);
-  }
+  std::vector<Int_t> MetCut;
+  MetCut.push_back(0);
+  MetCut.push_back(100);
+  MetCut.push_back(250);
+  UInt_t numCuts = MetCut.size();  
+
+  std::vector<TString> MetCat;
+  MetCat.push_back(TString::Format("t1pfmet>=%d",MetCut[0]));			 		// met > MetCut0
+  MetCat.push_back(TString::Format("t1pfmet>=%d && t1pfmet<%d",MetCut[0],MetCut[1]));	// met [MetCut0,MetCut1] 
+  MetCat.push_back(TString::Format("t1pfmet>=%d && t1pfmet<%d",MetCut[1],MetCut[2])); 	// met [MetCut1,MetCut2]
+  MetCat.push_back(TString::Format("t1pfmet>=%d",MetCut[2]));					// met > MetCut2
+  UInt_t numMetCat = MetCat.size();
 
   // make output file and new trees
   cout << "OutputFile: " << outFile << endl;
@@ -66,9 +66,14 @@ void fitterFormatting(const char* filename, TString type, TString theSample, TSt
 
   // make a tree for each photon category and each met category
   trees.resize(numMetCat);
+  TString theNewDir = "";
   for (UInt_t met = 0; met<numMetCat; met++){
     trees[met].resize(numPhoCat);
-    TString theNewDir=TString::Format("met%s",theMetCat[met].Data());
+    theNewDir = TString::Format("metCat%d",met);// label cat in met by number
+    //if (met==0) theNewDir = "met0";
+    //else if (met==numMetCat-1) theNewDir = TString::Format("met%s",MetCut[met-1].Data());
+    //else theNewDir=TString::Format("met%s_%s",MetCut[met-1].Data(),MetCut[met].Data());
+    std::cout << theNewDir << std::endl;
     TDirectory *Dir = fileNew->mkdir(theNewDir);
     newDir[met] = Dir;
     newDir[met]->cd();
@@ -270,19 +275,13 @@ void fitterFormatting(const char* filename, TString type, TString theSample, TSt
       if (r91 > 0.94 && r92 > 0.94) hiR9 = true;
       else if (r91 > 0.94 || r92 > 0.94) loR9 = true;
 
-      // split events in categories of met
-      std::vector<TString> MetCat;
-      MetCat.push_back("&& t1pfmet>=0");			// no selection
-      MetCat.push_back("&& t1pfmet>=0   && t1pfmet<100");	// met [0,100] 
-      MetCat.push_back("&& t1pfmet>=100 && t1pfmet<250"); 	// met [100,250]
-      MetCat.push_back("&& t1pfmet>=250"); 			// met > 250
-      UInt_t nMetCat = MetCat.size();
-
       for (UInt_t met=0; met<numMetCat; met++){
 	passMet[met]=false;
-        if (met == numMetCat-2 && t1pfmet >= met*metSpacing) passMet[met]=true;			// for 2nd to last bin take all events above met cut
-        if (met == numMetCat-1) passMet[met] = true; 						// for last bin take all events NO met cut
-        else if (t1pfmet >= met*metSpacing && t1pfmet < (met+1)*metSpacing ) passMet[met]=true; // look at bins in met with value of metSpacing
+        if (met==0 && t1pfmet>=MetCut[met]) passMet[met]=true;
+        else if (met==numMetCat-1 && t1pfmet>=MetCut[met-1]) passMet[met]=true;
+        else{
+          if (t1pfmet>=MetCut[met-1] && t1pfmet<MetCut[met]) passMet[met]=true;
+        }
       }// end met loop
 
       // set the new variables (i.e. renamed from old tree)
@@ -313,7 +312,6 @@ void fitterFormatting(const char* filename, TString type, TString theSample, TSt
 
     }// end mgg presel 
   }// end loop over entries in orig tree
-
 
   // write new file
   fileNew->ls();

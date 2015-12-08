@@ -16,7 +16,21 @@ specifying fitterFormatting input arguements:
   3rd: sample name
   4th: output file name
 
-## Step 2) 
+Nb: Inside fitterFormatting you need to specify the MET bin criteria.
+
+## Step 2)
+Check that the sample shapes don't change in the different MET bins:
+
+```root -l ProduceWorkspaces.C```
+
+which calls runfits() from `FitTools.cc`. In FitTools, need to specify the number of MET cat (nMetCat) and the number of PHO cat (nPhoCat).
+And in the runfits function specify files to run over with format:
+`AddSigData(workspace,sample,type)`
+
+where if (type != 0) name = sample.
+Or if (type == 1) then script assumes using 2HDM sample, so just put in sample=mZP mass.
+
+## Step 3) 
 Run the fitter (combine_maker.py & templates_maker.py) called by 
 `./combine_maker.sh <analysis_version> <list-of-options>`
 
