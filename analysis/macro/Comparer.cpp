@@ -19,7 +19,58 @@ Comparer::Comparer( SamplePairVec Samples, const ColorMap colorMap, const Double
   fOutFile = new TFile(Form("%s%s/combplots.root",fOutDir.Data(),fOut.Data()),"RECREATE");
   CheckValidFile(fOutFile, Form("%s%s/combplots.root",fOutDir.Data(),fOut.Data())); 
 
-  // Read samples
+  //mainCut = "(mass >= 100 && mass <= 200) && (hlt==1)"; 
+  mainCut = "(mgg >= 100 && mgg <= 200) && (hltDiphoton30Mass95==1)"; 
+
+  // Make MET categories
+  MetCat.push_back("&& t1pfmet>=0");			// no selection
+  MetCat.push_back("&& t1pfmet>=0   && t1pfmet<50");	// met [0,50] 
+  MetCat.push_back("&& t1pfmet>=50  && t1pfmet<100"); 	// met [50,100]
+  MetCat.push_back("&& t1pfmet>=100 && t1pfmet<150");	// met [100,150]
+  MetCat.push_back("&& t1pfmet>=150 && t1pfmet<250");	// met [150,250]
+  MetCat.push_back("&& t1pfmet>=250 && t1pfmet<500");	// met [250,500]
+  MetCat.push_back("&& t1pfmet>=500"); 			// met > 500
+  nMetCat = MetCat.size();
+
+  // Make Photon categories
+  PhoCat.push_back("");										// no selection
+  PhoCat.push_back("&& (fabs(eta1)<1.4442 && fabs(eta2)<1.4442) && (r91>0.94 && r92>0.94)");	// EBHighR9
+  PhoCat.push_back("&& (fabs(eta1)<1.4442 && fabs(eta2)<1.4442) && (r91<0.94 || r92<0.94)");	// EBLowR9
+  PhoCat.push_back("&& (fabs(eta1)>1.566 || fabs(eta2)>1.566) && (r91>0.94 && r92>0.94)");	// EEHighR9
+  PhoCat.push_back("&& (fabs(eta1)>1.566 || fabs(eta2)>1.566) && (r91<0.94 || r92<0.94)");	// EELowR9
+  nPhoCat = PhoCat.size();
+
+  // Total number of categories
+  nTotCat = nMetCat*nPhoCat;
+
+  // Set up sampleID matches
+  fSampleIDs.push_back(SamplePair("VH",11));
+  fSampleIDs.push_back(SamplePair("GluGluHToGG",10)); 
+  fSampleIDs.push_back(SamplePair("DYJetsToLL",12));
+  fSampleIDs.push_back(SamplePair("DiPhoton",15));
+  fSampleIDs.push_back(SamplePair("GJets1",1)); 
+  fSampleIDs.push_back(SamplePair("GJets2",2)); 
+  fSampleIDs.push_back(SamplePair("QCD1",3)); 
+  fSampleIDs.push_back(SamplePair("QCD2",4)); 
+  fSampleIDs.push_back(SamplePair("QCD3",5)); 
+  fSampleIDs.push_back(SamplePair("DoubleEG1",10002));
+  fSampleIDs.push_back(SamplePair("DoubleEG2",10003));
+  fSampleIDs.push_back(SamplePair("DoubleEG3",10004));
+  fSampleIDs.push_back(SamplePair("DoubleEG4",10005));
+  fSampleIDs.push_back(SamplePair("2HDM_mZP600",100)); 
+  fSampleIDs.push_back(SamplePair("2HDM_mZP800",101)); 
+  fSampleIDs.push_back(SamplePair("2HDM_mZP1000",102)); 
+  fSampleIDs.push_back(SamplePair("2HDM_mZP1200",103)); 
+  fSampleIDs.push_back(SamplePair("2HDM_mZP1400",104)); 
+  //fSampleIDs.push_back(SamplePair("DMHtoGG_M1",0)); 
+  //fSampleIDs.push_back(SamplePair("DMHtoGG_M10",0)); 
+  //fSampleIDs.push_back(SamplePair("DMHtoGG_M100",0)); 
+  //fSampleIDs.push_back(SamplePair("DMHtoGG_M1000",0)); 
+  //fSampleIDs.push_back(SamplePair("2HDM_mZP1700",105)); 
+  //fSampleIDs.push_back(SamplePair("2HDM_mZP2000",106));  
+  //fSampleIDs.push_back(SamplePair("2HDM_mZP2500",107));  
+
+  // Read sample names
   for (SamplePairVecIter iter = Samples.begin(); iter != Samples.end(); ++iter){
     if ( (*iter).second == 1 ) {fBkgNames.push_back((*iter).first);}      // background
     else if ( (*iter).second == 0 ) {fSigNames.push_back((*iter).first);} // signal
@@ -81,13 +132,42 @@ Comparer::~Comparer(){
   for (UInt_t mc = 0; mc < fNSig; mc++) { delete fSigFiles[mc]; }
 
   delete fOutFile;
-  
+ 
 }// end Comparer::~Comparer
 
 void Comparer::DoComparison(){
+
+  // set up RooArgSet with ntuple variables of interest
+  fNtupleVars = Comparer::DefineVariables();
  
+  // set up RooWorkspace
+  fRooWorkspace = new RooWorkspace("fRooWorkspace");
+
+  for (UInt_t mc=0; mc < fNSig; mc++){
+    Comparer::AddRooWorkspace(fRooWorkspace,fSigNames[mc]);
+  } 
+
+  fSigChain.resize(fNSig);
+  for (UInt_t mc = 0; mc < fNSig; mc++){
+    fSigChain[mc].resize(nMetCat);
+    for (UInt_t met = 0; met < nMetCat; met++){
+      fSigChain[mc][met].resize(nPhoCat);
+      for (UInt_t pho = 0; pho < nPhoCat; pho++){
+        fSigChain[mc][met][pho] = new TTree();
+      }
+    }
+  }
+ 
+
+  TStrVec SampleID;
+  SampleID.resize(fNSig); 
+  SampleID[0]="100";
+  SampleID[1]="101";
+  SampleID[2]="102";
+  SampleID[3]="103";
+  SampleID[4]="104";
+
   Double_t wgt = 1;
- 
   for (UInt_t entry = 0; entry < nentries; entry++){
     fAllChain->GetEntry(entry);
 
@@ -97,24 +177,68 @@ void Comparer::DoComparison(){
     }
     else wgt = 1.;// don't apply weight to data
 
+
     //apply selection
     if (hltDiphoton30Mass95 == 1){
       if (mgg >= 100 && mgg <= 200){
-         if (sampleID >= 10000 && doBlind){
-           
-         }
-         else{
-           
-         }
- 
+	for (UInt_t mc = 0; mc < fNSig; mc++){
+          if (sampleID == SampleID[mc]){
+            for (UInt_t met = 0; met < nMetCat; met++){
+              for (UInt_t pho = 0; pho < nPhoCat; pho++){
+                if (MetCat[met] && PhoCat[pho]){
+		   fSigChain[mc][met][pho]->Fill(); 
+	        }
+              }
+            }
+          }
+        } 
       }// end mgg selection
     }// end trigger selection 
+
+
 
   }// end loop over entries in TChain
 
 }// end Comparer::DoComparison
 
-void Comparer::AddRooWorkspace( RooWorkspace* w){
+void Comparer::AddRooWorkspace( RooWorkspace* w, const TString sampleName){
+  w->var("mgg");
+  fSigSet.resize(fNSig);
+
+  TStrVec SampleID;
+  SampleID.resize(fNSig); 
+  SampleID[0]="100";
+  SampleID[1]="101";
+  SampleID[2]="102";
+  SampleID[3]="103";
+  SampleID[4]="104";
+
+  fSigSetInCat.resize(fNSig);
+  for (UInt_t mc = 0; mc < fNSig; mc++){
+    fSigSetInCat[mc].resize(nMetCat);
+    for (UInt_t met = 0; met < nMetCat; met++){
+      fSigSetInCat[mc][met].resize(nPhoCat);
+    }
+  }
+
+  TString name = "";
+  TString sel  = ""; 
+  TString cut = "";
+  for (UInt_t mc = 0; mc < fNSig; mc++){
+    name = TString::Format("fSigSet_%s",fSigNames[mc].Data());
+    //fSigSet[mc] = new RooDataSet(name,name,fAllChain,*fNtupleVars,mainCut,"weight");
+    for (UInt_t met = 0; met < nMetCat; met++){
+      for (UInt_t pho = 0; pho < nPhoCat; pho++){
+        sel  = TString::Format("%s && (sampleID==%s) %s %s",mainCut.Data(),SampleID[mc].Data(),MetCat[met].Data(),PhoCat[pho].Data());
+     
+        fSigSetInCat[mc][met][pho] = new RooDataSet(name,name,fSigChain[mc][met][pho],*fNtupleVars,cut,"weight");
+  
+        //fSigSetInCat[mc][met][pho] = (RooDataSet*) fSigSet[mc]->reduce(*w->var("mass"),mainCut+MetCat[met]+PhoCat[pho]); 
+      }
+    }
+  } 
+
+
 
 }// end Comparer::AddRooWorkspace
 
@@ -124,7 +248,7 @@ void Comparer::GetInFilesAndMakeTChain(){
  TStrVec datafile;
  datafile.resize(fNData);
  for (UInt_t data = 0; data < fNData; data++){
-   datafile[data] = Form("%s/%s.root",fInDir.Data(),fDataNames[data].Data());
+   datafile[data] = Form("%s%s.root",fInDir.Data(),fDataNames[data].Data());
    fDataFiles[data] = TFile::Open(datafile[data].Data());
    CheckValidFile(fDataFiles[data],datafile[data]);
  }
@@ -134,7 +258,7 @@ void Comparer::GetInFilesAndMakeTChain(){
  TStrVec bkgfile;
  bkgfile.resize(fNBkg);
  for (UInt_t mc = 0; mc < fNBkg; mc++) {
-   bkgfile[mc] = Form("%s/%s.root",fInDir.Data(),fBkgNames[mc].Data());
+   bkgfile[mc] = Form("%s%s.root",fInDir.Data(),fBkgNames[mc].Data());
    fBkgFiles[mc] = TFile::Open(bkgfile[mc].Data());
    CheckValidFile(fBkgFiles[mc],bkgfile[mc]);
  }
@@ -144,7 +268,7 @@ void Comparer::GetInFilesAndMakeTChain(){
  TStrVec sigfile;
  sigfile.resize(fNSig);
  for (UInt_t mc = 0; mc < fNSig; mc++) {
-   sigfile[mc] = Form("%s/%s.root",fInDir.Data(),fSigNames[mc].Data());
+   sigfile[mc] = Form("%s%s.root",fInDir.Data(),fSigNames[mc].Data());
    fSigFiles[mc] = TFile::Open(sigfile[mc].Data());
    CheckValidFile(fSigFiles[mc],sigfile[mc]);
  }
@@ -155,17 +279,17 @@ void Comparer::GetInFilesAndMakeTChain(){
  fAllChain = new TChain("DiPhotonTree");
  for (UInt_t data = 0; data < fNData; data++){
    TTree * tpho = (TTree*)fDataFiles[data]->Get("DiPhotonTree"); 
-   CheckValidTree(tpho,"DiPhotonTree",Form("%s/%s.root",fInDir.Data(),fDataNames[data].Data())); 
+   CheckValidTree(tpho,"DiPhotonTree",Form("%s%s.root",fInDir.Data(),fDataNames[data].Data())); 
    fAllChain->Add(datafile[data]);
  }
  for (UInt_t mc = 0; mc < fNBkg; mc++){
    TTree * tpho = (TTree*)fBkgFiles[mc]->Get("DiPhotonTree"); 
-   CheckValidTree(tpho,"DiPhotonTree",Form("%s/%s.root",fInDir.Data(),fBkgNames[mc].Data())); 
+   CheckValidTree(tpho,"DiPhotonTree",Form("%s%s.root",fInDir.Data(),fBkgNames[mc].Data())); 
    fAllChain->Add(bkgfile[mc]);
  }
  for (UInt_t mc = 0; mc < fNSig; mc++){
    TTree * tpho = (TTree*)fSigFiles[mc]->Get("DiPhotonTree"); 
-   CheckValidTree(tpho,"DiPhotonTree",Form("%s/%s.root",fInDir.Data(),fSigNames[mc].Data())); 
+   CheckValidTree(tpho,"DiPhotonTree",Form("%s%s.root",fInDir.Data(),fSigNames[mc].Data())); 
    fAllChain->Add(sigfile[mc]);
  }
 
@@ -182,9 +306,29 @@ TH1D * Comparer::MakeTH1DPlot(const TString hname, const TString htitle, const I
 }// end Comparer::MakeTH1DPlot
 
 
+RooArgSet* Comparer::DefineVariables(){
+  // define variables of the input ntuple of form:
+  // RooRealVar( Name, Title, Min, Max, units)
+  RooRealVar* mgg     = new RooRealVar("mgg","m(gg)",100,200,"GeV");
+  RooRealVar* eta1    = new RooRealVar("eta1","eta(g1)",-10,10,"");
+  RooRealVar* eta2    = new RooRealVar("eta2","eta(g2)",-10,10,"");
+  RooRealVar* r91     = new RooRealVar("r91","r9(g1)",-10,10,"");
+  RooRealVar* r92     = new RooRealVar("r92","r9(g2)",-10,10,"");
+  RooRealVar* nvtx    = new RooRealVar("nvtx","nvtx",0,60,"");
+  RooRealVar* weight  = new RooRealVar("weight","weight",-5,5,"");
+  RooRealVar* t1pfmet = new RooRealVar("t1pfmet","t1pfmet",0,1200,""); 
+  RooRealVar* hltDiphoton30Mass95  = new RooRealVar("hltDiphoton30Mass95","hltDiphoton30Mass95",-0.5,1.5,"");
+
+  RooArgSet* ntplVars = new RooArgSet(*mgg,*eta1,*eta2,*r91,*r92,*nvtx,*t1pfmet,*weight,*hltDiphoton30Mass95);
+  return ntplVars;
+}
+
+
 
 void Comparer::InitVariables(){
   fTH1DNames.push_back("mgg");
+
+   
 
 
 }// end Comparer::InitVariables

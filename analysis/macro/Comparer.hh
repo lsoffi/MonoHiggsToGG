@@ -23,6 +23,11 @@
 #include "TChain.h"
 
 #include "RooRealVar.h"
+#include "RooDataSet.h"
+#include "RooWorkspace.h"
+#include "RooPlot.h"
+#include "RooFormula.h"
+#include "RooGaussian.h"
 
 #include <iostream>
 #include <cmath>
@@ -39,6 +44,15 @@ typedef std::vector<TCanvas*> TCanvVec;
 typedef std::vector<TLine*>   TLineVec;
 typedef std::vector<Double_t> DblVec;
 typedef std::vector<TTree*>   TTreeVec;
+typedef std::vector<TTreeVec>		TTreeVecVec;
+typedef std::vector<TTreeVecVec>	TTreeVecVecVec;
+
+typedef std::vector<RooDataSet*> 	RooDataSetVec;
+typedef std::vector<RooRealVar*> 	RooRealVarVec;
+typedef std::vector<RooDataSetVec>	RooDataSetVecVec;
+typedef std::vector<RooDataSetVecVec>	RooDataSetVecVecVec;
+
+
 
 class Comparer{
 public:
@@ -46,8 +60,9 @@ public:
   void DoComparison();
   void GetInFilesAndMakeTChain();
   void SetTChainBranchAddresses(); 
-  void AddRooWorkspace(RooWorkspace* w);
+  void AddRooWorkspace(RooWorkspace* w, const TString sampleName);
   TH1D * MakeTH1DPlot(const TString hname, const TString htitle, const Int_t nbins, const Double_t xlow, const Double_t xhigh, const TString xtitle, const TString ytitle);
+  RooArgSet * DefineVariables();
   void InitVariables();
   ~Comparer();
 
@@ -59,6 +74,25 @@ private:
 
   TStrMap	fSampleTitleMap;
   ColorMap	fColorMap;
+
+  RooWorkspace* fRooWorkspace;
+  RooArgSet*	fNtupleVars;
+  RooDataSetVec	fSigSet;
+  RooDataSetVec	fDataSet;
+  RooDataSetVec	fBkgSet;
+  RooRealVarVec	fInvMass;	
+
+  RooDataSetVecVecVec	fSigSetInCat;
+  TTreeVecVecVec	fSigChain;
+
+  SamplePairVec	fSampleIDs;
+
+  TString	mainCut;
+  UInt_t	nMetCat;
+  TStrVec	MetCat;
+  UInt_t	nPhoCat;
+  TStrVec	PhoCat;
+  UInt_t 	nTotCat;
 
   TString	fInDir;
   TString	fOutDir;
