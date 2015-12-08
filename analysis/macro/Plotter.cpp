@@ -281,8 +281,10 @@ void Plotter::DoPlots(){
             fTH1DMap["pfmet_n-1"]->Fill(pfmet,Weight);
             fTH1DMap["calomet_n-1"]->Fill(calomet,Weight);
             if (mgg >= 110 && mgg <= 130) fTH1DMap["t1pfmet_selmgg"]->Fill(t1pfmet,Weight); 
+            if (ptgg > 70) fTH1DMap["t1pfmet_selptgg"]->Fill(t1pfmet,Weight);
             if (t1pfmet >= 250){ 
 	      fTH1DMap["mgg_selt1pfmet"]->Fill(mgg,Weight); 
+              fTH1DMap["ptgg_selt1pfmet"]->Fill(ptgg,Weight);
 	      //std::cout << "DY mgg is " << mgg << std::endl;
 	    }
 	  }
@@ -441,9 +443,11 @@ void Plotter::SetUpPlots(){
   fTH1DMap["mgg_selt1pfmet"]	= Plotter::MakeTH1DPlot("mgg_selt1pfmet","",20,100.,200.,"m_{#gamma#gamma} (GeV)","");
   fTH1DMap["phi1_pho2pass"]     = Plotter::MakeTH1DPlot("phi1_pho2pass","",80,-4.,4.,"","");
   fTH1DMap["phi2_pho1pass"]     = Plotter::MakeTH1DPlot("phi2_pho1pass","",80,-4.,4.,"","");
-  fTH1DMap["t1pfmet_zoom"]	= Plotter::MakeTH1DPlot("t1pfmet_zoom","",60,0.,300.,"t1PF MET (GEV)","");
+  fTH1DMap["t1pfmet_zoom"]	= Plotter::MakeTH1DPlot("t1pfmet_zoom","",60,0.,300.,"t1PF MET (GeV)","");
   fTH1DMap["deta_gg"]		= Plotter::MakeTH1DPlot("deta_gg","",20,-3.,3.,"#Delta#eta(#gamma#gamma)","");
   fTH1DMap["absdeta_gg"]	= Plotter::MakeTH1DPlot("absdeta_gg","",20,0.,3.,"|#Delta#eta(#gamma#gamma)|","");
+  fTH1DMap["ptgg_selt1pfmet"]	= Plotter::MakeTH1DPlot("ptgg_selt1pfmet","",60,0.,600.,"p_{T,#gamma#gamma} (GeV)","");
+  fTH1DMap["t1pfmet_selptgg"]	= Plotter::MakeTH1DPlot("t1pfmet_selptgg","",100,0.,1000.,"t1PF MET (GeV)","");
 
   // efficiency plots
   fTH1DMap["eff_sel"]		= Plotter::MakeTH1DPlot("eff_sel","",10,0.,10.,"","");
@@ -454,8 +458,6 @@ void Plotter::SetUpPlots(){
   fTH1DMap["sel_ptgg"]		= Plotter::MakeTH1DPlot("sel_ptgg","",200,0,200,"","");
   fTH1DMap["sel_dphi"]		= Plotter::MakeTH1DPlot("sel_dphi","",20,0,20,"","");
   fTH1DMap["sel_deta"]		= Plotter::MakeTH1DPlot("sel_deta","",20,0,20,"","");
- 
-
 
   // 2D plots
   fTH2DMap["mgg_PU"]		= Plotter::MakeTH2DPlot("mgg_PU","",60,0.,60.,40,100.,300.,"nvtx","m_{#gamma#gamma} (GeV)");
@@ -468,7 +470,8 @@ void Plotter::SetUpPlots(){
 
 TH1D * Plotter::MakeTH1DPlot(const TString hname, const TString htitle, const Int_t nbins, const Double_t xlow, const Double_t xhigh, const TString xtitle, const TString ytitle){
   TString ytitleNew;
-  if (ytitle=="") ytitleNew = Form("Events");
+  Float_t binwidth = (xhigh-xlow)/nbins;
+  if (ytitle=="") ytitleNew = Form("Events/(%d)",binwidth);
   else ytitleNew = ytitle;
  
   TH1D * hist = new TH1D(hname.Data(),htitle.Data(),nbins,xlow,xhigh);

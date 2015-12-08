@@ -699,6 +699,8 @@ void Combiner::InitTH1DNames(){
     fTH1DNames.push_back("t1pfmet_zoom");
     fTH1DNames.push_back("mgg_selt1pfmet");
     fTH1DNames.push_back("t1pfmet_selmgg");
+    fTH1DNames.push_back("t1pfmet_selptgg");
+    fTH1DNames.push_back("ptgg_selt1pfmet");
     fTH1DNames.push_back("phigg");
     fTH1DNames.push_back("dphi_ggmet");
     fTH1DNames.push_back("absdphi_ggmet");
