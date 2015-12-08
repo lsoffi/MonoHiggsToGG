@@ -39,6 +39,8 @@ std::vector<TString> definePho(Int_t phoCat){
 }
 
 void AddSigData(RooWorkspace*, Float_t);
+void sigModelFit(RooWorkspace*);
+void drawPlots(RooWorkspace*, TString, Int_t, Float_t, Float_t, TString);
 RooArgSet* defineVariables();
 
 
@@ -69,37 +71,108 @@ void AddSigData(RooWorkspace* w, TString Mass){
 
   TString mainCut = "mass>= 100 && mass <= 200 && passHlt==1";
 
-  TChain* signalTree[nMetCat][nPhoCat];
   RooDataSet* signal[nMetCat][nPhoCat];
+
+  TFile* inFile = TFile::Open(Form("%s_new.root",name.Data()));
+  if (inFile == (TFile*) NULL) std::cout<<" NOT A VALID FILE " << std::endl;
+  
+  TTree* sigTree1 = new TTree();
 
   for (UInt_t met=0; met<nMetCat; met++){
     for (UInt_t pho=0; pho<nPhoCat; pho++){
-      signalTree[met][pho] = new TChain();
-      signalTree[met][pho]->Add(Form("%s_new.root/%s/%s",name.Data(),MetCat[met].Data(),PhoCat[pho].Data()));
- 
 
-      TTree* sigTree1 = new TTree();
-      sigTree1->Clone(Form("%s_new.root/%s/%s",name.Data(),MetCat[met].Data(),PhoCat[pho].Data()));
+      sigTree1 = (TTree*)inFile->Get(Form("%s/%s",MetCat[met].Data(),PhoCat[pho].Data()));
+      if (sigTree1 == (TTree*) NULL) std::cout << " NOT A VALID TREE " << std::endl;
       sigTree1->SetTitle(name);
       sigTree1->SetName(name);
 
-
-      // RooDataSet from TChain does NOT work
-      // Also workspace->import does NOT work for RooRealVar or RooDataSet
-
-
-      signal[met][pho] = new RooDataSet("signal","dataset",sigTree1,*ntplVars,mainCut,"weight");
-      //RooDataSet* signal("signal","dataset",signalTree[met][pho],*ntplVars,mainCut);
+      signal[met][pho] = new RooDataSet("signal","dataset",sigTree1,*ntplVars,mainCut);//,"weight");
       signal[met][pho]->Print("v");
  
-      w->import(*signal[met][pho],Rename(TString::Format("Sig_%s_%s_%s",Mass.Data(),MetCat[met].Data(),PhoCat[pho].Data()))); 
-      //w->Print("v");
+      w->import(*signal[met][pho],Rename(TString::Format("%s_%s",MetCat[met].Data(),PhoCat[pho].Data()))); 
+
+    }// end loop over pho cat
+  }// end loop over met cat
+  //w->Print("v");
+}
+
+void sigModelFit(RooWorkspace* w){
+
+  Float_t mass=125.;
+  Float_t minMassFit(mass*0.8);
+  Float_t maxMassFit(mass*1.2);
+
+  for (UInt_t met=0; met < nMetCat; met++){
+    for (UInt_t pho=0; pho < nPhoCat; pho++){
+      
 
     }
   }
 
+}
 
 
+void drawPlots(RooWorkspace* w, TString variable, int BINS, float MIN, float MAX, TString mass){
+  TString inDir = "";
+  TString name = "";
+  TString datasetName = "";
+  std::vector<TString> MetCat = defineMet(nMetCat);
+  std::vector<TString> PhoCat = definePho(nPhoCat);
+ 
+  TFile* f = new TFile("signalPlots.root","RECREATE");
+  f->cd();   
+
+  TCanvas* c[nPhoCat]; 
+  for (UInt_t pho=0; pho<nPhoCat; pho++){
+   c[pho] = new TCanvas(Form("c%s",PhoCat[pho].Data()),"c",1);
+  }
+
+  Color_t colorMetCat[nMetCat];
+  colorMetCat[0]=kGreen-9;
+  colorMetCat[1]=kYellow+8;
+  colorMetCat[2]=kTeal-1;
+  colorMetCat[3]=kGreen;
+  colorMetCat[4]=kTeal;
+  colorMetCat[5]=kBlue;
+  colorMetCat[6]=kBlue+2;
+  colorMetCat[7]=kViolet;
+  colorMetCat[8]=kMagenta;
+  colorMetCat[9]=kPink-2;
+  colorMetCat[10]=kPink+6;
+  colorMetCat[11]=kBlack;
+
+  RooDataSet* sigDataSet[nMetCat][nPhoCat];
+  RooPlot* sigth1f[nPhoCat];
+
+  for (UInt_t met=0; met<nMetCat; met++){
+    for (UInt_t pho=0; pho<nPhoCat; pho++){
+      datasetName = TString::Format("%s_%s",MetCat[met].Data(),PhoCat[pho].Data());
+      name = TString::Format("h_%s_%s",MetCat[met].Data(),PhoCat[pho].Data()); 
+
+      sigth1f[pho] = w->var("mass")->frame(Range(MIN,MAX),Bins(BINS));
+      if(sigth1f[pho]== (RooPlot*) NULL) std::cout<<"VARIABLE NOT FOUND" << std::endl;
+      sigDataSet[met][pho] = (RooDataSet*) w->data(datasetName);
+    }
+  } 
+
+  for (UInt_t pho=0; pho<nPhoCat; pho++){
+     c[pho]->cd();
+     for (UInt_t met=0; met<nMetCat; met++){
+       // plot all met bins in same pho plot
+       sigDataSet[met][pho]->plotOn(sigth1f[pho],LineColor(colorMetCat[met]),DrawOption("L"),LineStyle(1),MarkerStyle(0),XErrorSize(0),DataError(RooAbsData::None));
+     }
+     sigth1f[pho]->Draw(); 
+     TLegend* leg = new TLegend(0.55,0.6,0.87,0.88,(TString::Format("%s",PhoCat[pho].Data())),"brNDC");
+     for (UInt_t met=0; met<nMetCat; met++){
+       leg->AddEntry(sigth1f[pho]->getObject(met),MetCat[met].Data(),"L");
+     }
+     leg->Draw();
+     c[pho]->SetLogy(0);
+     c[pho]->SaveAs(TString::Format("plots/%s.png",PhoCat[pho].Data()));
+     c[pho]->SetLogy(1);
+     c[pho]->SaveAs(TString::Format("plots/%s_log.png",PhoCat[pho].Data()));
+  }
+ 
 }
 
 void runfits(){
@@ -119,7 +192,14 @@ void runfits(){
   //AddSigData(w,"1000");
   //AddSigData(w,"1200");
   //AddSigData(w,"1400");
+  std::cout << "Starting SigModelFit" << std::endl;
+  sigModelFit(w);
 
+  std::cout << "Making Plots" << std::endl;
+  drawPlots(w,"mgg",40,110.,150.,"600");
+
+  w->writeToFile("signals_wkspace.root");
+ 
 }
 
 
