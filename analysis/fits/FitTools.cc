@@ -149,7 +149,7 @@ void drawPlots(RooWorkspace* w, TString variable, int BINS, float MIN, float MAX
       if(sigth1f[pho]== (RooPlot*) NULL) std::cout<<"VARIABLE NOT FOUND" << std::endl;
 
       sigDataSet[met][pho] = (RooDataSet*) w->data(datasetName);
-      //sigPdf[met][pho] = new RooAddPdf(TString::Format("Pdf_%s",datasetName.Data()));
+      sigPdf[met][pho] = new RooAddPdf(TString::Format("Pdf_%s",datasetName.Data()));
     }
   } 
 
@@ -186,25 +186,29 @@ void runfits(){
  
   std::cout << "Adding Signal Samples" << std::endl;
   AddSigData(w,"600",1);
-  AddSigData(w,"800",1);
-  AddSigData(w,"1000",1);
-  AddSigData(w,"1200",1);
-  AddSigData(w,"1400",1);
-  AddSigData(w,"VH",0);
-  AddSigData(w,"GluGluHToGG",0);
+  //AddSigData(w,"800",1);
+  //AddSigData(w,"1000",1);
+  //AddSigData(w,"1200",1);
+  //AddSigData(w,"1400",1);
+  //AddSigData(w,"VH",0);
+  //AddSigData(w,"GluGluHToGG",0);
   std::cout << "Starting SigModelFit" << std::endl;
   sigModelFit(w);
 
   std::cout << "Making Plots" << std::endl;
   drawPlots(w,"mgg",30,110.,140.,"600",1);
-  drawPlots(w,"mgg",30,110.,140.,"800",1);
-  drawPlots(w,"mgg",30,110.,140.,"1000",1);
-  drawPlots(w,"mgg",30,110.,140.,"1200",1);
-  drawPlots(w,"mgg",30,110.,140.,"1400",1);
-  drawPlots(w,"mgg",30,110.,140.,"VH",0);
-  drawPlots(w,"mgg",30,110.,140.,"GluGluHToGG",0);
+  //drawPlots(w,"mgg",30,110.,140.,"800",1);
+  //drawPlots(w,"mgg",30,110.,140.,"1000",1);
+  //drawPlots(w,"mgg",30,110.,140.,"1200",1);
+  //drawPlots(w,"mgg",30,110.,140.,"1400",1);
+  //drawPlots(w,"mgg",30,110.,140.,"VH",0);
+  //drawPlots(w,"mgg",30,110.,140.,"GluGluHToGG",0);
 
-  w->writeToFile("signals_wkspace.root");
+  TString wkspFile = "signals_wkspace";
+  std::cout << "Write out Workspace to File " << wkspFile.Data() << ".root" << std::endl;
+  w->writeToFile(Form("%s.root",wkspFile.Data()));
+  
+  std::cout << "Finished Running" << std::endl;
  
 }
 

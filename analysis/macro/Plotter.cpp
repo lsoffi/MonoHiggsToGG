@@ -149,14 +149,14 @@ void Plotter::DoPlots(){
     if (eleveto1==1)   passEV1 = true;
     if (eleveto2==1)   passEV2 = true; 
 
-    if (passCH1 && passNH1 && passPH1 && passS1 && passHE1 /*&& passEV1*/) passAll1 = true;
-    if (passCH2 && passNH2 && passPH2 && passS2 && passHE2 /*&& passEV2*/) passAll2 = true;
+    if (passCH1 && passNH1 && passPH1 && passS1 && passHE1 && passEV1) passAll1 = true;
+    if (passCH2 && passNH2 && passPH2 && passS2 && passHE2 && passEV2) passAll2 = true;
     if (passAll1 && passAll2) passBoth = true;
 
     //if (!passEV1 || !passEV2) std::cout << "Eleveto didn't work! " << std::endl;
 
     //start full selection for plots
-    if (mgg >= 100 && mgg < 200){
+    if (mgg >= 100 && mgg < 200 /*&& passBoth*/){
     //if ( pt1 > mgg/3 && pt2 > mgg/4 ){
       fTH1DMap["eff_sel"]->Fill(1.5,Weight);
       if (hltDiphoton30Mass95==1){ //passes trigger
