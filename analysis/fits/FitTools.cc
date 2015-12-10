@@ -45,7 +45,7 @@ std::vector<TString> definePho(Int_t phoCat, TString mass, UInt_t sample){
 }
 
 void AddSigData(RooWorkspace*, Float_t, UInt_t);
-void sigModelFit(RooWorkspace*);
+void sigModelFit(RooWorkspace*, TString, Int_t);
 void drawPlots(RooWorkspace*, TString, Int_t, Float_t, Float_t, TString, Int_t);
 RooArgSet* defineVariables();
 
@@ -61,6 +61,7 @@ RooArgSet* defineVariables(){
   RooRealVar* weight		= new RooRealVar("weight","weight",-5,5,"");
   RooRealVar* t1pfmet		= new RooRealVar("t1pfmet","t1pfmet",0,1200,""); 
   RooRealVar* passHlt		= new RooRealVar("passHlt","passHlt",-0.5,1.5,"");
+
 
   RooArgSet* ntplVars = new RooArgSet(*mass,*leadEta,*subleadEta,*leadR9,*subleadR9,*nvtx,*t1pfmet,*weight,*passHlt);
 
@@ -80,6 +81,7 @@ void AddSigData(RooWorkspace* w, TString Mass, UInt_t sample){
   TString mainCut = "mass>= 100 && mass <= 200 && passHlt==1";
 
   RooDataSet* signal[nMetCat][nPhoCat];
+  RooAddPdf* signalPdf[nMetCat][nPhoCat];
 
   TFile* inFile = TFile::Open(Form("%s_new.root",name.Data()));
   if (inFile == (TFile*) NULL) std::cout<< Form("%s_new2.root",name.Data()) << " NOT A VALID FILE " << std::endl;
@@ -97,6 +99,8 @@ void AddSigData(RooWorkspace* w, TString Mass, UInt_t sample){
       signal[met][pho] = new RooDataSet("signal","dataset",sigTree1,*ntplVars,mainCut);//,"weight");
       signal[met][pho]->Print("v");
  
+      //signalPdf[met][pho] = new RooAddPdf("signalPdf","pdf",*ntplVars);
+ 
       w->import(*signal[met][pho],Rename(TString::Format("%s_%s",MetCat[met].Data(),PhoCat[pho].Data()))); 
 
     }// end loop over pho cat
@@ -104,18 +108,101 @@ void AddSigData(RooWorkspace* w, TString Mass, UInt_t sample){
   //w->Print("v");
 }
 
-void sigModelFit(RooWorkspace* w){
+void sigModelFit(RooWorkspace* w, TString sampleOrMassName, Int_t sample){
 
-  Float_t mass=125.;
-  Float_t minMassFit(mass*0.8);
-  Float_t maxMassFit(mass*1.2);
+  // Set up constants for fit
+  Float_t mass=125.;// SM Higgs mass
+  Float_t width=6.;//  SM Higgs width
+  Float_t minMassFit=115.;// mass window min for fit
+  Float_t maxMassFit=135.;// mass window max for fit
+  Int_t BINS=20;// nbins for mass window
+  std::vector<Color_t> colorMetCat = SetColorMet(nMetCat);
 
+  // Set up PDFs (Gauss,BW,BWxGauss) for fitting mass
+  RooRealVar fitMass("fitMass","fitMass",minMassFit,maxMassFit);
+  RooRealVar Hmass("Hmass","Hmass",mass,"GeV");
+  RooRealVar Hwidth("Hwidth","Hwidth",width,"GeV");
+  RooGaussian *Hgauss = new RooGaussian("Hgauss","H sig PDF gauss",fitMass,Hmass,Hwidth);
+  RooBreitWigner *Hbw = new RooBreitWigner("Hbw","H sig PDF BW",fitMass,Hmass,Hwidth);
+  RooVoigtian *Hconv  = new RooVoigtian("Hconv","H sig PDF BW conv Gauss",fitMass,Hmass,Hwidth,Hwidth);
+  RooVoigtian* H_BWxGauss [nMetCat][nPhoCat];
+ 
+  // Draw the PDFs
+  //RooPlot* mFrame = fitMass.frame();
+  //Hgauss->plotOn(mFrame,LineColor(kBlue));
+  //Hbw->plotOn(mFrame,LineColor(kRed));
+  //Hconv->plotOn(mFrame,LineColor(kBlack));
+  //mFrame->Draw();
+ 
+  // Read in from Workspace the Signal Dataset
+  RooDataSet* sigDataSet[nMetCat][nPhoCat];
+  TString datasetName = "";
+  std::vector<TString> MetCat = defineMet(nMetCat);
+  std::vector<TString> PhoCat = definePho(nPhoCat,sampleOrMassName,sample);
+ 
   for (UInt_t met=0; met < nMetCat; met++){
     for (UInt_t pho=0; pho < nPhoCat; pho++){
-      
-
+      datasetName = TString::Format("%s_%s",MetCat[met].Data(),PhoCat[pho].Data());
+      sigDataSet[met][pho] = (RooDataSet*) w->data(datasetName);
     }
   }
+
+  // Fit PDF shapes to Signal Dataset
+  for (UInt_t met=0; met < nMetCat; met++){
+    for (UInt_t pho=0; pho < nPhoCat; pho++){ 
+       //Hgauss->fitTo(*sigDataSet[met][pho]);
+       //Hbw->fitTo(*sigDataSet[met][pho]);
+       //Hconv->fitTo(*sigDataSet[met][pho]);
+       H_BWxGauss[met][pho] = new RooVoigtian("H_BWxGauss","H sig PDF",fitMass,Hmass,Hwidth,Hwidth);
+       H_BWxGauss[met][pho]->fitTo(*sigDataSet[met][pho]);
+       //RooArgSet* paramSet = H_BWxGauss[met][pho]->GetDependents(*sigDataSet[met][pho]);
+       //paramSet->Print("v");
+    }
+  }
+
+  // Make Output File & TCanvases
+  TFile* f = new TFile("signalPlots_wFits.root","RECREATE");
+  f->cd();
+  TCanvas* c1[nMetCat][nPhoCat];
+  for (UInt_t met=0; met<nMetCat; met++){
+    for (UInt_t pho=0; pho<nPhoCat; pho++){
+      c1[met][pho] = new TCanvas(Form("c1%s%s",MetCat[met].Data(),PhoCat[pho].Data()),"c",1);
+    }
+  }
+
+  // Plot the PDF & Dataset Overlaid 
+  RooPlot* shapeth1f[nMetCat][nPhoCat];
+  for (UInt_t met=0; met<nMetCat; met++){
+    for (UInt_t pho=0; pho<nPhoCat; pho++){
+      datasetName = TString::Format("%s_%s",MetCat[met].Data(),PhoCat[pho].Data());
+      shapeth1f[met][pho] = w->var("mass")->frame(Range(minMassFit-10,maxMassFit+10),Bins(BINS+20));
+      if(shapeth1f[met][pho]== (RooPlot*) NULL) std::cout<<"VARIABLE NOT FOUND" << std::endl;
+    }
+  } 
+
+  for (UInt_t pho=0; pho<nPhoCat; pho++){
+     for (UInt_t met=0; met<nMetCat; met++){
+       c1[met][pho]->cd();
+       // plot all met bins in same pho plot
+       sigDataSet[met][pho]->plotOn(shapeth1f[met][pho],LineColor(colorMetCat[met]),DrawOption("L"),LineStyle(1),MarkerStyle(0),XErrorSize(0),DataError(RooAbsData::None));
+       H_BWxGauss[met][pho]->plotOn(shapeth1f[met][pho],LineColor(kBlue),LineStyle(kDashed));
+       shapeth1f[met][pho]->Draw(); 
+
+       TLegend* leg = new TLegend(0.55,0.6,0.87,0.88,(TString::Format("%s",PhoCat[pho].Data())),"brNDC");
+       leg->AddEntry(shapeth1f[met][pho]->getObject(0),MetCat[met].Data(),"L");
+       leg->AddEntry(shapeth1f[met][pho]->getObject(1),"Fit BWxGauss","L");
+       leg->SetTextSize(0.03);
+       leg->SetTextFont(42);
+       leg->SetBorderSize(0);
+       leg->SetFillStyle(0);
+       leg->Draw();
+       c1[met][pho]->SetLogy(0);
+       c1[met][pho]->SaveAs(TString::Format("plots/%s_%s_wFit.png",PhoCat[pho].Data(),MetCat[met].Data()));
+       c1[met][pho]->SetLogy(1);
+       c1[met][pho]->SaveAs(TString::Format("plots/%s_%s_wFit_log.png",PhoCat[pho].Data(),MetCat[met].Data()));
+    } 
+  }
+
 
 }
 
@@ -193,10 +280,10 @@ void runfits(){
   //AddSigData(w,"VH",0);
   //AddSigData(w,"GluGluHToGG",0);
   std::cout << "Starting SigModelFit" << std::endl;
-  sigModelFit(w);
+  sigModelFit(w,"600",1);
 
   std::cout << "Making Plots" << std::endl;
-  drawPlots(w,"mgg",30,110.,140.,"600",1);
+  //drawPlots(w,"mgg",30,110.,140.,"600",1);
   //drawPlots(w,"mgg",30,110.,140.,"800",1);
   //drawPlots(w,"mgg",30,110.,140.,"1000",1);
   //drawPlots(w,"mgg",30,110.,140.,"1200",1);
