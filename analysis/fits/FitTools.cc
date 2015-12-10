@@ -111,28 +111,45 @@ void AddSigData(RooWorkspace* w, TString Mass, UInt_t sample){
 void sigModelFit(RooWorkspace* w, TString sampleOrMassName, Int_t sample){
 
   // Set up constants for fit
-  Float_t mass=125.;// SM Higgs mass
-  Float_t width=6.;//  SM Higgs width
-  Float_t minMassFit=115.;// mass window min for fit
-  Float_t maxMassFit=135.;// mass window max for fit
-  Int_t BINS=20;// nbins for mass window
+  Float_t HMass=125.;// SM Higgs mass
+  Float_t width=4.;//   SM Higgs width
+  Float_t GaussSig=1.;
+  Float_t minMassFit=120.;// mass window min for fit
+  Float_t maxMassFit=130.;// mass window max for fit
+  Int_t BINS=(Int_t)maxMassFit-minMassFit;// nbins for mass window
   std::vector<Color_t> colorMetCat = SetColorMet(nMetCat);
 
   // Set up PDFs (Gauss,BW,BWxGauss) for fitting mass
+  RooRealVar mass("mass","mass",minMassFit,maxMassFit);
   RooRealVar fitMass("fitMass","fitMass",minMassFit,maxMassFit);
-  RooRealVar Hmass("Hmass","Hmass",mass,"GeV");
+  RooRealVar Hmass("Hmass","Hmass",HMass,"GeV");
   RooRealVar Hwidth("Hwidth","Hwidth",width,"GeV");
+  RooRealVar sigma("sigma","sigma",GaussSig);
   RooGaussian *Hgauss = new RooGaussian("Hgauss","H sig PDF gauss",fitMass,Hmass,Hwidth);
   RooBreitWigner *Hbw = new RooBreitWigner("Hbw","H sig PDF BW",fitMass,Hmass,Hwidth);
-  RooVoigtian *Hconv  = new RooVoigtian("Hconv","H sig PDF BW conv Gauss",fitMass,Hmass,Hwidth,Hwidth);
+  RooVoigtian *Hconv  = new RooVoigtian("Hconv","H sig PDF BW conv Gauss",fitMass,Hmass,Hwidth,sigma);
   RooVoigtian* H_BWxGauss [nMetCat][nPhoCat];
  
   // Draw the PDFs
-  //RooPlot* mFrame = fitMass.frame();
-  //Hgauss->plotOn(mFrame,LineColor(kBlue));
-  //Hbw->plotOn(mFrame,LineColor(kRed));
-  //Hconv->plotOn(mFrame,LineColor(kBlack));
-  //mFrame->Draw();
+  RooPlot* mFrame = fitMass.frame();
+  Hgauss->plotOn(mFrame,LineColor(kBlue));
+  Hbw->plotOn(mFrame,LineColor(kRed));
+  Hconv->plotOn(mFrame,LineColor(kBlack));
+  TLegend* leg = new TLegend(0.12,0.7,0.37,0.9,"Different Fits","brNDC");
+  leg->AddEntry(mFrame->getObject(0),"Gauss","L");
+  leg->AddEntry(mFrame->getObject(1),"BW","L");
+  leg->AddEntry(mFrame->getObject(2),"BWxGauss","L");
+  leg->SetTextSize(0.03);
+  leg->SetTextFont(42);
+  leg->SetBorderSize(0);
+  leg->SetFillStyle(0);
+  // Save plot
+  TCanvas* c = new TCanvas();
+  c->cd();
+  mFrame->Draw();
+  leg->Draw();
+  c->SaveAs("plots/PDF_Distributions.png");
+  c->Close();
  
   // Read in from Workspace the Signal Dataset
   RooDataSet* sigDataSet[nMetCat][nPhoCat];
@@ -153,10 +170,9 @@ void sigModelFit(RooWorkspace* w, TString sampleOrMassName, Int_t sample){
        //Hgauss->fitTo(*sigDataSet[met][pho]);
        //Hbw->fitTo(*sigDataSet[met][pho]);
        //Hconv->fitTo(*sigDataSet[met][pho]);
-       H_BWxGauss[met][pho] = new RooVoigtian("H_BWxGauss","H sig PDF",fitMass,Hmass,Hwidth,Hwidth);
-       H_BWxGauss[met][pho]->fitTo(*sigDataSet[met][pho]);
-       //RooArgSet* paramSet = H_BWxGauss[met][pho]->GetDependents(*sigDataSet[met][pho]);
-       //paramSet->Print("v");
+       H_BWxGauss[met][pho] = new RooVoigtian("H_BWxGauss","H sig PDF",mass,Hmass,Hwidth,Hwidth);
+       H_BWxGauss[met][pho]->fitTo(*sigDataSet[met][pho],RooFit::Save(kTRUE));
+       //H_BWxGauss[met][pho]->Print("V");
     }
   }
 
@@ -183,12 +199,18 @@ void sigModelFit(RooWorkspace* w, TString sampleOrMassName, Int_t sample){
   for (UInt_t pho=0; pho<nPhoCat; pho++){
      for (UInt_t met=0; met<nMetCat; met++){
        c1[met][pho]->cd();
-       // plot all met bins in same pho plot
+
+       // plot DataSet & Fit
        sigDataSet[met][pho]->plotOn(shapeth1f[met][pho],LineColor(colorMetCat[met]),DrawOption("L"),LineStyle(1),MarkerStyle(0),XErrorSize(0),DataError(RooAbsData::None));
        H_BWxGauss[met][pho]->plotOn(shapeth1f[met][pho],LineColor(kBlue),LineStyle(kDashed));
+       // add Stat (dataset) & Param (fit) boxes
+       sigDataSet[met][pho]->statOn(shapeth1f[met][pho]);
+       //H_BWxGauss[met][pho]->paramOn(shapeth1f[met][pho],sigDataSet[met][pho]);
+       // draw Plots
        shapeth1f[met][pho]->Draw(); 
 
-       TLegend* leg = new TLegend(0.55,0.6,0.87,0.88,(TString::Format("%s",PhoCat[pho].Data())),"brNDC");
+       // setup Legend
+       TLegend* leg = new TLegend(0.12,0.7,0.37,0.9,(TString::Format("%s",PhoCat[pho].Data())),"brNDC");
        leg->AddEntry(shapeth1f[met][pho]->getObject(0),MetCat[met].Data(),"L");
        leg->AddEntry(shapeth1f[met][pho]->getObject(1),"Fit BWxGauss","L");
        leg->SetTextSize(0.03);
@@ -196,6 +218,8 @@ void sigModelFit(RooWorkspace* w, TString sampleOrMassName, Int_t sample){
        leg->SetBorderSize(0);
        leg->SetFillStyle(0);
        leg->Draw();
+
+       // save Plots
        c1[met][pho]->SetLogy(0);
        c1[met][pho]->SaveAs(TString::Format("plots/%s_%s_wFit.png",PhoCat[pho].Data(),MetCat[met].Data()));
        c1[met][pho]->SetLogy(1);
@@ -261,7 +285,7 @@ void drawPlots(RooWorkspace* w, TString variable, int BINS, float MIN, float MAX
 }
 
 void runfits(){
-
+  // Setup Workspace
   TString card_name("MonoHiggs.rs");
   HLFactory hlf("HLFactory", card_name, false);
   RooWorkspace* w = hlf.GetWs();
@@ -271,6 +295,7 @@ void runfits(){
   w->import(lumi);
   //w->Print();
  
+  // Add the samples to the Workspace
   std::cout << "Adding Signal Samples" << std::endl;
   AddSigData(w,"600",1);
   //AddSigData(w,"800",1);
@@ -279,9 +304,18 @@ void runfits(){
   //AddSigData(w,"1400",1);
   //AddSigData(w,"VH",0);
   //AddSigData(w,"GluGluHToGG",0);
+
+  // Do the Fits for each met & pho category 
   std::cout << "Starting SigModelFit" << std::endl;
   sigModelFit(w,"600",1);
+  //sigModelFit(w,"800",1);
+  //sigModelFit(w,"100",1);
+  //sigModelFit(w,"1200",1);
+  //sigModelFit(w,"1400",1);
+  //sigModelFit(w,"VH",0);
+  //sigModelFit(w,"GluGluHToGG",0);
 
+  // Plot invariant mass overlaid for the MET categories
   std::cout << "Making Plots" << std::endl;
   //drawPlots(w,"mgg",30,110.,140.,"600",1);
   //drawPlots(w,"mgg",30,110.,140.,"800",1);
