@@ -224,7 +224,7 @@ private:
 
   // to compute weights for pileup
   std::vector<Double_t> puweights_;
-  bool doOfficialPUrecipe = false;
+  bool doOfficialPUrecipe = true;
 
   // output tree with several diphoton infos
   TTree *DiPhotonTree;
@@ -405,8 +405,6 @@ void NewDiPhoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
     //float difference = perEveW - genInfo->weight(); 
     //if (difference != 0.0) std::cout << " perEveW - genInfo->weight is NOT zero! with perEveW = " << perEveW << " and genInfo " << genInfo->weight() << " diff " << difference <<  std::endl;
   }
-
-
 
   //bool isSig = false;
   //if (sampleID>100 && sampleID<110) isSig = true; 
@@ -1373,23 +1371,31 @@ void NewDiPhoAnalyzer::SetPuWeights(std::string puWeightFile) {
     }
     return;
   }
-
+  
   if (doOfficialPUrecipe){
     TH1D* weightedPU= (TH1D*)gen_pu->Clone("weightedPU");
     weightedPU->Multiply(puweights);
-
+    
     // Rescaling weights in order to preserve same integral of events                               
     TH1D* weights = (TH1D*)puweights->Clone("rescaledWeights");
     weights->Scale( gen_pu->Integral(1,MAX_PU_REWEIGHT) / weightedPU->Integral(1,MAX_PU_REWEIGHT) );
-  }
+    for (int i = 0; i<MAX_PU_REWEIGHT; i++) {
+      float weight=1.;
+      weight=weights->GetBinContent(i+1);
+      puweights_.push_back(weight);
+      //std::cout << "i= " << i << " & has weight = " << weight << std::endl;
+    }
 
-  float sumPuWeights=0.;
-  for (int i = 0; i<MAX_PU_REWEIGHT; i++) {
-    float weight=1.;
-    weight=puweights->GetBinContent(i+1);
-    sumPuWeights+=weight;
-    puweights_.push_back(weight);
-    //std::cout << "i= " << i << " & has weight = " << weight << std::endl;
+  } else {
+
+    float sumPuWeights=0.;
+    for (int i = 0; i<MAX_PU_REWEIGHT; i++) {
+      float weight=1.;
+      weight=puweights->GetBinContent(i+1);
+      sumPuWeights+=weight;
+      puweights_.push_back(weight);
+      //std::cout << "i= " << i << " & has weight = " << weight << std::endl;
+    }
   }
 }
 
