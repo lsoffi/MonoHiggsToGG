@@ -59,7 +59,9 @@ process.source = cms.Source("PoolSource",
 	#"/store/group/phys_higgs/cmshgg/sethzenz/flashgg/RunIISpring15-ReMiniAOD-BetaV7-25ns/Spring15BetaV7/QCD_Pt-40toInf_DoubleEMEnriched_MGG-80toInf_TuneCUETP8M1_13TeV_Pythia8/RunIISpring15-ReMiniAOD-BetaV7-25ns-Spring15BetaV7-v0-RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/151021_152445/0000/myMicroAODOutputFile_1.root" 
 	#"/store/user/mzientek/MonoHgg_2HDM_MZP600_A0300_13TeV/mzientek_test_MonoH_2HDM_MZP600_A0300_RunIISpring15-25ns-Spring15BetaV7/151104_142438/0000/myMicroAODOutputFile_1.root"
 
-        "/store/group/phys_higgs/cmshgg/sethzenz/flashgg/RunIISpring15-ReMiniAOD-BetaV7-25ns/Spring15BetaV7/GJet_Pt-20to40_DoubleEMEnriched_MGG-80toInf_TuneCUETP8M1_13TeV_Pythia8/RunIISpring15-ReMiniAOD-BetaV7-25ns-Spring15BetaV7-v0-RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/151021_151907/0000/myMicroAODOutputFile_13.root"
+        #"/store/group/phys_higgs/cmshgg/sethzenz/flashgg/RunIISpring15-ReMiniAOD-BetaV7-25ns/Spring15BetaV7/GJet_Pt-20to40_DoubleEMEnriched_MGG-80toInf_TuneCUETP8M1_13TeV_Pythia8/RunIISpring15-ReMiniAOD-BetaV7-25ns-Spring15BetaV7-v0-RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/151021_151907/0000/myMicroAODOutputFile_13.root"
+        
+        "/store/group/phys_higgs/cmshgg/sethzenz/flashgg/RunIISpring15-ReMiniAOD-BetaV7-25ns/Spring15BetaV7/VHToGG_M125_13TeV_amcatnloFXFX_madspin_pythia8/RunIISpring15-ReMiniAOD-BetaV7-25ns-Spring15BetaV7-v0-RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/151021_152953/0000/myMicroAODOutputFile_2.root"
         )
                             )
 if (isMC==False and is2015DFromChiara):
@@ -75,19 +77,32 @@ process.load("flashgg/MicroAOD/flashggDiPhotons_cfi")
 
 process.TFileService = cms.Service("TFileService",fileName = cms.string("diPhotons.root"))
 
+# to make jets
+from flashgg.MicroAOD.flashggJets_cfi import flashggBTag, maxJetCollections
+process.flashggUnpackedJets = cms.EDProducer("FlashggVectorVectorJetUnpacker",  
+                                             JetsTag = cms.InputTag("flashggFinalJets"),          
+                                             NCollections = cms.uint32(maxJetCollections) 
+                                             )               
+
+UnpackedJetCollectionVInputTag = cms.VInputTag()       
+for i in range(0,maxJetCollections):    
+    UnpackedJetCollectionVInputTag.append(cms.InputTag('flashggUnpackedJets',str(i)))  
+
 process.diPhoAna = cms.EDAnalyzer('NewDiPhoAnalyzer',
                                   VertexTag = cms.untracked.InputTag('offlineSlimmedPrimaryVertices'),
 				  METTag=cms.untracked.InputTag('slimmedMETs'),
+                                  inputTagJets= UnpackedJetCollectionVInputTag,            
+                                  ElectronTag=cms.InputTag('flashggSelectedElectrons'),    
+                                  MuonTag=cms.InputTag('flashggSelectedMuons'),            
+                                  bTag = cms.untracked.string(flashggBTag),                
                                   genPhotonExtraTag = cms.InputTag("flashggGenPhotonsExtra"),    
                                   DiPhotonTag = cms.untracked.InputTag('flashggDiPhotons'),
-                                  #reducedBarrelRecHitCollection = cms.InputTag('reducedEgamma','reducedEBRecHits'),
-                                  #reducedEndcapRecHitCollection = cms.InputTag('reducedEgamma','reducedEERecHits'),
                                   PileUpTag = cms.untracked.InputTag('slimmedAddPileupInfo'),
                                   generatorInfo = cms.InputTag("generator"),
                                   dopureweight = cms.untracked.int32(1),
                                   bits         = cms.InputTag('TriggerResults::HLT'),
                                   #sampleIndex  = cms.untracked.int32(101),   
-				  sampleIndex  = cms.untracked.int32(13),
+				  sampleIndex  = cms.untracked.int32(11),
                                   #puWFileName  = cms.string('PURW_MC.root'),  
                                   puWFileName  = cms.string('/afs/cern.ch/user/c/crovelli/public/json2015/doubleEG/pileupWeights___processedAndGolden_finalAfewMissing__69mb.root'),   
                                   xsec         = cms.untracked.double(1), #pb
@@ -95,4 +110,4 @@ process.diPhoAna = cms.EDAnalyzer('NewDiPhoAnalyzer',
                                   sumDataset   = cms.untracked.double(100.0)   # chiara
                                   )
 
-process.p = cms.Path(process.diPhoAna)
+process.p = cms.Path(process.flashggUnpackedJets*process.diPhoAna )     
