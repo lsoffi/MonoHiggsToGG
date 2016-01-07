@@ -23,6 +23,11 @@
 #include "flashgg/DataFormats/interface/Photon.h"
 #include "flashgg/DataFormats/interface/DiPhotonCandidate.h"
 #include "flashgg/DataFormats/interface/GenPhotonExtra.h"
+#include "flashgg/DataFormats/interface/Electron.h"
+#include "flashgg/DataFormats/interface/Muon.h"
+#include "flashgg/DataFormats/interface/Jet.h"
+
+#include "flashgg/Taggers/interface/LeptonSelection.h"
 
 #include "DataFormats/PatCandidates/interface/MET.h"
 
@@ -153,6 +158,12 @@ struct diphoTree_struc_ {
   int passLooseSieie2;
   int passLooseHoe1;
   int passLooseHoe2;
+  int nEle;
+  int nMuons;
+  int nJets;
+  int nLooseBjets;
+  int nMediumBjets;
+  int vhtruth;
 };
 
 class NewDiPhoAnalyzer : public edm::EDAnalyzer {
@@ -210,10 +221,18 @@ private:
   EDGetTokenT<vector<flashgg::GenPhotonExtra> > genPhotonExtraToken_;
   edm::InputTag genInfo_;
   EDGetTokenT<View<reco::GenParticle> > genPartToken_;
+    std::vector<edm::InputTag> inputTagJets_;     
+  EDGetTokenT<View<Electron> > electronToken_;   
+  EDGetTokenT<View<flashgg::Muon> > muonToken_;        
 
   EDGetTokenT<View<pat::MET> > METToken_;
 
   EDGetTokenT<edm::TriggerResults> triggerBitsToken_;
+
+  string bTag_;    
+
+  typedef std::vector<edm::Handle<edm::View<flashgg::Jet> > > JetCollectionVector;
+
   // sample-dependent parameters needed for the analysis
   int dopureweight_;
   int sampleIndex_;
@@ -259,6 +278,9 @@ NewDiPhoAnalyzer::NewDiPhoAnalyzer(const edm::ParameterSet& iConfig):
   PileUpToken_(consumes<View<PileupSummaryInfo> >(iConfig.getUntrackedParameter<InputTag> ("PileUpTag"))),
   genPhotonExtraToken_(mayConsume<vector<flashgg::GenPhotonExtra> >(iConfig.getParameter<InputTag>("genPhotonExtraTag"))),
   genPartToken_(consumes<View<reco::GenParticle> >(iConfig.getUntrackedParameter<InputTag> ("GenParticlesTag", InputTag("flashggPrunedGenParticles")))),
+  inputTagJets_( iConfig.getParameter<std::vector<edm::InputTag> >( "inputTagJets" ) ),   
+  electronToken_( consumes<View<flashgg::Electron> >( iConfig.getParameter<InputTag>( "ElectronTag" ) ) ),
+  muonToken_( consumes<View<flashgg::Muon> >( iConfig.getParameter<InputTag>( "MuonTag" ) ) ), 
   METToken_( consumes<View<pat::MET> >( iConfig.getUntrackedParameter<InputTag> ( "METTag", InputTag( "slimmedMETs" ) ) ) ),
   triggerBitsToken_( consumes<edm::TriggerResults>( iConfig.getParameter<edm::InputTag>( "bits" ) ) )
 { 
@@ -269,6 +291,8 @@ NewDiPhoAnalyzer::NewDiPhoAnalyzer(const edm::ParameterSet& iConfig):
   kfac_         = iConfig.getUntrackedParameter<double>("kfac",1.); 
   sumDataset_   = iConfig.getUntrackedParameter<double>("sumDataset",-999.);
   genInfo_      = iConfig.getParameter<edm::InputTag>("generatorInfo"); 
+
+  bTag_ = iConfig.getUntrackedParameter<string> ( "bTag", "combinedInclusiveSecondaryVertexV2BJetTags" );   
 };
 
 NewDiPhoAnalyzer::~NewDiPhoAnalyzer() { 
@@ -319,6 +343,16 @@ void NewDiPhoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
 
   Handle<edm::TriggerResults> triggerBits;
   iEvent.getByToken( triggerBitsToken_, triggerBits );
+
+  JetCollectionVector Jets( inputTagJets_.size() );         
+  for( size_t j = 0; j < inputTagJets_.size(); ++j ) 
+    iEvent.getByLabel( inputTagJets_[j], Jets[j] );
+
+  Handle<View<flashgg::Muon> > theMuons;           
+  iEvent.getByToken( muonToken_, theMuons );   
+
+  Handle<View<flashgg::Electron> > theElectrons;  
+  iEvent.getByToken( electronToken_, theElectrons );    
 
   // --------------------------------------------------
   //std::cout<<"------------------------------"<<std::endl;
@@ -480,23 +514,6 @@ void NewDiPhoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
 	int theDiphoton = preselDipho[diphotonlooper];
 	Ptr<flashgg::DiPhotonCandidate> diphoPtr = diPhotons->ptrAt( theDiphoton );
 	
-	// chiara: init comment x efficiencies
-	/*std::vector<float> leadCovnoZS    = lazyToolnoZS->localCovariances(*(diphoPtr->leadingPhoton()->superCluster()->seed())) ;
-	std::vector<float> subleadCovnoZS = lazyToolnoZS->localCovariances(*(diphoPtr->subLeadingPhoton()->superCluster()->seed())) ;
-	
-	float leadSieienoZS;
-	if (!isnan(leadCovnoZS[0]))
-	  leadSieienoZS = sqrt (leadCovnoZS[0]); 
-	else 
-	  continue;
-	
-	float subleadSieienoZS;
-	if (!isnan(subleadCovnoZS[0]))
-	  subleadSieienoZS = sqrt (subleadCovnoZS[0]); 
-	else 
-	  continue;*/
-
-
 	float leadPt     = diphoPtr->leadingPhoton()->et();
 	float leadScEta  = (diphoPtr->leadingPhoton()->superCluster())->eta();   
 	//float leadR9noZS = diphoPtr->leadingPhoton()->full5x5_r9();
@@ -589,7 +606,6 @@ void NewDiPhoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
 	
 	if (!leadLooseSelel || !subleadLooseSelel ) continue; //Livia Correction: applies pho ID selection 
 	//if (!leadTightSelel || !subleadTightSelel ) continue;  
-	// chiara: end comment x efficiencies
 
 	selectedDipho.push_back(theDiphoton);    
       }
@@ -607,7 +623,7 @@ void NewDiPhoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
 	  float leadPt    = diphoPtr->leadingPhoton()->et();
 	  float subleadPt = diphoPtr->subLeadingPhoton()->et();
 
-	  if (leadPt<30 || subleadPt<20) continue;             // chiara: x ana: 80; x phys14: 200; x sinc 100
+	  if (leadPt<30 || subleadPt<20) continue;      
 
 	  kineDipho.push_back(theDiphoton);
 	}
@@ -625,7 +641,7 @@ void NewDiPhoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
 	    
 	    float thisSystemMgg = diphoPtr->mass();
 
-	    if (thisSystemMgg<50 ) continue;    // chiara: x ana: 300; x phys14: 500; x sinc 200 
+	    if (thisSystemMgg<50 ) continue; 
 
 	    float leadPt    = diphoPtr->leadingPhoton()->et();
 	    float subleadPt = diphoPtr->subLeadingPhoton()->et();
@@ -637,8 +653,6 @@ void NewDiPhoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
   
 	  if (massDipho.size()>0) {
 	    if (hltDiphoton30Mass95) h_selection->Fill(4.,perEveW);
-
-	    // chiara: studiare il numero di candidati
 
 	    // Diphoton candidates choice: highest scalar sum pT
 	    float maxSumPt = -999.;
@@ -673,8 +687,6 @@ void NewDiPhoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
 	      bool isVtxFake = ((primaryVertices->ptrAt(theVertex))->ndof()==0) && ((primaryVertices->ptrAt(theVertex))->chi2()==0);   // chiara: also && tracks.empty, but can not be used here
 	      if (isVtxFake) goodVtx = false;
 
-	      // chiara: studiare quanti sono e quante volte e' il primo
-	      
 	      if (goodVtx) {
 		if (hltDiphoton30Mass95) h_selection->Fill(5.,perEveW);
 
@@ -701,6 +713,8 @@ void NewDiPhoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
                 int passCHiso1, passCHiso2, passNHiso1, passNHiso2, passPHiso1, passPHiso2, passSieie1, passSieie2, passHoe1, passHoe2;
                 int passTightCHiso1, passTightCHiso2, passTightNHiso1, passTightNHiso2, passTightPHiso1, passTightPHiso2, passTightSieie1, passTightSieie2, passTightHoe1, passTightHoe2;
                 int passLooseCHiso1, passLooseCHiso2, passLooseNHiso1, passLooseNHiso2, passLoosePHiso1, passLoosePHiso2, passLooseSieie1, passLooseSieie2, passLooseHoe1, passLooseHoe2;
+		int nEle, nMuons, nJets, nLooseBjets, nMediumBjets;
+		int vhtruth;
 
 		// fully selected event: tree re-initialization                                                                          
 		initTreeStructure();        
@@ -930,6 +944,31 @@ void NewDiPhoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
 		  }
 		*/
 
+
+		// chiaraaaaa
+		// --> only for VH: check the mc truth for Higgs studies
+		vhtruth = -1;
+		if (sampleID==11) { //this is VH
+		  for( unsigned int genLoop = 0 ; genLoop < genParticles->size(); genLoop++ ) {
+		    if (genParticles->ptrAt( genLoop )->mother(0)) {
+		      int mothid = fabs(genParticles->ptrAt( genLoop )->mother(0)->pdgId());
+		      if (mothid==23) {
+			if ( fabs(genParticles->ptrAt( genLoop )->pdgId())<=6 )  { vhtruth = 0; break; }
+			if ( fabs(genParticles->ptrAt( genLoop )->pdgId())==11 ) { vhtruth = 1; break; }
+			if ( fabs(genParticles->ptrAt( genLoop )->pdgId())==13 ) { vhtruth = 2; break; }
+		      }
+		      if (mothid==24) {
+			if ( fabs(genParticles->ptrAt( genLoop )->pdgId())<=6 )  { vhtruth = 3; break; }
+			if ( fabs(genParticles->ptrAt( genLoop )->pdgId())==11 ) { vhtruth = 4; break; }
+			if ( fabs(genParticles->ptrAt( genLoop )->pdgId())==13 ) { vhtruth = 5; break; }
+		      } 
+		      if (mothid==23 || mothid==24) {
+			if ( fabs(genParticles->ptrAt( genLoop )->pdgId())==15 ) { vhtruth = 6; break; }
+		      }
+		    }
+		  }
+		}
+
 		//--------> gen level mgg for signal samples
 		genmgg = -999.;
 		if (sampleID>99 && sampleID<10000) {  // signal only 
@@ -971,6 +1010,70 @@ void NewDiPhoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
 		    }
 		  }
 		}
+	      
+		// leptons and jets
+		nEle   = 0;
+		nMuons = 0;
+		nJets  = 0;     
+		nLooseBjets  = 0;   
+		nMediumBjets = 0;  
+
+		// Muons =>
+		// 0.25 suggested by muon pog for loose isolation
+		// 0.3  (distance from the photons) => seems reasonable to me. 0.5 was used in globe
+		// pT>20
+		vector<Ptr<flashgg::Muon> > goodMuons = 
+		  selectMuons( theMuons->ptrs(), candDiphoPtr, primaryVertices->ptrs(), 2.4, 20., 0.25, 0.3, 0.3);  
+		nMuons = goodMuons.size();
+
+		// Electrons =>
+		// pT>20 (maybe can be put higher?)
+		// 0.3 (distance from the photons) => seems reasonable to me
+		std::vector<edm::Ptr<Electron> > goodElectrons = 
+		  selectMediumElectrons( theElectrons->ptrs(), primaryVertices->ptrs(), candDiphoPtr, rho, 20., 0.3, 0.3);
+		nEle = goodElectrons.size();
+
+		// Jets     
+		unsigned int jetCollectionIndex = candDiphoPtr->jetCollectionIndex();  
+		for( unsigned int jetIndex = 0; jetIndex < Jets[jetCollectionIndex]->size() ; jetIndex++) {
+		  
+		  edm::Ptr<flashgg::Jet> thejet = Jets[jetCollectionIndex]->ptrAt( jetIndex );
+
+		  // jet selection: kinematics and id - hardcoded
+		  if( fabs( thejet->eta() ) > 2.4 ) continue;     // chiara: we only consider central jets 
+		  if( thejet->pt() < 30. ) continue;  
+		  if( !thejet->passesPuJetId( candDiphoPtr ) ) continue;   
+		  
+		  // far from the photons => 0.3 seems reasonable to me   
+		  float dRPhoLeadJet    = deltaR( thejet->eta(), thejet->phi(), candDiphoPtr->leadingPhoton()->superCluster()->eta(), candDiphoPtr->leadingPhoton()->superCluster()->phi() ) ;
+		  float dRPhoSubLeadJet = deltaR( thejet->eta(), thejet->phi(), candDiphoPtr->subLeadingPhoton()->superCluster()->eta(), candDiphoPtr->subLeadingPhoton()->superCluster()->phi() );
+		  if( dRPhoLeadJet < 0.3 || dRPhoSubLeadJet < 0.3 ) continue;
+
+		  // close to muons?
+		  float matchMu = false;
+		  for( unsigned int muonIndex = 0; muonIndex < goodMuons.size(); muonIndex++ ) {  
+		    Ptr<flashgg::Muon> muon = goodMuons[muonIndex];   
+		    float dRJetMuon = deltaR( thejet->eta(), thejet->phi(), muon->eta(), muon->phi() ) ; 
+		    if (dRJetMuon < 0.3 ) matchMu = true;   
+		  }
+		  
+		  // close to electrons?
+		  float matchEle = false;
+		  for( unsigned int ElectronIndex = 0; ElectronIndex < goodElectrons.size(); ElectronIndex++ ) {   
+		    Ptr<Electron> Electron = goodElectrons[ElectronIndex];  
+		    float dRJetElectron = deltaR( thejet->eta(), thejet->phi(), Electron->eta(), Electron->phi() ) ;  
+		    if( dRJetElectron < 0.3 ) matchEle = true;  
+		  }
+		  
+		  // far from possible muons and electrons       
+		  if (matchMu || matchEle) continue;
+
+		  nJets++;     
+		  float bDiscriminatorValue = thejet->bDiscriminator( bTag_ );    
+		  if( bDiscriminatorValue > 0.244 ) nLooseBjets++;        // hardcoded
+		  if( bDiscriminatorValue > 0.679 ) nMediumBjets++;       // hardcoded
+		  
+		} // loop over jets
 
 		// Variables for the tree
 		treeDipho_.hltPhoton26Photon16Mass60=hltPhoton26Photon16Mass60;
@@ -1080,6 +1183,12 @@ void NewDiPhoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
 		treeDipho_.passLooseSieie2 = passLooseSieie2;
 		treeDipho_.passLooseHoe1 = passLooseHoe1;
 		treeDipho_.passLooseHoe2 = passLooseHoe2;	
+		treeDipho_.nEle   = nEle;
+		treeDipho_.nMuons = nMuons;
+		treeDipho_.nJets  = nJets;
+		treeDipho_.nLooseBjets  = nLooseBjets;
+		treeDipho_.nMediumBjets = nMediumBjets;
+		treeDipho_.vhtruth = vhtruth;
 	
 		// Filling the trees
 		DiPhotonTree->Fill();
@@ -1228,6 +1337,12 @@ void NewDiPhoAnalyzer::beginJob() {
   DiPhotonTree->Branch("passLooseSieie2",&(treeDipho_.passLooseSieie2),"passLooseSieie2/I");
   DiPhotonTree->Branch("passLooseHoe1",&(treeDipho_.passLooseHoe1),"passLooseHoe1/I");
   DiPhotonTree->Branch("passLooseHoe2",&(treeDipho_.passLooseHoe2),"passLooseHoe2/I");
+  DiPhotonTree->Branch("nEle",&(treeDipho_.nEle),"nEle/I");
+  DiPhotonTree->Branch("nMuons",&(treeDipho_.nMuons),"nMuons/I");
+  DiPhotonTree->Branch("nJets",&(treeDipho_.nJets),"nJets/I");
+  DiPhotonTree->Branch("nLooseBjets",&(treeDipho_.nLooseBjets),"nLooseBjets/I");
+  DiPhotonTree->Branch("nMediumBjets",&(treeDipho_.nMediumBjets),"nMediumBjets/I");
+  DiPhotonTree->Branch("vhtruth",&(treeDipho_.vhtruth),"vhtruth/I");
 }
 
 void NewDiPhoAnalyzer::endJob() { }
@@ -1341,6 +1456,12 @@ void NewDiPhoAnalyzer::initTreeStructure() {
   treeDipho_.passLooseSieie2 = -500;
   treeDipho_.passLooseHoe1 = -500;
   treeDipho_.passLooseHoe2 = -500;
+  treeDipho_.nEle   = -500;
+  treeDipho_.nMuons = -500;
+  treeDipho_.nJets  = -500;
+  treeDipho_.nLooseBjets  = -500;
+  treeDipho_.nMediumBjets = -500;
+  treeDipho_.vhtruth = -500;
 }
 
 void NewDiPhoAnalyzer::SetPuWeights(std::string puWeightFile) {
