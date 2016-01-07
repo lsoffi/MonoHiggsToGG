@@ -112,7 +112,7 @@ void sigModelFit(RooWorkspace* w, TString sampleOrMassName, Int_t sample){
 
   // Set up constants for fit
   Float_t HMass=125.;// SM Higgs mass
-  Float_t width=4.;//   SM Higgs width
+  Float_t width=5.;//   SM Higgs width
   Float_t GaussSig=1.;
   Float_t minMassFit=120.;// mass window min for fit
   Float_t maxMassFit=130.;// mass window max for fit
@@ -220,10 +220,13 @@ void sigModelFit(RooWorkspace* w, TString sampleOrMassName, Int_t sample){
        leg->Draw();
 
        // save Plots
+       TString sampleName="";
+       if (sample==1) sampleName=TString::Format("sig_2HDM_mZP%s",sampleOrMassName.Data());
+       else sampleName = TString::Format("bkg_%s",sampleOrMassName.Data());
        c1[met][pho]->SetLogy(0);
-       c1[met][pho]->SaveAs(TString::Format("plots/%s_%s_wFit.png",PhoCat[pho].Data(),MetCat[met].Data()));
+       c1[met][pho]->SaveAs(TString::Format("plots/%s/%s_%s_wFit.png",sampleName.Data(),PhoCat[pho].Data(),MetCat[met].Data()));
        c1[met][pho]->SetLogy(1);
-       c1[met][pho]->SaveAs(TString::Format("plots/%s_%s_wFit_log.png",PhoCat[pho].Data(),MetCat[met].Data()));
+       c1[met][pho]->SaveAs(TString::Format("plots/%s/%s_%s_wFit_log.png",sampleName.Data(),PhoCat[pho].Data(),MetCat[met].Data()));
     } 
   }
 
@@ -251,6 +254,11 @@ void drawPlots(RooWorkspace* w, TString variable, int BINS, float MIN, float MAX
   RooDataSet* sigDataSet[nMetCat][nPhoCat];
   RooAddPdf* sigPdf[nMetCat][nPhoCat];
   RooPlot* sigth1f[nPhoCat];
+  RooDataHist* rooHistInter[nMetCat][nPhoCat];
+  RooHistPdf* rooPdfInter[nMetCat][nPhoCat]; 
+ 
+  TH1F* h_sig = new TH1F("h_sig","h_sig",BINS,MIN,MAX);
+  h_sig->Sumw2();
 
   for (UInt_t met=0; met<nMetCat; met++){
     for (UInt_t pho=0; pho<nPhoCat; pho++){
@@ -261,6 +269,7 @@ void drawPlots(RooWorkspace* w, TString variable, int BINS, float MIN, float MAX
 
       sigDataSet[met][pho] = (RooDataSet*) w->data(datasetName);
       sigPdf[met][pho] = new RooAddPdf(TString::Format("Pdf_%s",datasetName.Data()));
+      //rooHistInter[met][pho] = new RooDataHist(TString::Format("rooHist_%s",datasetName.Data()),"rooHistInter",*mass,h_sig,1);
     }
   } 
 
