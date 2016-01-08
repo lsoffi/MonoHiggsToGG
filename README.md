@@ -74,7 +74,7 @@ From the macro directory:
 NB. The structure of how to use these scripts can be seen in `doAll.sh`
 
 ## Step 7) Produce plots 
-The analysis is done in CMSSW_7_4_12
+The analysis is done in CMSSW_7_4_15
 - `make` (to compile) 
 - `./main` (to run)
 
@@ -92,7 +92,7 @@ The style for the plots is set with Style.cpp.
 # Copy the Framework from Github
 -----------------------------------------------------------
 ```
-cmsrel CMSSW_7_4_12
+cmsrel CMSSW_7_4_15
 cmsenv 
 
 cd ${CMSSW_BASE}/src
@@ -104,7 +104,7 @@ git clone https://github.com/cms-analysis/flashgg.git
 cd flashgg
 
 # get latest version of FLASHgg
-git checkout Spring15BetaV5
+git checkout 1_1_0
 
 cd ${CMSSW_BASE}/src
 bash flashgg/setup.sh | tee setup.log
