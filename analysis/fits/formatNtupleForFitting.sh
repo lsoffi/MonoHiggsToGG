@@ -33,7 +33,7 @@ fitterFormatting("$indir","$outdir","sig",	"2HDM_mZP1200.root",	"2HDM_mZP1200_mA
 fitterFormatting("$indir","$outdir","sig",	"2HDM_mZP1400.root",	"2HDM_mZP1400_mA0300",	"2HDM_mZP1400_new.root")
 fitterFormatting("$indir","$outdir","bkg",	"GluGluHToGG.root",	"GluGluHToGG",		"GluGluHToGG_new.root")
 fitterFormatting("$indir","$outdir","bkg",	"VH.root",		"VH",			"VH_new.root")
-fitterFormatting("$indir","$outdir","data",	"DoubleEG.root",	"DoubleEG",		"Output_Data.root)
+fitterFormatting("$indir","$outdir","data",	"DoubleEG.root",	"DoubleEG",		"Output_Data.root")
 
 .q
 
