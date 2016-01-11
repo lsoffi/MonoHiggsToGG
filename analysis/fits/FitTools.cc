@@ -83,8 +83,8 @@ void AddSigData(RooWorkspace* w, TString Mass, UInt_t sample){
   RooDataSet* signal[nMetCat][nPhoCat];
   RooAddPdf* signalPdf[nMetCat][nPhoCat];
 
-  TFile* inFile = TFile::Open(Form("%s_new.root",name.Data()));
-  if (inFile == (TFile*) NULL) std::cout<< Form("%s_new2.root",name.Data()) << " NOT A VALID FILE " << std::endl;
+  TFile* inFile = TFile::Open(Form("newNtuples/%s_new.root",name.Data()));
+  if (inFile == (TFile*) NULL) std::cout<< Form("newNtuples/%s_new.root",name.Data()) << " NOT A VALID FILE " << std::endl;
   
   TTree* sigTree1 = new TTree();
 
@@ -254,9 +254,14 @@ void drawPlots(RooWorkspace* w, TString variable, int BINS, float MIN, float MAX
   RooDataSet* sigDataSet[nMetCat][nPhoCat];
   RooAddPdf* sigPdf[nMetCat][nPhoCat];
   RooPlot* sigth1f[nPhoCat];
-  RooDataHist* rooHistInter[nMetCat][nPhoCat];
-  RooHistPdf* rooPdfInter[nMetCat][nPhoCat]; 
- 
+
+  RooArgSet* ntplVars = defineVariables();
+  UInt_t nVars = sizeof(*ntplVars);
+  RooDataHist* rooHistInter[nMetCat][nPhoCat][nVars];
+  RooHistPdf* rooPdfInter[nMetCat][nPhoCat][nVars]; 
+
+  RooDataHist* tmpRooHist; //= new RooDataHist("tmp","tmp",BINS,MIN,MAX);
+
   TH1F* h_sig = new TH1F("h_sig","h_sig",BINS,MIN,MAX);
   h_sig->Sumw2();
 
@@ -269,15 +274,17 @@ void drawPlots(RooWorkspace* w, TString variable, int BINS, float MIN, float MAX
 
       sigDataSet[met][pho] = (RooDataSet*) w->data(datasetName);
       sigPdf[met][pho] = new RooAddPdf(TString::Format("Pdf_%s",datasetName.Data()));
-      //rooHistInter[met][pho] = new RooDataHist(TString::Format("rooHist_%s",datasetName.Data()),"rooHistInter",*mass,h_sig,1);
+      //rooHistInter[met][pho] = new RooDataHist(TString::Format("rooHist_%s",datasetName.Data()),"rooHistInter",*ntplVars,h_sig,1.0);
     }
   } 
 
   for (UInt_t pho=0; pho<nPhoCat; pho++){
      c[pho]->cd();
+     std::cout << "In " << PhoCat[pho] << std::endl;
      for (UInt_t met=0; met<nMetCat; met++){
        // plot all met bins in same pho plot
        sigDataSet[met][pho]->plotOn(sigth1f[pho],LineColor(colorMetCat[met]),DrawOption("L"),LineStyle(1),MarkerStyle(0),XErrorSize(0),DataError(RooAbsData::None));
+       std::cout << "Number Entries in MET bin #" << met << " = " << /* tmpRooHist->GetEntries() <<*/ std::endl;
      }
      sigth1f[pho]->Draw(); 
      TLegend* leg = new TLegend(0.55,0.6,0.87,0.88,(TString::Format("%s",PhoCat[pho].Data())),"brNDC");
@@ -326,7 +333,7 @@ void runfits(){
 
   // Plot invariant mass overlaid for the MET categories
   std::cout << "Making Plots" << std::endl;
-  //drawPlots(w,"mgg",30,110.,140.,"600",1);
+  drawPlots(w,"mgg",30,110.,140.,"600",1);
   //drawPlots(w,"mgg",30,110.,140.,"800",1);
   //drawPlots(w,"mgg",30,110.,140.,"1000",1);
   //drawPlots(w,"mgg",30,110.,140.,"1200",1);

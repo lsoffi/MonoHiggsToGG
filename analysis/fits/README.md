@@ -11,15 +11,22 @@ This can be called by:
 ```
   
 specifying fitterFormatting input arguements:
-  1st: file to convert
-  2nd: type (sig, bkg, dat)
-  3rd: sample name
-  4th: output file name
+ fitterFormatting input arguements:
+   1st: input directory
+   2nd: output directory
+   3rd: type (sig, bkg, data)
+   4th: input filename 
+   5th: sample name
+   6th: outfile name
 
-Nb: Inside fitterFormatting you need to specify the MET bin criteria.
+ final files used for the fit are:
+   `outdir/Output_MC.root` and 
+   `outdir/Output_Data.root`
+
+Nb: MET categorization no longer implemented in fitterFormatting, but if it is implemented in the future... inside fitterFormatting you need to specify the MET bin criteria.
 
 ## Step 2)
-Check that the sample shapes don't change in the different MET bins:
+Check that the sample shapes don't change in the different MET bins (this only works when MET cat is implemented -- i.e. not working at the moment):
 
 ```root -l ProduceWorkspaces.C```
 
