@@ -55,21 +55,24 @@ void fitterFormatting(TString inDir, TString outDir, TString type, const char* f
   // vector to store values of selection
   std::vector<Int_t> MetCut;
   MetCut.push_back(0);
+  MetCut.push_back(50);
   MetCut.push_back(100);
-  MetCut.push_back(250);
+  MetCut.push_back(150);
   // vector to store how selection is applied to trees
   std::vector<TString> MetCat;
   MetCat.push_back(TString::Format("t1pfmet>=%d",MetCut[0]));			 	// met > MetCut0
   MetCat.push_back(TString::Format("t1pfmet>=%d && t1pfmet<%d",MetCut[0],MetCut[1]));	// met [MetCut0,MetCut1] 
   MetCat.push_back(TString::Format("t1pfmet>=%d && t1pfmet<%d",MetCut[1],MetCut[2])); 	// met [MetCut1,MetCut2]
-  MetCat.push_back(TString::Format("t1pfmet>=%d",MetCut[2]));				// met > MetCut2
+  MetCat.push_back(TString::Format("t1pfmet>=%d && t1pfmet<%d",MetCut[2],MetCut[3]));   // met [MetCut2,MetCut3]
+  MetCat.push_back(TString::Format("t1pfmet>=%d",MetCut[3]));				// met > MetCut3
   UInt_t numMetCat = MetCat.size();
   // vector to store names for met cat out
   std::vector<TString> theMetCat;
   theMetCat.push_back(TString::Format("met%d",MetCut[0]));
   theMetCat.push_back(TString::Format("met%d-%d",MetCut[0],MetCut[1]));
   theMetCat.push_back(TString::Format("met%d-%d",MetCut[1],MetCut[2]));
-  theMetCat.push_back(TString::Format("met%d",MetCut[2]));
+  theMetCat.push_back(TString::Format("met%d-%d",MetCut[2],MetCut[3]));
+  theMetCat.push_back(TString::Format("met%d",MetCut[3]));
 
   // make output file and new trees
   cout << "OutputFile: " << outDir << "/" << outFile << endl;
