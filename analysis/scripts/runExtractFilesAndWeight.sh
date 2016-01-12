@@ -12,6 +12,14 @@ python extractFilesAndWeight.py -i lists_25ns_v1_1_0/MC/DiPhoton.json		-o DiPhot
 python extractFilesAndWeight.py -i lists_25ns_v1_1_0/MC/GluGluHToGG_M-125.json	-o GluGluHToGG		-d lists_25ns_v1_1_0
 python extractFilesAndWeight.py -i lists_25ns_v1_1_0/MC/DYJetsToLL.json		-o DYJetsToLL		-d lists_25ns_v1_1_0
 
+python extractFilesAndWeight.py -i lists_25ns_v1_1_0/MC/2HDM_MZp-600.json	-o 2HDM_MZP600		-d lists_25ns_v1_1_0
+python extractFilesAndWeight.py -i lists_25ns_v1_1_0/MC/2HDM_MZp-1000.json	-o 2HDM_MZP1000		-d lists_25ns_v1_1_0
+python extractFilesAndWeight.py -i lists_25ns_v1_1_0/MC/2HDM_MZp-1200.json	-o 2HDM_MZP1200		-d lists_25ns_v1_1_0
+python extractFilesAndWeight.py -i lists_25ns_v1_1_0/MC/2HDM_MZp-1400.json	-o 2HDM_MZP1400		-d lists_25ns_v1_1_0
+python extractFilesAndWeight.py -i lists_25ns_v1_1_0/MC/2HDM_MZp-1700.json	-o 2HDM_MZP1700		-d lists_25ns_v1_1_0
+python extractFilesAndWeight.py -i lists_25ns_v1_1_0/MC/2HDM_MZp-2000.json	-o 2HDM_MZP2000		-d lists_25ns_v1_1_0
+python extractFilesAndWeight.py -i lists_25ns_v1_1_0/MC/2HDM_MZp-2500.json	-o 2HDM_MZP2500		-d lists_25ns_v1_1_0
+#python extractFilesAndWeight.py -i lists_25ns_v1_1_0/MC/2HDM_MZp-800.json	-o 2HDM_MZP800		-d lists_25ns_v1_1_0
 
 
 # all 25ns, Spring15BetaV7 

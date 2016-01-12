@@ -2,15 +2,24 @@
 #run extractJSONS.py for all samples in file
 
 # FLASHgg version 1_0_0 for 25ns: 
-python extractJSONS.py -i datasets/datasets_7415_v1-1-0.json	-o DiPhoton		-d lists_25ns_v1_1_0/MC
-python extractJSONS.py -i datasets/datasets_7415_v1-1-0.json	-o DYJetsToLL		-d lists_25ns_v1_1_0/MC
-python extractJSONS.py -i datasets/datasets_7415_v1-1-0.json	-o QCD_Pt-30to40	-d lists_25ns_v1_1_0/MC
-python extractJSONS.py -i datasets/datasets_7415_v1-1-0.json	-o QCD_Pt-40toInf	-d lists_25ns_v1_1_0/MC
-python extractJSONS.py -i datasets/datasets_7415_v1-1-0.json	-o QCD_Pt-30toInf	-d lists_25ns_v1_1_0/MC
-python extractJSONS.py -i datasets/datasets_7415_v1-1-0.json	-o GJet_Pt-20to40	-d lists_25ns_v1_1_0/MC
-python extractJSONS.py -i datasets/datasets_7415_v1-1-0.json	-o GJet_Pt-40toInf	-d lists_25ns_v1_1_0/MC
-python extractJSONS.py -i datasets/datasets_7415_v1-1-0.json	-o GluGluHToGG_M-125	-d lists_25ns_v1_1_0/MC
-python extractJSONS.py -i datasets/datasets_7415_v1-1-0.json	-o VHToGG_M125		-d lists_25ns_v1_1_0/MC
+python extractJSONS.py -i datasets/datasets_7415_v1-1-0_all.json	-o DiPhoton		-d lists_25ns_v1_1_0/MC
+python extractJSONS.py -i datasets/datasets_7415_v1-1-0_all.json	-o DYJetsToLL		-d lists_25ns_v1_1_0/MC
+python extractJSONS.py -i datasets/datasets_7415_v1-1-0_all.json	-o QCD_Pt-30to40	-d lists_25ns_v1_1_0/MC
+python extractJSONS.py -i datasets/datasets_7415_v1-1-0_all.json	-o QCD_Pt-40toInf	-d lists_25ns_v1_1_0/MC
+python extractJSONS.py -i datasets/datasets_7415_v1-1-0_all.json	-o QCD_Pt-30toInf	-d lists_25ns_v1_1_0/MC
+python extractJSONS.py -i datasets/datasets_7415_v1-1-0_all.json	-o GJet_Pt-20to40	-d lists_25ns_v1_1_0/MC
+python extractJSONS.py -i datasets/datasets_7415_v1-1-0_all.json	-o GJet_Pt-40toInf	-d lists_25ns_v1_1_0/MC
+python extractJSONS.py -i datasets/datasets_7415_v1-1-0_all.json	-o GluGluHToGG_M-125	-d lists_25ns_v1_1_0/MC
+python extractJSONS.py -i datasets/datasets_7415_v1-1-0_all.json	-o VHToGG_M125		-d lists_25ns_v1_1_0/MC
+
+python extractJSONS.py -i datasets/datasets_7415_v1-1-0_sig.json	-o 2HDM_MZp-600		-d lists_25ns_v1_1_0/MC
+python extractJSONS.py -i datasets/datasets_7415_v1-1-0_sig.json	-o 2HDM_MZp-1000	-d lists_25ns_v1_1_0/MC
+python extractJSONS.py -i datasets/datasets_7415_v1-1-0_sig.json	-o 2HDM_MZp-1200	-d lists_25ns_v1_1_0/MC
+python extractJSONS.py -i datasets/datasets_7415_v1-1-0_sig.json	-o 2HDM_MZp-1400	-d lists_25ns_v1_1_0/MC
+python extractJSONS.py -i datasets/datasets_7415_v1-1-0_sig.json	-o 2HDM_MZp-1700	-d lists_25ns_v1_1_0/MC
+python extractJSONS.py -i datasets/datasets_7415_v1-1-0_sig.json	-o 2HDM_MZp-2000	-d lists_25ns_v1_1_0/MC
+python extractJSONS.py -i datasets/datasets_7415_v1-1-0_sig.json	-o 2HDM_MZp-2500	-d lists_25ns_v1_1_0/MC
+#python extractJSONS.py -i datasets/datasets_7415_v1-1-0_sig.json	-o 2HDM_MZp-800		-d lists_25ns_v1_1_0/MC
 
 
 # All FLASHgg version Spring15BetaV7:
