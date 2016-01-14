@@ -150,6 +150,11 @@ void addWeights(const char* filename, float lumiForW, float massTrue=1) {
   Int_t           nLooseBjets;   
   Int_t           nMediumBjets;      
   Int_t           vhtruth;  
+  Int_t           metF_GV;    
+  Int_t           metF_HBHENoise;    
+  Int_t           metF_HBHENoiseIso;    
+  Int_t           metF_CSC;    
+  Int_t           metF_eeBadSC;    
   
   // List of branches - original tree
   TBranch        *b_run; 
@@ -253,6 +258,12 @@ void addWeights(const char* filename, float lumiForW, float massTrue=1) {
   TBranch        *b_nLooseBjets;   //!  
   TBranch        *b_nMediumBjets;   //!      
   TBranch        *b_vhtruth;   //!     
+  TBranch        *b_metF_GV;    
+  TBranch        *b_metF_HBHENoise;    
+  TBranch        *b_metF_HBHENoiseIso;    
+  TBranch        *b_metF_CSC;    
+  TBranch        *b_metF_eeBadSC;    
+
 
   // Set branch addresses and branch pointers 
   treeOrig->SetBranchAddress("run", &run, &b_run);
@@ -356,6 +367,11 @@ void addWeights(const char* filename, float lumiForW, float massTrue=1) {
   treeOrig->SetBranchAddress("nLooseBjets", &nLooseBjets, &b_nLooseBjets);  
   treeOrig->SetBranchAddress("nMediumBjets", &nMediumBjets, &b_nMediumBjets);   
   treeOrig->SetBranchAddress("vhtruth", &vhtruth, &b_vhtruth);      
+  treeOrig->SetBranchAddress("metF_GV",&metF_GV,&b_metF_GV);
+  treeOrig->SetBranchAddress("metF_HBHENoise",&metF_HBHENoise,&b_metF_HBHENoise);
+  treeOrig->SetBranchAddress("metF_HBHENoiseIso",&metF_HBHENoiseIso,&b_metF_HBHENoiseIso);
+  treeOrig->SetBranchAddress("metF_CSC",&metF_CSC,&b_metF_CSC);
+  treeOrig->SetBranchAddress("metF_eeBadSC",&metF_eeBadSC,&b_metF_eeBadSC);
 
   // new variables to be added
   Float_t xsecWeight;
@@ -476,7 +492,11 @@ void addWeights(const char* filename, float lumiForW, float massTrue=1) {
     theTreeNew->Branch("nLooseBjets", &nLooseBjets, "nLooseBjets/I");  
     theTreeNew->Branch("nMediumBjets", &nMediumBjets, "nMediumBjets/I");   
     theTreeNew->Branch("vhtruth", &vhtruth, "vhtruth/I");       
-
+    theTreeNew->Branch("metF_GV",&metF_GV,"metF_GV/I");
+    theTreeNew->Branch("metF_HBHENoise",&metF_HBHENoise,"metF_HBHENoise/I");
+    theTreeNew->Branch("metF_HBHENoiseIso",&metF_HBHENoiseIso,"metF_HBHENoiseIso/I");
+    theTreeNew->Branch("metF_CSC",&metF_CSC,"metF_CSC/I");
+    theTreeNew->Branch("metF_eeBadSC",&metF_eeBadSC,"metF_eeBadSC/I");
   }
   
   for(int i=0; i<nentriesOrig; i++) {
