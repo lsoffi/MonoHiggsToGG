@@ -457,14 +457,14 @@ void NewDiPhoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
   int metF_CSC =1;
   int metF_eeBadSC =1;
 
-  // 76X everything from miniAOD
+  // 76X: everything from miniAOD
   const edm::TriggerNames &flagsNames = iEvent.triggerNames( *triggerFlags );
   for( unsigned index = 0; index < flagsNames.size(); ++index ) {
     if (TString::Format((flagsNames.triggerName( index )).c_str())=="Flag_goodVertices" && !triggerFlags->accept( index )) metF_GV = 0;
     //Flag_HBHENoiseFilter 
     //Flag_HBHENoiseIsoFilter
     //Flag_CSCTightHalo2015Filter 
-    //Flag_eeBadScFilter
+    if (TString::Format((flagsNames.triggerName( index )).c_str())=="Flag_eeBadScFilter" && !triggerFlags->accept( index )) metF_eeBadSC = 0;
   }
 
   // 74X: partially to be read from external lists
@@ -477,7 +477,7 @@ void NewDiPhoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
     if (eItrCSC != eventSetCSC.end()) metF_CSC = 0;     
   }
   //
-  EventList::iterator rItrEEbadSC;
+  EventList::iterator rItrEEbadSC;         // this is to kill the 4th bad SC which is not included in the flags in trigger results
   rItrEEbadSC = listEEbadSC.find(run);
   if (rItrEEbadSC != listEEbadSC.end()) {     
     set<unsigned> eventSetEEbadSC = rItrEEbadSC->second;
