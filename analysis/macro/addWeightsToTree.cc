@@ -144,7 +144,12 @@ void addWeights(const char* filename, float lumiForW, float massTrue=1) {
   Int_t		  hltDiphoton30Mass55; 
   Int_t		  hltDiphoton30Mass55PV;
   Int_t		  hltDiphoton30Mass55EB;
-
+  Int_t           nEle;   
+  Int_t           nMuons;    
+  Int_t           nJets;  
+  Int_t           nLooseBjets;   
+  Int_t           nMediumBjets;      
+  Int_t           vhtruth;  
   
   // List of branches - original tree
   TBranch        *b_run; 
@@ -242,7 +247,12 @@ void addWeights(const char* filename, float lumiForW, float massTrue=1) {
   TBranch	 *b_hltDiphoton30Mass55; 
   TBranch	 *b_hltDiphoton30Mass55PV;
   TBranch	 *b_hltDiphoton30Mass55EB;
-
+  TBranch        *b_nEle;   //!  
+  TBranch        *b_nMuons;   //!  
+  TBranch        *b_nJets;   //!      
+  TBranch        *b_nLooseBjets;   //!  
+  TBranch        *b_nMediumBjets;   //!      
+  TBranch        *b_vhtruth;   //!     
 
   // Set branch addresses and branch pointers 
   treeOrig->SetBranchAddress("run", &run, &b_run);
@@ -340,7 +350,12 @@ void addWeights(const char* filename, float lumiForW, float massTrue=1) {
   treeOrig->SetBranchAddress("hltDiphoton30Mass55", &hltDiphoton30Mass55, &b_hltDiphoton30Mass55); 
   treeOrig->SetBranchAddress("hltDiphoton30Mass55PV", &hltDiphoton30Mass55PV, &b_hltDiphoton30Mass55PV);
   treeOrig->SetBranchAddress("hltDiphoton30Mass55EB", &hltDiphoton30Mass55EB, &b_hltDiphoton30Mass55EB);
-
+  treeOrig->SetBranchAddress("nEle", &nEle, &b_nEle);      
+  treeOrig->SetBranchAddress("nMuons", &nMuons, &b_nMuons);  
+  treeOrig->SetBranchAddress("nJets", &nJets, &b_nJets);   
+  treeOrig->SetBranchAddress("nLooseBjets", &nLooseBjets, &b_nLooseBjets);  
+  treeOrig->SetBranchAddress("nMediumBjets", &nMediumBjets, &b_nMediumBjets);   
+  treeOrig->SetBranchAddress("vhtruth", &vhtruth, &b_vhtruth);      
 
   // new variables to be added
   Float_t xsecWeight;
@@ -455,7 +470,13 @@ void addWeights(const char* filename, float lumiForW, float massTrue=1) {
     theTreeNew->Branch("hltDiphoton30Mass55", &hltDiphoton30Mass55, "hltDiphoton30Mass55/I");
     theTreeNew->Branch("hltDiphoton30Mass55PV", &hltDiphoton30Mass55PV, "hltDiphoton30Mass55PV/I");
     theTreeNew->Branch("hltDiphoton30Mass55EB", &hltDiphoton30Mass55EB, "hltDiphoton30Mass55EB/I");
- 
+    theTreeNew->Branch("nEle", &nEle, "nEle/I");      
+    theTreeNew->Branch("nMuons", &nMuons, "nMuons/I");  
+    theTreeNew->Branch("nJets", &nJets, "nJets/I");   
+    theTreeNew->Branch("nLooseBjets", &nLooseBjets, "nLooseBjets/I");  
+    theTreeNew->Branch("nMediumBjets", &nMediumBjets, "nMediumBjets/I");   
+    theTreeNew->Branch("vhtruth", &vhtruth, "vhtruth/I");       
+
   }
   
   for(int i=0; i<nentriesOrig; i++) {
