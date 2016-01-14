@@ -144,7 +144,17 @@ void addWeights(const char* filename, float lumiForW, float massTrue=1) {
   Int_t		  hltDiphoton30Mass55; 
   Int_t		  hltDiphoton30Mass55PV;
   Int_t		  hltDiphoton30Mass55EB;
-
+  Int_t           nEle;   
+  Int_t           nMuons;    
+  Int_t           nJets;  
+  Int_t           nLooseBjets;   
+  Int_t           nMediumBjets;      
+  Int_t           vhtruth;  
+  Int_t           metF_GV;    
+  Int_t           metF_HBHENoise;    
+  Int_t           metF_HBHENoiseIso;    
+  Int_t           metF_CSC;    
+  Int_t           metF_eeBadSC;    
   
   // List of branches - original tree
   TBranch        *b_run; 
@@ -242,6 +252,17 @@ void addWeights(const char* filename, float lumiForW, float massTrue=1) {
   TBranch	 *b_hltDiphoton30Mass55; 
   TBranch	 *b_hltDiphoton30Mass55PV;
   TBranch	 *b_hltDiphoton30Mass55EB;
+  TBranch        *b_nEle;   //!  
+  TBranch        *b_nMuons;   //!  
+  TBranch        *b_nJets;   //!      
+  TBranch        *b_nLooseBjets;   //!  
+  TBranch        *b_nMediumBjets;   //!      
+  TBranch        *b_vhtruth;   //!     
+  TBranch        *b_metF_GV;    
+  TBranch        *b_metF_HBHENoise;    
+  TBranch        *b_metF_HBHENoiseIso;    
+  TBranch        *b_metF_CSC;    
+  TBranch        *b_metF_eeBadSC;    
 
 
   // Set branch addresses and branch pointers 
@@ -340,7 +361,17 @@ void addWeights(const char* filename, float lumiForW, float massTrue=1) {
   treeOrig->SetBranchAddress("hltDiphoton30Mass55", &hltDiphoton30Mass55, &b_hltDiphoton30Mass55); 
   treeOrig->SetBranchAddress("hltDiphoton30Mass55PV", &hltDiphoton30Mass55PV, &b_hltDiphoton30Mass55PV);
   treeOrig->SetBranchAddress("hltDiphoton30Mass55EB", &hltDiphoton30Mass55EB, &b_hltDiphoton30Mass55EB);
-
+  treeOrig->SetBranchAddress("nEle", &nEle, &b_nEle);      
+  treeOrig->SetBranchAddress("nMuons", &nMuons, &b_nMuons);  
+  treeOrig->SetBranchAddress("nJets", &nJets, &b_nJets);   
+  treeOrig->SetBranchAddress("nLooseBjets", &nLooseBjets, &b_nLooseBjets);  
+  treeOrig->SetBranchAddress("nMediumBjets", &nMediumBjets, &b_nMediumBjets);   
+  treeOrig->SetBranchAddress("vhtruth", &vhtruth, &b_vhtruth);      
+  treeOrig->SetBranchAddress("metF_GV",&metF_GV,&b_metF_GV);
+  treeOrig->SetBranchAddress("metF_HBHENoise",&metF_HBHENoise,&b_metF_HBHENoise);
+  treeOrig->SetBranchAddress("metF_HBHENoiseIso",&metF_HBHENoiseIso,&b_metF_HBHENoiseIso);
+  treeOrig->SetBranchAddress("metF_CSC",&metF_CSC,&b_metF_CSC);
+  treeOrig->SetBranchAddress("metF_eeBadSC",&metF_eeBadSC,&b_metF_eeBadSC);
 
   // new variables to be added
   Float_t xsecWeight;
@@ -455,7 +486,17 @@ void addWeights(const char* filename, float lumiForW, float massTrue=1) {
     theTreeNew->Branch("hltDiphoton30Mass55", &hltDiphoton30Mass55, "hltDiphoton30Mass55/I");
     theTreeNew->Branch("hltDiphoton30Mass55PV", &hltDiphoton30Mass55PV, "hltDiphoton30Mass55PV/I");
     theTreeNew->Branch("hltDiphoton30Mass55EB", &hltDiphoton30Mass55EB, "hltDiphoton30Mass55EB/I");
- 
+    theTreeNew->Branch("nEle", &nEle, "nEle/I");      
+    theTreeNew->Branch("nMuons", &nMuons, "nMuons/I");  
+    theTreeNew->Branch("nJets", &nJets, "nJets/I");   
+    theTreeNew->Branch("nLooseBjets", &nLooseBjets, "nLooseBjets/I");  
+    theTreeNew->Branch("nMediumBjets", &nMediumBjets, "nMediumBjets/I");   
+    theTreeNew->Branch("vhtruth", &vhtruth, "vhtruth/I");       
+    theTreeNew->Branch("metF_GV",&metF_GV,"metF_GV/I");
+    theTreeNew->Branch("metF_HBHENoise",&metF_HBHENoise,"metF_HBHENoise/I");
+    theTreeNew->Branch("metF_HBHENoiseIso",&metF_HBHENoiseIso,"metF_HBHENoiseIso/I");
+    theTreeNew->Branch("metF_CSC",&metF_CSC,"metF_CSC/I");
+    theTreeNew->Branch("metF_eeBadSC",&metF_eeBadSC,"metF_eeBadSC/I");
   }
   
   for(int i=0; i<nentriesOrig; i++) {
