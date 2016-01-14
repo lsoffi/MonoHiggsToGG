@@ -39,6 +39,9 @@
 #include "TTree.h"
 #include "TVector3.h"
 #include "TLorentzVector.h"
+#include <map>
+#include <iostream>
+#include <fstream>
 
 #define MAX_PU_REWEIGHT 60
 
@@ -47,6 +50,40 @@ using namespace edm;
 using namespace flashgg;
 
 using pat::PackedGenParticle;   
+
+// curtesy of Y.Iiyama
+typedef std::map<unsigned, std::set<unsigned> > EventList;   
+
+EventList readEventList(char const* _fileName) {
+  
+  EventList list;   
+  ifstream listFile;
+  listFile.open(_fileName); 
+  if (!listFile.is_open())    
+    throw std::runtime_error(_fileName);  
+
+  unsigned iL(0);    
+  std::string line;  
+  while (true) {    
+    std::getline(listFile, line);    
+    if (!listFile.good())  
+      break;
+
+    if (line.find(":") == std::string::npos || line.find(":") == line.rfind(":"))  
+      continue;
+
+    unsigned run(std::atoi(line.substr(0, line.find(":")).c_str()));        
+    unsigned event(std::atoi(line.substr(line.rfind(":") + 1).c_str()));       
+
+    list[run].insert(event);      
+
+    ++iL;   
+  }
+
+  std::cout << "Loaded " << iL << " events" << std::endl;      
+
+  return list;        
+}   
 
 // diphoton tree
 struct diphoTree_struc_ {
@@ -164,6 +201,11 @@ struct diphoTree_struc_ {
   int nLooseBjets;
   int nMediumBjets;
   int vhtruth;
+  int metF_GV;
+  int metF_HBHENoise;
+  int metF_HBHENoiseIso;
+  int metF_CSC;
+  int metF_eeBadSC;
 };
 
 class NewDiPhoAnalyzer : public edm::EDAnalyzer {
@@ -228,6 +270,7 @@ private:
   EDGetTokenT<View<pat::MET> > METToken_;
 
   EDGetTokenT<edm::TriggerResults> triggerBitsToken_;
+  EDGetTokenT<edm::TriggerResults> triggerFlagsToken_;
 
   string bTag_;    
 
@@ -263,6 +306,8 @@ private:
   Int_t eff_start = 0;
   Int_t eff_end = 0;
 
+  // 74X only: met filters lists
+  EventList listCSC, listEEbadSC;
 };
    
 
@@ -282,7 +327,8 @@ NewDiPhoAnalyzer::NewDiPhoAnalyzer(const edm::ParameterSet& iConfig):
   electronToken_( consumes<View<flashgg::Electron> >( iConfig.getParameter<InputTag>( "ElectronTag" ) ) ),
   muonToken_( consumes<View<flashgg::Muon> >( iConfig.getParameter<InputTag>( "MuonTag" ) ) ), 
   METToken_( consumes<View<pat::MET> >( iConfig.getUntrackedParameter<InputTag> ( "METTag", InputTag( "slimmedMETs" ) ) ) ),
-  triggerBitsToken_( consumes<edm::TriggerResults>( iConfig.getParameter<edm::InputTag>( "bits" ) ) )
+  triggerBitsToken_( consumes<edm::TriggerResults>( iConfig.getParameter<edm::InputTag>( "bits" ) ) ),
+  triggerFlagsToken_( consumes<edm::TriggerResults>( iConfig.getParameter<edm::InputTag>( "flags" ) ) )
 { 
   dopureweight_ = iConfig.getUntrackedParameter<int>("dopureweight", 0);
   sampleIndex_  = iConfig.getUntrackedParameter<int>("sampleIndex",0);
@@ -344,6 +390,9 @@ void NewDiPhoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
   Handle<edm::TriggerResults> triggerBits;
   iEvent.getByToken( triggerBitsToken_, triggerBits );
 
+  Handle<edm::TriggerResults> triggerFlags;
+  iEvent.getByToken( triggerFlagsToken_, triggerFlags );
+
   JetCollectionVector Jets( inputTagJets_.size() );         
   for( size_t j = 0; j < inputTagJets_.size(); ++j ) 
     iEvent.getByLabel( inputTagJets_[j], Jets[j] );
@@ -353,6 +402,7 @@ void NewDiPhoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
 
   Handle<View<flashgg::Electron> > theElectrons;  
   iEvent.getByToken( electronToken_, theElectrons );    
+
 
   // --------------------------------------------------
   //std::cout<<"------------------------------"<<std::endl;
@@ -393,13 +443,50 @@ void NewDiPhoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
     if( (TString::Format((triggerNames.triggerName( index )).c_str())).Contains("HLT_Diphoton30EB") && (TString::Format((triggerNames.triggerName( index )).c_str())).Contains("DoublePixelVeto_Mass55")  )hltDiphoton30Mass55EB = triggerBits->accept( index );
 
 }
-  
 
   // Event info
   int run   = iEvent.eventAuxiliary().run();
   int event = iEvent.eventAuxiliary().event();
   int lumi  = iEvent.eventAuxiliary().luminosityBlock(); 
 
+
+  // MET flags
+  int metF_GV = 1;
+  int metF_HBHENoise =1;
+  int metF_HBHENoiseIso =1;
+  int metF_CSC =1;
+  int metF_eeBadSC =1;
+
+  // 76X everything from miniAOD
+  const edm::TriggerNames &flagsNames = iEvent.triggerNames( *triggerFlags );
+  for( unsigned index = 0; index < flagsNames.size(); ++index ) {
+    if (TString::Format((flagsNames.triggerName( index )).c_str())=="Flag_goodVertices" && !triggerFlags->accept( index )) metF_GV = 0;
+    //Flag_HBHENoiseFilter 
+    //Flag_HBHENoiseIsoFilter
+    //Flag_CSCTightHalo2015Filter 
+    //Flag_eeBadScFilter
+  }
+
+  // 74X: partially to be read from external lists
+  EventList::iterator rItrCSC;
+  rItrCSC = listCSC.find(run);
+  if (rItrCSC != listCSC.end()) {     
+    set<unsigned> eventSetCSC = rItrCSC->second;
+    set<unsigned>::iterator eItrCSC;
+    eItrCSC = eventSetCSC.find(event);
+    if (eItrCSC != eventSetCSC.end()) metF_CSC = 0;     
+  }
+  //
+  EventList::iterator rItrEEbadSC;
+  rItrEEbadSC = listEEbadSC.find(run);
+  if (rItrEEbadSC != listEEbadSC.end()) {     
+    set<unsigned> eventSetEEbadSC = rItrEEbadSC->second;
+    set<unsigned>::iterator eItrEEbadSC;
+    eItrEEbadSC = eventSetEEbadSC.find(event);
+    if (eItrEEbadSC != eventSetEEbadSC.end()) metF_eeBadSC = 0;     
+  }
+
+  
   // # Vertices
   int nvtx = primaryVertices->size(); 
 
@@ -1189,6 +1276,11 @@ void NewDiPhoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
 		treeDipho_.nLooseBjets  = nLooseBjets;
 		treeDipho_.nMediumBjets = nMediumBjets;
 		treeDipho_.vhtruth = vhtruth;
+		treeDipho_.metF_GV = metF_GV;
+		treeDipho_.metF_HBHENoise = metF_HBHENoise;
+		treeDipho_.metF_HBHENoiseIso = metF_HBHENoiseIso;
+		treeDipho_.metF_CSC = metF_CSC;
+		treeDipho_.metF_eeBadSC = metF_eeBadSC;
 	
 		// Filling the trees
 		DiPhotonTree->Fill();
@@ -1224,6 +1316,12 @@ void NewDiPhoAnalyzer::beginJob() {
   // for the event breakdown
   h_selection = fs_->make<TH1F>("h_selection", "h_selection", 8, -0.5, 7.5);
   h_selection->Sumw2();
+
+  // For 74X only: met filters event lists 
+  cout << "now reading met filters lists" << endl;
+  listCSC     = readEventList("/afs/cern.ch/user/c/crovelli/public/monoH/metFilters/csc2015_Dec01.txt");
+  listEEbadSC = readEventList("/afs/cern.ch/user/c/crovelli/public/monoH/metFilters/ecalscn1043093_Dec01.txt");
+  cout << "met filters lists read" << endl;
 
   // Trees
   DiPhotonTree = fs_->make<TTree>("DiPhotonTree","di-photon tree");
@@ -1343,6 +1441,11 @@ void NewDiPhoAnalyzer::beginJob() {
   DiPhotonTree->Branch("nLooseBjets",&(treeDipho_.nLooseBjets),"nLooseBjets/I");
   DiPhotonTree->Branch("nMediumBjets",&(treeDipho_.nMediumBjets),"nMediumBjets/I");
   DiPhotonTree->Branch("vhtruth",&(treeDipho_.vhtruth),"vhtruth/I");
+  DiPhotonTree->Branch("metF_GV",&(treeDipho_.metF_GV),"metF_GV/I");
+  DiPhotonTree->Branch("metF_HBHENoise",&(treeDipho_.metF_HBHENoise),"metF_HBHENoise/I");
+  DiPhotonTree->Branch("metF_HBHENoiseIso",&(treeDipho_.metF_HBHENoiseIso),"metF_HBHENoiseIso/I");
+  DiPhotonTree->Branch("metF_CSC",&(treeDipho_.metF_CSC),"metF_CSC/I");
+  DiPhotonTree->Branch("metF_eeBadSC",&(treeDipho_.metF_eeBadSC),"metF_eeBadSC/I");
 }
 
 void NewDiPhoAnalyzer::endJob() { }
@@ -1462,6 +1565,11 @@ void NewDiPhoAnalyzer::initTreeStructure() {
   treeDipho_.nLooseBjets  = -500;
   treeDipho_.nMediumBjets = -500;
   treeDipho_.vhtruth = -500;
+  treeDipho_.metF_GV = -500;
+  treeDipho_.metF_HBHENoise = -500;
+  treeDipho_.metF_HBHENoiseIso = -500;
+  treeDipho_.metF_CSC = -500;
+  treeDipho_.metF_eeBadSC = -500;
 }
 
 void NewDiPhoAnalyzer::SetPuWeights(std::string puWeightFile) {
