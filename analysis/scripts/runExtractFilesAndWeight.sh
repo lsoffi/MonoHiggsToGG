@@ -21,6 +21,9 @@ python extractFilesAndWeight.py -i lists_25ns_v1_1_0/MC/2HDM_MZp-2000.json	-o 2H
 python extractFilesAndWeight.py -i lists_25ns_v1_1_0/MC/2HDM_MZp-2500.json	-o 2HDM_MZP2500		-d lists_25ns_v1_1_0
 #python extractFilesAndWeight.py -i lists_25ns_v1_1_0/MC/2HDM_MZp-800.json	-o 2HDM_MZP800		-d lists_25ns_v1_1_0
 
+python extractFilesAndWeight.py -i lists_25ns_v1_1_0/Data/DoubleEG/RunIISpring15-ReMiniAOD-1_1_0-25ns-1_1_0-v0-Run2015D-05Oct2015-v1.json 	-o DoubleEG_05Oct	-d lists_25ns_v1_1_0
+python extractFilesAndWeight.py -i lists_25ns_v1_1_0/Data/DoubleEG/RunIISpring15-Prompt-1_1_0-25ns-1_1_0-v0-Run2015D-PromptReco-v4.json		-o DoubleEG_PromptV4	-d lists_25ns_v1_1_0
+
 
 # all 25ns, Spring15BetaV7 
 #python extractFilesAndWeight.py -i lists_25ns_v7/MC/2HDM_MZP600.json		-o 2HDM_MZP600		-d lists_25ns_v7

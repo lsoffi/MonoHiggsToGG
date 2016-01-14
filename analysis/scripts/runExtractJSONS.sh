@@ -21,6 +21,10 @@ python extractJSONS.py -i datasets/datasets_7415_v1-1-0_sig.json	-o 2HDM_MZp-200
 python extractJSONS.py -i datasets/datasets_7415_v1-1-0_sig.json	-o 2HDM_MZp-2500	-d lists_25ns_v1_1_0/MC
 #python extractJSONS.py -i datasets/datasets_7415_v1-1-0_sig.json	-o 2HDM_MZp-800		-d lists_25ns_v1_1_0/MC
 
+# dataset C
+#python extractJSONS.py -i datasets/datasets_7415_v1-1-0_all.json	-o DoubleEG/RunIISpring15-ReMiniAOD-1_1_0-25ns-1_1_0-v0-Run2015C_25ns-05Oct2015-v1	-d lists_25ns_v1_1_0/Data
+python extractJSONS.py -i datasets/datasets_7415_v1-1-0_all.json	-o DoubleEG/RunIISpring15-ReMiniAOD-1_1_0-25ns-1_1_0-v0-Run2015D-05Oct2015-v1	-d lists_25ns_v1_1_0/Data
+python extractJSONS.py -i datasets/datasets_7415_v1-1-0_all.json	-o DoubleEG/RunIISpring15-Prompt-1_1_0-25ns-1_1_0-v0-Run2015D-PromptReco-v4	-d lists_25ns_v1_1_0/Data
 
 # All FLASHgg version Spring15BetaV7:
 #python extractJSONS.py -i datasets/datasets_7415_betaV7_sig.json	-o 2HDM_MZP600		-d lists_25ns_v7/MC
