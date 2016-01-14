@@ -4,10 +4,12 @@ import FWCore.PythonUtilities.LumiList as LumiList
 import FWCore.ParameterSet.Types as CfgTypes  
 
 isMC = True;
+isFLASHgg_1_1_0 = True;
+is2015DFromChiara = False;
 #should actually not need to change the bools below
 is25ns = True;
 is2015D = True;
-is2015DFromChiara = True;
+
 
 process = cms.Process("diPhoAna")
 
@@ -21,7 +23,10 @@ from Configuration.AlCa.GlobalTag import GlobalTag
 if ((isMC==False and is2015D)):
     process.GlobalTag = GlobalTag(process.GlobalTag, '74X_dataRun2_Prompt_v2', '')
     print "74X_dataRun2_Prompt_v2"
-elif (isMC):
+elif (isMC and isFLASHgg_1_1_0):
+    process.GlobalTag = GlobalTag(process.GlobalTag, '74X_mcRun2_asymptotic_v2', '')
+    print "74X_mcRun2_asymptotic_v2"
+else:
     process.GlobalTag = GlobalTag(process.GlobalTag, 'MCRUN2_74_V9', '')
     print "MCRUN2_74_V9"
 

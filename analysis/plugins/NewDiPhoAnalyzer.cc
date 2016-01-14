@@ -383,6 +383,11 @@ void NewDiPhoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
     // print out triggers that match "HLT_Photon or HLT_Diphoton" and have "Mass" as well
     //if( (TString::Format((triggerNames.triggerName( index )).c_str())).Contains("HLT_Photon") && (TString::Format((triggerNames.triggerName( index )).c_str())).Contains("Mass")  ) cout << index << " " << triggerNames.triggerName( index ) << " " << triggerBits->accept( index ) << endl;
     //if( (TString::Format((triggerNames.triggerName( index )).c_str())).Contains("HLT_Diphoton") && (TString::Format((triggerNames.triggerName( index )).c_str())).Contains("Mass")  ) cout << index << " " << triggerNames.triggerName( index ) << " " << triggerBits->accept( index ) << endl;
+    //print ALL HLT triggers: 
+    //if( (TString::Format((triggerNames.triggerName( index )).c_str())).Contains("HLT") ) cout << index << " " << triggerNames.triggerName( index ) << " " << triggerBits->accept( index ) << endl;
+
+
+    // store trigger bits of interest
     if( (TString::Format((triggerNames.triggerName( index )).c_str())).Contains("HLT_Photon26") && (TString::Format((triggerNames.triggerName( index )).c_str())).Contains("Photon16")&& (TString::Format((triggerNames.triggerName( index )).c_str())).Contains("Mass60")  )hltPhoton26Photon16Mass60 = triggerBits->accept( index );
     if( (TString::Format((triggerNames.triggerName( index )).c_str())).Contains("HLT_Photon36") && (TString::Format((triggerNames.triggerName( index )).c_str())).Contains("Photon22")&& (TString::Format((triggerNames.triggerName( index )).c_str())).Contains("Mass15")  )hltPhoton36Photon22Mass15 = triggerBits->accept( index );
     if( (TString::Format((triggerNames.triggerName( index )).c_str())).Contains("HLT_Photon42") && (TString::Format((triggerNames.triggerName( index )).c_str())).Contains("Photon25")&& (TString::Format((triggerNames.triggerName( index )).c_str())).Contains("Mass15")  )hltPhoton42Photon25Mass15 = triggerBits->accept( index );
@@ -451,7 +456,8 @@ void NewDiPhoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
 
   // Events breakdown
   if (hltDiphoton30Mass95) h_selection->Fill(0.,perEveW);
-  
+  //if (hltDiphoton30Mass95) std::cout << "  MADE IT PASSED HLT !!!! " << std::endl; 
+ 
   // Setup bool to check that events in MC actually pass trigger requirements
   bool passesLeadTrigSel = false;
   bool passesSubLeadTrigSel = false;
@@ -505,6 +511,7 @@ void NewDiPhoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
 
     if (hltDiphoton30Mass95){
     if (preselDipho.size()>0) {
+      //std::cout << " PASSES PRESEL " << std::endl;
       if (hltDiphoton30Mass95) h_selection->Fill(1.,perEveW);
       
       // Diphoton candidates: Id/isolation selection
@@ -587,6 +594,9 @@ void NewDiPhoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
         int passLooseSubLeadPHiso = passLoosePHisoCuts( subleadScEta, subleadPhoIso, subleadPt );
 	int passLooseSubLeadHoe   = passLooseHoeCuts( subleadScEta, subleadHoE );
 
+        //std::cout << "LEAD ======= sieie: " << passLooseLeadSieie << " chiso: " << passLooseLeadCHiso << " nhiso: " << passLooseLeadNHiso << " phiso: " << passLooseLeadPHiso << " hoe: " << passLooseLeadHoe << std::endl; 
+        //std::cout << "SUBLEAD ==== sieie: " << passLooseSubLeadSieie << " chiso: " << passLooseSubLeadCHiso << " nhiso: " << passLooseSubLeadNHiso << " phiso: " << passLooseSubLeadPHiso << " hoe: " << passLooseSubLeadHoe << std::endl; 
+
         int passSubLeadElVeto = 0;
         int numberpassingEV2 = 0;
 	if (diphoPtr->subLeadingPhoton()->passElectronVeto()) passSubLeadElVeto = 1;
@@ -603,14 +613,19 @@ void NewDiPhoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
 	if (leadSelel || subleadSelel) numpassingmed++;
 	if (leadTightSelel || subleadTightSelel) numpassing++;
 	if (leadLooseSelel || subleadLooseSelel) numpassingloose++;
-	
+
+        //if (leadLooseSelel) std::cout << "passes lead LooseSel" << std::endl;
+        //if (subleadLooseSelel) std::cout << "passes sublead looseSel" << std::endl;
+ 	
 	if (!leadLooseSelel || !subleadLooseSelel ) continue; //Livia Correction: applies pho ID selection 
 	//if (!leadTightSelel || !subleadTightSelel ) continue;  
 
 	selectedDipho.push_back(theDiphoton);    
+        //std::cout << " passessssssssssss " << std::endl;
       }
      
       if (selectedDipho.size()>0) {
+	//std::cout << " PASSES SELECTION " << std::endl;
 	if (hltDiphoton30Mass95) h_selection->Fill(2.,perEveW);
 
 	// Diphoton candidates: pT cuts
@@ -630,6 +645,7 @@ void NewDiPhoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
 
 
 	if (kineDipho.size()>0) {
+          //std::cout << "PASSES KINEMATIC CUTS " << std::endl;
 	  if (hltDiphoton30Mass95) h_selection->Fill(3.,perEveW);
 
 	  // Diphoton candidates: mgg cut
@@ -652,6 +668,7 @@ void NewDiPhoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
 	  }
   
 	  if (massDipho.size()>0) {
+            //std::cout << " PASSES MASS CUT " << std::endl;
 	    if (hltDiphoton30Mass95) h_selection->Fill(4.,perEveW);
 
 	    // Diphoton candidates choice: highest scalar sum pT
