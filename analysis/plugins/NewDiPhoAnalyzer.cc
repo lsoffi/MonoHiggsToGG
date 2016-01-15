@@ -749,7 +749,8 @@ void NewDiPhoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
 	    float leadPt    = diphoPtr->leadingPhoton()->et();
 	    float subleadPt = diphoPtr->subLeadingPhoton()->et();
 
-	    if (leadPt< thisSystemMgg/3 || subleadPt<thisSystemMgg/4) continue;             //Livia correction: add scaling pt cuts
+	    if (leadPt<80 || subleadPt<30) continue; //Margaret changed from Chiara's optimization
+	    //if (leadPt< thisSystemMgg/3 || subleadPt<thisSystemMgg/4) continue; //Livia correction: add scaling pt cuts
 
 	    massDipho.push_back(theDiphoton);
 	  }

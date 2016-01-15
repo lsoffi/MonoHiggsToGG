@@ -3,7 +3,7 @@ import FWCore.Utilities.FileUtils as FileUtils
 import FWCore.PythonUtilities.LumiList as LumiList  
 import FWCore.ParameterSet.Types as CfgTypes  
 
-isMC = True;
+isMC = False;
 isFLASHgg_1_1_0 = True;
 is2015DFromChiara = False;
 #should actually not need to change the bools below

@@ -40,7 +40,7 @@ typedef TH2DMap::iterator		TH2DMapIter;
 
 class Plotter{
 public:
-  Plotter(const TString inName, const TString outName, const TString inSpecies, const DblVec puweights, const Double_t lumi, Bool_t sigMC, Bool_t Data, Bool_t Blind, const TString type);
+  Plotter(const TString inName, const TString outName, const TString inSpecies, const DblVec puweights, const Double_t lumi, Bool_t Data, Bool_t Blind, const TString type);
   ~Plotter();
 
   void DoPlots(int prompt);  
@@ -140,6 +140,17 @@ private:
   Int_t		hltDiphoton30Mass55;
   Int_t		hltDiphoton30Mass55PV;
   Int_t		hltDiphoton30Mass55EB;
+  Int_t         nEle;
+  Int_t         nMuons;
+  Int_t         nJets;
+  Int_t         nLooseBjets;
+  Int_t         nMediumBjets;
+  Int_t         vhtruth;
+  Int_t         metF_GV;
+  Int_t         metF_HBHENoise;
+  Int_t         metF_HBHENoiseIso;
+  Int_t         metF_CSC;
+  Int_t         metF_eeBadSC;
 
 
   // branches
@@ -200,6 +211,17 @@ private:
   TBranch	*b_hltDiphoton30Mass55;
   TBranch	*b_hltDiphoton30Mass55PV;
   TBranch	*b_hltDiphoton30Mass55EB;
+  TBranch       *b_nEle;   //!
+  TBranch       *b_nMuons;   //!
+  TBranch       *b_nJets;   //!
+  TBranch       *b_nLooseBjets;   //!
+  TBranch       *b_nMediumBjets;   //!
+  TBranch       *b_vhtruth;   //!
+  TBranch       *b_metF_GV;   //!
+  TBranch       *b_metF_HBHENoise;   //!
+  TBranch       *b_metF_HBHENoiseIso;   //!
+  TBranch       *b_metF_CSC;   //!
+  TBranch       *b_metF_eeBadSC;   //!
 
 };
 

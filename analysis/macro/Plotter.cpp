@@ -3,10 +3,9 @@
 //#include "../../../DataFormats/Math/interface/deltaPhi.h"
 #include "mkPlotsLivia/CMS_lumi.C"
 
-Plotter::Plotter( TString inName, TString outName, TString inSpecies, const DblVec puweights, const Double_t lumi, Bool_t sigMC, Bool_t Data, Bool_t Blind, TString type){
+Plotter::Plotter( TString inName, TString outName, TString inSpecies, const DblVec puweights, const Double_t lumi, Bool_t Data, Bool_t Blind, TString type){
 
   fType = type;  
-  isSigMC = sigMC;
   isData = Data;
   doBlind = Blind;
 
@@ -155,191 +154,208 @@ void Plotter::DoPlots(int prompt){
 
     //if (!passEV1 || !passEV2) std::cout << "Eleveto didn't work! " << std::endl;
 
+    // Check if the Data passes MET filters
+    Bool_t passMETfil = true;
+    if (isData){
+      if (metF_GV!=1 || metF_HBHENoise!=1 || metF_HBHENoiseIso!=1 || metF_CSC!=1 || metF_eeBadSC!=1 ) passMETfil = false; 
+    }
+
     //start full selection for plots
-    if (mgg >= 100 && mgg < 200 /*&& passBoth*/){
-    //if ( pt1 > mgg/3 && pt2 > mgg/4 ){
-      fTH1DMap["eff_sel"]->Fill(1.5,Weight);
-      if (hltDiphoton30Mass95==1){ //passes trigger
+    if (passMETfil){ //Data passes MET filters
+      if (mgg >= 100 && mgg < 200 /*&& passBoth &&  pt1 > mgg/3 && pt2 > mgg/4*/ ){
+        fTH1DMap["eff_sel"]->Fill(1.5,Weight);
+        if (hltDiphoton30Mass95==1){ //passes trigger
 
-	// to remove duplicate events 
-	if (prompt==1 && (genmatch1==1 && genmatch2==1)) continue;   // only PF and FF for gjets  
-	if (prompt==2 && (genmatch1==1 && genmatch2==1)) continue;   // only PF and FF for gjets  
-	//if (prompt==2 && (genmatch1==1 || genmatch2==1)) continue;   // only FF for QCD       
+          // to remove duplicate events 
+	  // original implementation:
+          if (prompt==1 && (genmatch1==1 && genmatch2==1)) continue;   // only PF and FF for gjets  
+          if (prompt==2 && (genmatch1==1 && genmatch2==1)) continue;   // only PF and FF for gjets  
+          //if (prompt==2 && (genmatch1==1 || genmatch2==1)) continue;   // only FF for QCD       
 
-        fTH1DMap["eff_sel"]->Fill(2.5,Weight);
-        //Fill histograms
-        if (isData && doBlind){ // BLIND THE DATA mgg and met distributions
-	  if (mgg < 100 || mgg > 150){
-	    fTH1DMap["mgg"]->Fill(mgg,Weight);
+	  // test implementation:
+          //if (prompt==1 && (genmatch1==1 && genmatch2==1)) continue;   
+          //if (prompt==1 && (genmatch1==0 && genmatch2==0)) continue;   
+          //if (prompt==2 && (genmatch1==1 && genmatch2==1)) continue;  
+          //if (prompt==2 && (genmatch1==1 && genmatch2==0)) continue;  
+          //if (prompt==2 && (genmatch1==0 && genmatch2==1)) continue;
+
+
+          fTH1DMap["eff_sel"]->Fill(2.5,Weight);
+          //Fill histograms
+          if (isData && doBlind){ // BLIND THE DATA mgg and met distributions
+            if (mgg < 100 || mgg > 150){
+              fTH1DMap["mgg"]->Fill(mgg,Weight);
+              fTH2DMap["mgg_PU"]->Fill(nvtx,mgg,Weight);
+              fTH2DMap["mgg_ptgg"]->Fill(ptgg,mgg,Weight);
+            }
+            if (t1pfmet < 0){
+              fTH1DMap["t1pfmet"]->Fill(t1pfmet,Weight);
+              fTH1DMap["t1pfmet_zoom"]->Fill(t1pfmet,Weight);
+              fTH2DMap["t1pfmet_PU"]->Fill(nvtx,t1pfmet,Weight);
+              fTH2DMap["t1pfmet_ptgg"]->Fill(ptgg,t1pfmet,Weight);
+            }
+            if (pfmet < 100) fTH1DMap["pfmet"]->Fill(pfmet,Weight);
+            if (calomet < 100) fTH1DMap["calomet"]->Fill(calomet,Weight);
+            if (ptgg<0) fTH1DMap["ptgg"]->Fill(ptgg,Weight);
+          }
+          else{
+            fTH1DMap["mgg"]->Fill(mgg,Weight);
+            fTH1DMap["t1pfmet"]->Fill(t1pfmet,Weight);
+            fTH1DMap["pfmet"]->Fill(pfmet,Weight);
+            fTH1DMap["calomet"]->Fill(calomet,Weight);
+            fTH1DMap["t1pfmet_zoom"]->Fill(t1pfmet,Weight);
             fTH2DMap["mgg_PU"]->Fill(nvtx,mgg,Weight);
             fTH2DMap["mgg_ptgg"]->Fill(ptgg,mgg,Weight);
-	  }
-	  if (t1pfmet < 0){
-            fTH1DMap["t1pfmet"]->Fill(t1pfmet,Weight);
-            fTH1DMap["t1pfmet_zoom"]->Fill(t1pfmet,Weight);
             fTH2DMap["t1pfmet_PU"]->Fill(nvtx,t1pfmet,Weight);
             fTH2DMap["t1pfmet_ptgg"]->Fill(ptgg,t1pfmet,Weight);
-	  }
-          if (pfmet < 100) fTH1DMap["pfmet"]->Fill(pfmet,Weight);
-          if (calomet < 100) fTH1DMap["calomet"]->Fill(calomet,Weight);
-	  if (ptgg<0) fTH1DMap["ptgg"]->Fill(ptgg,Weight);
-	}
-        else{
-	  fTH1DMap["mgg"]->Fill(mgg,Weight);
-          fTH1DMap["t1pfmet"]->Fill(t1pfmet,Weight);
-          fTH1DMap["pfmet"]->Fill(pfmet,Weight);
-          fTH1DMap["calomet"]->Fill(calomet,Weight);
-          fTH1DMap["t1pfmet_zoom"]->Fill(t1pfmet,Weight);
-          fTH2DMap["mgg_PU"]->Fill(nvtx,mgg,Weight);
-          fTH2DMap["mgg_ptgg"]->Fill(ptgg,mgg,Weight);
-          fTH2DMap["t1pfmet_PU"]->Fill(nvtx,t1pfmet,Weight);
-          fTH2DMap["t1pfmet_ptgg"]->Fill(ptgg,t1pfmet,Weight);
-	  fTH2DMap["t1pfmet_ptgg"]->Fill(ptgg,t1pfmet,Weight);
-	}
-        fTH1DMap["nvtx"]->Fill(nvtx,Weight);
-        fTH1DMap["pt1"]->Fill(pt1,Weight);
-        fTH1DMap["pt2"]->Fill(pt2,Weight);
-        fTH1DMap["t1pfmetphi"]->Fill(t1pfmetphi,Weight);
-        fTH1DMap["pfmetphi"]->Fill(pfmetphi,Weight);
-        fTH1DMap["calometphi"]->Fill(calometphi,Weight);
-        fTH1DMap["phi1"]->Fill(phi1,Weight);
-        fTH1DMap["phi2"]->Fill(phi2,Weight);
-        fTH1DMap["eta1"]->Fill(eta1,Weight);
-        fTH1DMap["eta2"]->Fill(eta2,Weight);
-        fTH1DMap["chiso1"]->Fill(chiso1,Weight);
-        fTH1DMap["chiso2"]->Fill(chiso2,Weight);
-        fTH1DMap["neuiso1"]->Fill(neuiso1,Weight);
-        fTH1DMap["neuiso2"]->Fill(neuiso2,Weight);
-        fTH1DMap["phoiso1"]->Fill(phoiso1,Weight);
-        fTH1DMap["phoiso2"]->Fill(phoiso2,Weight);
-        fTH1DMap["sieie1"]->Fill(sieie1,Weight);
-        fTH1DMap["sieie2"]->Fill(sieie2,Weight);
-        fTH1DMap["hoe1"]->Fill(hoe1,Weight);
-        fTH1DMap["hoe2"]->Fill(hoe2,Weight);
-        fTH1DMap["r91"]->Fill(r91,Weight);
-        fTH1DMap["r92"]->Fill(r92,Weight);
-	fTH1DMap["eleveto1"]->Fill(eleveto1,Weight);
-	fTH1DMap["eleveto2"]->Fill(eleveto2,Weight);
+            fTH2DMap["t1pfmet_ptgg"]->Fill(ptgg,t1pfmet,Weight);
+          }
+          fTH1DMap["nvtx"]->Fill(nvtx,Weight);
+          fTH1DMap["pt1"]->Fill(pt1,Weight);
+          fTH1DMap["pt2"]->Fill(pt2,Weight);
+          fTH1DMap["t1pfmetphi"]->Fill(t1pfmetphi,Weight);
+          fTH1DMap["pfmetphi"]->Fill(pfmetphi,Weight);
+          fTH1DMap["calometphi"]->Fill(calometphi,Weight);
+          fTH1DMap["phi1"]->Fill(phi1,Weight);
+          fTH1DMap["phi2"]->Fill(phi2,Weight);
+          fTH1DMap["eta1"]->Fill(eta1,Weight);
+          fTH1DMap["eta2"]->Fill(eta2,Weight);
+          fTH1DMap["chiso1"]->Fill(chiso1,Weight);
+          fTH1DMap["chiso2"]->Fill(chiso2,Weight);
+          fTH1DMap["neuiso1"]->Fill(neuiso1,Weight);
+          fTH1DMap["neuiso2"]->Fill(neuiso2,Weight);
+          fTH1DMap["phoiso1"]->Fill(phoiso1,Weight);
+          fTH1DMap["phoiso2"]->Fill(phoiso2,Weight);
+          fTH1DMap["sieie1"]->Fill(sieie1,Weight);
+          fTH1DMap["sieie2"]->Fill(sieie2,Weight);
+          fTH1DMap["hoe1"]->Fill(hoe1,Weight);
+          fTH1DMap["hoe2"]->Fill(hoe2,Weight);
+          fTH1DMap["r91"]->Fill(r91,Weight);
+          fTH1DMap["r92"]->Fill(r92,Weight);
+          fTH1DMap["eleveto1"]->Fill(eleveto1,Weight);
+          fTH1DMap["eleveto2"]->Fill(eleveto2,Weight);
 
-  	fTH1DMap["phigg"]->Fill(fLorenzVecgg.Phi(),Weight); 
-        //fTH1DMap["dphi_ggmet"]->Fill(deltaPhi(fLorenzVecgg.Phi(),t1pfmetphi),Weight);
-        //fTH1DMap["absdphi_ggmet"]->Fill(TMath::Abs(deltaPhi(fLorenzVecgg.Phi(),t1pfmetphi)),Weight);
-        fTH1DMap["deta_gg"]->Fill((eta1-eta2),Weight);
-        fTH1DMap["absdeta_gg"]->Fill(TMath::Abs(eta1-eta2),Weight);
-        //if (!isData){
-	//  for (UInt_t ptcut = 0; ptcut < 200; ptcut++){
-	//    if (ptgg > 10*cut){
-	//      
-	//    }
-	//  }
-	//}
+          fTH1DMap["phigg"]->Fill(fLorenzVecgg.Phi(),Weight); 
+          //fTH1DMap["dphi_ggmet"]->Fill(deltaPhi(fLorenzVecgg.Phi(),t1pfmetphi),Weight);
+          //fTH1DMap["absdphi_ggmet"]->Fill(TMath::Abs(deltaPhi(fLorenzVecgg.Phi(),t1pfmetphi)),Weight);
+          fTH1DMap["deta_gg"]->Fill((eta1-eta2),Weight);
+          fTH1DMap["absdeta_gg"]->Fill(TMath::Abs(eta1-eta2),Weight);
+          //if (!isData){
+          //  for (UInt_t ptcut = 0; ptcut < 200; ptcut++){
+          //    if (ptgg > 10*cut){
+          //      
+          //    }
+          //  }
+          //}
 
-        //std::cout << passCH1 <<" "<< passNH1 <<" "<< passPH1 <<" "<< passHE1 <<" "<< passS1 << std::endl; 
-        //std::cout << passCH2 <<" "<< passNH2 <<" "<< passPH2 <<" "<< passHE2 <<" "<< passS2 << std::endl; 
-        //std::cout << passAll1 <<" "<< passAll2 <<" "<< passBoth << std::endl;
+          //std::cout << passCH1 <<" "<< passNH1 <<" "<< passPH1 <<" "<< passHE1 <<" "<< passS1 << std::endl; 
+          //std::cout << passCH2 <<" "<< passNH2 <<" "<< passPH2 <<" "<< passHE2 <<" "<< passS2 << std::endl; 
+          //std::cout << passAll1 <<" "<< passAll2 <<" "<< passBoth << std::endl;
 
-        //fill n-1 plots for the photon ID selection variables
-        if (passCH1 && passNH1 && passPH1 && passS1)  fTH1DMap["hoe1_n-1"]->Fill(hoe1,Weight); 
-        if (passCH1 && passNH1 && passPH1 && passHE1) fTH1DMap["sieie1_n-1"]->Fill(sieie1,Weight);
-        if (passCH1 && passNH1 && passHE1 && passS1)  fTH1DMap["phoiso1_n-1"]->Fill(phoiso1,Weight);
-        if (passCH1 && passPH1 && passHE1 && passS1)  fTH1DMap["neuiso1_n-1"]->Fill(neuiso1,Weight);
-        if (passPH1 && passNH1 && passHE1 && passS1)  fTH1DMap["chiso1_n-1"]->Fill(chiso1,Weight);
+          //fill n-1 plots for the photon ID selection variables
+          if (passCH1 && passNH1 && passPH1 && passS1)  fTH1DMap["hoe1_n-1"]->Fill(hoe1,Weight); 
+          if (passCH1 && passNH1 && passPH1 && passHE1) fTH1DMap["sieie1_n-1"]->Fill(sieie1,Weight);
+          if (passCH1 && passNH1 && passHE1 && passS1)  fTH1DMap["phoiso1_n-1"]->Fill(phoiso1,Weight);
+          if (passCH1 && passPH1 && passHE1 && passS1)  fTH1DMap["neuiso1_n-1"]->Fill(neuiso1,Weight);
+          if (passPH1 && passNH1 && passHE1 && passS1)  fTH1DMap["chiso1_n-1"]->Fill(chiso1,Weight);
 
-        if (passCH2 && passNH2 && passPH2 && passS2)  fTH1DMap["hoe2_n-1"]->Fill(hoe2,Weight); 
-        if (passCH2 && passNH2 && passPH2 && passHE2) fTH1DMap["sieie2_n-1"]->Fill(sieie2,Weight);
-        if (passCH2 && passNH2 && passHE2 && passS2)  fTH1DMap["phoiso2_n-1"]->Fill(phoiso2,Weight);
-        if (passCH2 && passPH2 && passHE2 && passS2)  fTH1DMap["neuiso2_n-1"]->Fill(neuiso2,Weight);
-        if (passPH2 && passNH2 && passHE2 && passS2)  fTH1DMap["chiso2_n-1"]->Fill(chiso2,Weight);
+          if (passCH2 && passNH2 && passPH2 && passS2)  fTH1DMap["hoe2_n-1"]->Fill(hoe2,Weight); 
+          if (passCH2 && passNH2 && passPH2 && passHE2) fTH1DMap["sieie2_n-1"]->Fill(sieie2,Weight);
+          if (passCH2 && passNH2 && passHE2 && passS2)  fTH1DMap["phoiso2_n-1"]->Fill(phoiso2,Weight);
+          if (passCH2 && passPH2 && passHE2 && passS2)  fTH1DMap["neuiso2_n-1"]->Fill(neuiso2,Weight);
+          if (passPH2 && passNH2 && passHE2 && passS2)  fTH1DMap["chiso2_n-1"]->Fill(chiso2,Weight);
 
-        if (passAll1){// fill pho1 plots if these photons pass phoID
-          fTH1DMap["pt1_n-1"]->Fill(pt1,Weight);
-          fTH1DMap["r91_n-1"]->Fill(r91,Weight);
-          fTH1DMap["phi1_n-1"]->Fill(phi1,Weight);
-          fTH1DMap["eta1_n-1"]->Fill(eta1,Weight);
-        }
-        if (passAll2){// fill pho2 plots if these photons pass phoID
-          fTH1DMap["pt2_n-1"]->Fill(pt2,Weight);
-          fTH1DMap["r92_n-1"]->Fill(r92,Weight);
-          fTH1DMap["phi2_n-1"]->Fill(phi2,Weight);
-          fTH1DMap["eta2_n-1"]->Fill(eta2,Weight);
-        } 
-        if (passBoth){
-          fTH1DMap["nvtx_n-1"]->Fill(nvtx,Weight);
-          fTH1DMap["t1pfmetphi_n-1"]->Fill(t1pfmetphi,Weight);  
-          fTH1DMap["pfmetphi_n-1"]->Fill(pfmetphi,Weight);
-          fTH1DMap["calometphi_n-1"]->Fill(calometphi,Weight);
-	  if (isData && doBlind){// BLIND THE DATA
-            if (mgg < 115 || mgg > 135){
-	      fTH1DMap["mgg_n-1"]->Fill(mgg,Weight);  
-              if (t1pfmet < 0) fTH2DMap["t1pfmet_mgg"]->Fill(mgg,t1pfmet,Weight);
-	    }
-            if (t1pfmet < 0) fTH1DMap["t1pfmet_n-1"]->Fill(t1pfmet,Weight);  
-            if (pfmet < 100)   fTH1DMap["pfmet_n-1"]->Fill(pfmet,Weight);
-            if (calomet < 100) fTH1DMap["calomet_n-1"]->Fill(calomet,Weight);
-	    if (ptgg<0) fTH1DMap["ptgg_n-1"]->Fill(ptgg,Weight);  
-            //if (mgg >= 110 && mgg <= 130) fTH1DMap["t1pfmet_selmgg"]->Fill(t1pfmet,Weight); 
-            //if (t1pfmet >= 100) fTH1DMap["mgg_selt1pfmet"]->Fill(mgg,Weight); 
-	  }
-	  else{
-            fTH1DMap["mgg_n-1"]->Fill(mgg,Weight);  
-            fTH2DMap["t1pfmet_mgg"]->Fill(mgg,t1pfmet,Weight);
-            fTH1DMap["t1pfmet_n-1"]->Fill(t1pfmet,Weight);  
-            fTH1DMap["pfmet_n-1"]->Fill(pfmet,Weight);
-            fTH1DMap["calomet_n-1"]->Fill(calomet,Weight);
-	    fTH1DMap["ptgg_n-1"]->Fill(ptgg,Weight);  
-            if (mgg >= 110 && mgg <= 130) fTH1DMap["t1pfmet_selmgg"]->Fill(t1pfmet,Weight); 
-            if (ptgg > 70) fTH1DMap["t1pfmet_selptgg"]->Fill(t1pfmet,Weight);
-            if (t1pfmet >= 250){ 
-	      fTH1DMap["mgg_selt1pfmet"]->Fill(mgg,Weight); 
-              fTH1DMap["ptgg_selt1pfmet"]->Fill(ptgg,Weight);
-	      //std::cout << "DY mgg is " << mgg << std::endl;
-	    }
-	  }
+          if (passAll1){// fill pho1 plots if these photons pass phoID
+            fTH1DMap["pt1_n-1"]->Fill(pt1,Weight);
+            fTH1DMap["r91_n-1"]->Fill(r91,Weight);
+            fTH1DMap["phi1_n-1"]->Fill(phi1,Weight);
+            fTH1DMap["eta1_n-1"]->Fill(eta1,Weight);
+          }
+          if (passAll2){// fill pho2 plots if these photons pass phoID
+            fTH1DMap["pt2_n-1"]->Fill(pt2,Weight);
+            fTH1DMap["r92_n-1"]->Fill(r92,Weight);
+            fTH1DMap["phi2_n-1"]->Fill(phi2,Weight);
+            fTH1DMap["eta2_n-1"]->Fill(eta2,Weight);
+          } 
+          if (passBoth){
+            fTH1DMap["nvtx_n-1"]->Fill(nvtx,Weight);
+            fTH1DMap["t1pfmetphi_n-1"]->Fill(t1pfmetphi,Weight);  
+            fTH1DMap["pfmetphi_n-1"]->Fill(pfmetphi,Weight);
+            fTH1DMap["calometphi_n-1"]->Fill(calometphi,Weight);
+            if (isData && doBlind){// BLIND THE DATA
+              if (mgg < 115 || mgg > 135){
+                fTH1DMap["mgg_n-1"]->Fill(mgg,Weight);  
+                if (t1pfmet < 0) fTH2DMap["t1pfmet_mgg"]->Fill(mgg,t1pfmet,Weight);
+              }
+              if (t1pfmet < 0) fTH1DMap["t1pfmet_n-1"]->Fill(t1pfmet,Weight);  
+              if (pfmet < 100)   fTH1DMap["pfmet_n-1"]->Fill(pfmet,Weight);
+              if (calomet < 100) fTH1DMap["calomet_n-1"]->Fill(calomet,Weight);
+              if (ptgg<0) fTH1DMap["ptgg_n-1"]->Fill(ptgg,Weight);  
+              //if (mgg >= 110 && mgg <= 130) fTH1DMap["t1pfmet_selmgg"]->Fill(t1pfmet,Weight); 
+              //if (t1pfmet >= 100) fTH1DMap["mgg_selt1pfmet"]->Fill(mgg,Weight); 
+            }
+            else{
+              fTH1DMap["mgg_n-1"]->Fill(mgg,Weight);  
+              fTH2DMap["t1pfmet_mgg"]->Fill(mgg,t1pfmet,Weight);
+              fTH1DMap["t1pfmet_n-1"]->Fill(t1pfmet,Weight);  
+              fTH1DMap["pfmet_n-1"]->Fill(pfmet,Weight);
+              fTH1DMap["calomet_n-1"]->Fill(calomet,Weight);
+              fTH1DMap["ptgg_n-1"]->Fill(ptgg,Weight);  
+              if (mgg >= 110 && mgg <= 130) fTH1DMap["t1pfmet_selmgg"]->Fill(t1pfmet,Weight); 
+              if (ptgg > 70) fTH1DMap["t1pfmet_selptgg"]->Fill(t1pfmet,Weight);
+              if (t1pfmet >= 250){ 
+                fTH1DMap["mgg_selt1pfmet"]->Fill(mgg,Weight); 
+                fTH1DMap["ptgg_selt1pfmet"]->Fill(ptgg,Weight);
+                //std::cout << "DY mgg is " << mgg << std::endl;
+              }
+            }
 
-        }
+          }
 
-        if (passCH1 && passCH2){
-          fTH1DMap["eff_sel"]->Fill(3.5,Weight);
-          if (passNH1 && passNH2){
-            fTH1DMap["eff_sel"]->Fill(4.5,Weight);
-            if (passPH1 && passPH2){
-              fTH1DMap["eff_sel"]->Fill(5.5,Weight);
-              if (passS1 && passS2){ 
-                fTH1DMap["eff_sel"]->Fill(6.5,Weight);
-         	if (passHE1 && passHE2){
-                  fTH1DMap["eff_sel"]->Fill(7.5,Weight);
-		  if (!isData || !doBlind){// BLIND THE DATA
-                    if (mgg >= 115 && mgg <= 135){
-            	      fTH1DMap["eff_sel"]->Fill(8.5,Weight);
-            	      if (t1pfmet >= 100){
-            	        fTH1DMap["eff_sel"]->Fill(9.5,Weight);
-            	      }
-                    }
-		  }
+          if (passCH1 && passCH2){
+            fTH1DMap["eff_sel"]->Fill(3.5,Weight);
+            if (passNH1 && passNH2){
+              fTH1DMap["eff_sel"]->Fill(4.5,Weight);
+              if (passPH1 && passPH2){
+                fTH1DMap["eff_sel"]->Fill(5.5,Weight);
+                if (passS1 && passS2){ 
+                  fTH1DMap["eff_sel"]->Fill(6.5,Weight);
+           	if (passHE1 && passHE2){
+                    fTH1DMap["eff_sel"]->Fill(7.5,Weight);
+          	  if (!isData || !doBlind){// BLIND THE DATA
+                      if (mgg >= 115 && mgg <= 135){
+              	      fTH1DMap["eff_sel"]->Fill(8.5,Weight);
+              	      if (t1pfmet >= 100){
+              	        fTH1DMap["eff_sel"]->Fill(9.5,Weight);
+              	      }
+                      }
+          	  }
+                  }
                 }
               }
             }
           }
-        }
 
-        for (UInt_t i = 0; i < 60; i++){
-          if (nvtx == i){
-            effPUd[i]++;
-            if (passBoth) effPUn[i]++;
+          for (UInt_t i = 0; i < 60; i++){
+            if (nvtx == i){
+              effPUd[i]++;
+              if (passBoth) effPUn[i]++;
+            }
+            if (ptgg >= 10*i && ptgg < 10*(i+1)){
+              effptd[i]++;
+              if (passBoth) effptn[i]++;
+            }
           }
-          if (ptgg >= 10*i && ptgg < 10*(i+1)){
-            effptd[i]++;
-            if (passBoth) effptn[i]++;
-          }
-        }
  
-      }// end if passes trigger
-    }// end if passes pt cuts 
-    
-    if (hltDiphoton30Mass95==1){ //passes trigger
-      if(passAll2 && pt2 > mgg/4) fTH1DMap["phi1_pho2pass"]->Fill(phi1,Weight);
-      if(passAll1 && pt1 > mgg/3) fTH1DMap["phi2_pho1pass"]->Fill(phi2,Weight);
-    }
+        }// end if passes trigger
+      }// end if passes mass,pt,EV cuts 
+      
+      if (hltDiphoton30Mass95==1){ //passes trigger
+        if(passAll2 && pt2 > mgg/4) fTH1DMap["phi1_pho2pass"]->Fill(phi1,Weight);
+        if(passAll1 && pt1 > mgg/3) fTH1DMap["phi2_pho1pass"]->Fill(phi2,Weight);
+      }
+    }// end if passes MET filter
+   
   }// end loop over entries in tree
 
   Double_t effPU = 0;
@@ -626,6 +642,17 @@ void Plotter::SetBranchAddresses(){
   tpho->SetBranchAddress("hltDiphoton30Mass55", &hltDiphoton30Mass55, &b_hltDiphoton30Mass55);
   tpho->SetBranchAddress("hltDiphoton30Mass55PV", &hltDiphoton30Mass55PV, &b_hltDiphoton30Mass55PV);
   tpho->SetBranchAddress("hltDiphoton30Mass55EB", &hltDiphoton30Mass55EB, &b_hltDiphoton30Mass55EB);
+  tpho->SetBranchAddress("nEle", &nEle, &b_nEle);
+  tpho->SetBranchAddress("nMuons", &nMuons, &b_nMuons);
+  tpho->SetBranchAddress("nJets", &nJets, &b_nJets);
+  tpho->SetBranchAddress("nLooseBjets", &nLooseBjets, &b_nLooseBjets);
+  tpho->SetBranchAddress("nMediumBjets", &nMediumBjets, &b_nMediumBjets);
+  tpho->SetBranchAddress("vhtruth", &vhtruth, &b_vhtruth);
+  tpho->SetBranchAddress("metF_GV", &metF_GV, &b_metF_GV);
+  tpho->SetBranchAddress("metF_HBHENoise", &metF_HBHENoise, &b_metF_HBHENoise);
+  tpho->SetBranchAddress("metF_HBHENoiseIso", &metF_HBHENoiseIso, &b_metF_HBHENoiseIso);
+  tpho->SetBranchAddress("metF_CSC", &metF_CSC, &b_metF_CSC);
+  tpho->SetBranchAddress("metF_eeBadSC", &metF_eeBadSC, &b_metF_eeBadSC);
 
 
   //tpho->SetBranchAddress("", &, &b_);

@@ -6,35 +6,38 @@ echo "Adding weights for " $lumi " pb-1..."
 root -l -b <<EOF
 .L addWeightsToTree.cc++  
  
-addWeights("data/25ns_v7_LooseSel/GJet_Pt-20to40.root", $lumi);
-addWeights("data/25ns_v7_LooseSel/GJet_Pt-40toInf.root", $lumi);
-addWeights("data/25ns_v7_LooseSel/QCD_Pt-30to40.root", $lumi);
-addWeights("data/25ns_v7_LooseSel/QCD_Pt-30toInf.root", $lumi);
-addWeights("data/25ns_v7_LooseSel/QCD_Pt-40toInf.root", $lumi);
-addWeights("data/25ns_v7_LooseSel/GluGluHToGG.root", $lumi);
-addWeights("data/25ns_v7_LooseSel/DiPhoton.root", $lumi);
-addWeights("data/25ns_v7_LooseSel/VH.root", $lumi);
-addWeights("data/25ns_v7_LooseSel/DYJetsToLL.root", $lumi);
+addWeights("data/25ns_v7_LooseSel_wPUwMETfilwNewSel/GJet_Pt-20to40.root", $lumi);
+addWeights("data/25ns_v7_LooseSel_wPUwMETfilwNewSel/GJet_Pt-40toInf.root", $lumi);
+addWeights("data/25ns_v7_LooseSel_wPUwMETfilwNewSel/QCD_Pt-30to40.root", $lumi);
+addWeights("data/25ns_v7_LooseSel_wPUwMETfilwNewSel/QCD_Pt-30toInf.root", $lumi);
+addWeights("data/25ns_v7_LooseSel_wPUwMETfilwNewSel/QCD_Pt-40toInf.root", $lumi);
+addWeights("data/25ns_v7_LooseSel_wPUwMETfilwNewSel/GluGluHToGG.root", $lumi);
+addWeights("data/25ns_v7_LooseSel_wPUwMETfilwNewSel/DiPhoton.root", $lumi);
+addWeights("data/25ns_v7_LooseSel_wPUwMETfilwNewSel/VH.root", $lumi);
+addWeights("data/25ns_v7_LooseSel_wPUwMETfilwNewSel/DYJetsToLL.root", $lumi);
 
-addWeights("data/25ns_v7_LooseSel/2HDM_mZP600.root", $lumi);
-addWeights("data/25ns_v7_LooseSel/2HDM_mZP800.root", $lumi);
-addWeights("data/25ns_v7_LooseSel/2HDM_mZP1000.root", $lumi);
-addWeights("data/25ns_v7_LooseSel/2HDM_mZP1200.root", $lumi);
-addWeights("data/25ns_v7_LooseSel/2HDM_mZP1400.root", $lumi);
-addWeights("data/25ns_v7_LooseSel/2HDM_mZP1700.root", $lumi);
-addWeights("data/25ns_v7_LooseSel/2HDM_mZP2000.root", $lumi);
-addWeights("data/25ns_v7_LooseSel/2HDM_mZP2500.root", $lumi);
+addWeights("data/25ns_v7_LooseSel_wPUwMETfilwNewSel/2HDM_mZP600.root", $lumi);
+addWeights("data/25ns_v7_LooseSel_wPUwMETfilwNewSel/2HDM_mZP800.root", $lumi);
+addWeights("data/25ns_v7_LooseSel_wPUwMETfilwNewSel/2HDM_mZP1000.root", $lumi);
+addWeights("data/25ns_v7_LooseSel_wPUwMETfilwNewSel/2HDM_mZP1200.root", $lumi);
+addWeights("data/25ns_v7_LooseSel_wPUwMETfilwNewSel/2HDM_mZP1400.root", $lumi);
+addWeights("data/25ns_v7_LooseSel_wPUwMETfilwNewSel/2HDM_mZP1700.root", $lumi);
+addWeights("data/25ns_v7_LooseSel_wPUwMETfilwNewSel/2HDM_mZP2000.root", $lumi);
+addWeights("data/25ns_v7_LooseSel_wPUwMETfilwNewSel/2HDM_mZP2500.root", $lumi);
 
-addWeights("data/25ns_v7_LooseSel/DoubleEG_p.root", $lumi);
-addWeights("data/25ns_v7_LooseSel/DoubleEG_0.root", $lumi);
-addWeights("data/25ns_v7_LooseSel/DoubleEG_1.root", $lumi);
-addWeights("data/25ns_v7_LooseSel/DoubleEG_2.root", $lumi);
+addWeights("data/25ns_v7_LooseSel_wPUwMETfilwNewSel/DoubleEG_05Oct.root", $lumi);
+addWeights("data/25ns_v7_LooseSel_wPUwMETfilwNewSel/DoubleEG_PromptV4.root", $lumi);
 
 .q
 
 EOF
 
 echo "done weighting."
+
+#addWeights("data/25ns_v7_LooseSel/DoubleEG_p.root", $lumi);
+#addWeights("data/25ns_v7_LooseSel/DoubleEG_0.root", $lumi);
+#addWeights("data/25ns_v7_LooseSel/DoubleEG_1.root", $lumi);
+#addWeights("data/25ns_v7_LooseSel/DoubleEG_2.root", $lumi);
 
 #addWeights("data/50ns_betaV4/DoubleEG.root", $lumi);
 
