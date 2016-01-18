@@ -39,12 +39,12 @@ int main(){
   //////////////////////////////////////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////////////////////////////////
 
-  TString inDir = "data/25ns_v7_LooseSel_wPUwMETfilwOrigSel/"; 		// input directory of the samples
-  TString outDir = "./diPhoPlots/25ns_v7_LooseSel_wPUwMETfilwOrigSel/";	// output directory to send results
+  TString inDir = "data/25ns_v1-1-0_ReReco/"; 		// input directory of the samples
+  TString outDir = "./diPhoPlots/25ns_v1-1-0_ReReco_v2/";	// output directory to send results
 
   bool doFakeData = false;	// use FakeData to test combiner (mimicks data)
   bool sortMC = false;		// use if want to sort bkg smallest to biggest, else uses order given
-  bool doBlind = true;		// use to blind the analysis for Data (don't use distributions for met>100 & 110<mgg<150)
+  bool doBlind = true;		// use to blind the analysis for Data (don't use distributions for met>100 & 115<mgg<135)
   bool makePURWfiles = false;	// recompute PURW and make files (need also doReweightPU=true for this to run)
   bool doReweightPU = false;	// use PURW from old files if !makePURWfiles
   bool doPlots = true;		// make plots for each sample individually
@@ -52,7 +52,7 @@ int main(){
   bool doABCD = false;		// run ABCD method 
   bool doCompare = false;	// call Comparer 
 
-  Double_t lumi =  2169.0; //2137.5; // in pb^-1 
+  Double_t lumi =  2246.0; //2137.5; // in pb^-1 
   UInt_t nBins_vtx = 60; // number of bins for PURW 
   TString type = "png"; // type of plots to be made
   

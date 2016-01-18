@@ -179,7 +179,6 @@ void Plotter::DoPlots(int prompt){
           //if (prompt==2 && (genmatch1==1 && genmatch2==0)) continue;  
           //if (prompt==2 && (genmatch1==0 && genmatch2==1)) continue;
 
-
           fTH1DMap["eff_sel"]->Fill(2.5,Weight);
           //Fill histograms
           if (isData && doBlind){ // BLIND THE DATA mgg and met distributions
@@ -188,7 +187,7 @@ void Plotter::DoPlots(int prompt){
               fTH2DMap["mgg_PU"]->Fill(nvtx,mgg,Weight);
               fTH2DMap["mgg_ptgg"]->Fill(ptgg,mgg,Weight);
             }
-            if (t1pfmet < 0){
+            if (t1pfmet < 100){
               fTH1DMap["t1pfmet"]->Fill(t1pfmet,Weight);
               fTH1DMap["t1pfmet_zoom"]->Fill(t1pfmet,Weight);
               fTH2DMap["t1pfmet_PU"]->Fill(nvtx,t1pfmet,Weight);
@@ -196,10 +195,11 @@ void Plotter::DoPlots(int prompt){
             }
             if (pfmet < 100) fTH1DMap["pfmet"]->Fill(pfmet,Weight);
             if (calomet < 100) fTH1DMap["calomet"]->Fill(calomet,Weight);
-            if (ptgg<0) fTH1DMap["ptgg"]->Fill(ptgg,Weight);
+            /*if (ptgg<0) */ fTH1DMap["ptgg"]->Fill(ptgg,Weight);
           }
           else{
             fTH1DMap["mgg"]->Fill(mgg,Weight);
+            fTH1DMap["ptgg"]->Fill(ptgg,Weight);
             fTH1DMap["t1pfmet"]->Fill(t1pfmet,Weight);
             fTH1DMap["pfmet"]->Fill(pfmet,Weight);
             fTH1DMap["calomet"]->Fill(calomet,Weight);
@@ -287,10 +287,10 @@ void Plotter::DoPlots(int prompt){
                 fTH1DMap["mgg_n-1"]->Fill(mgg,Weight);  
                 if (t1pfmet < 0) fTH2DMap["t1pfmet_mgg"]->Fill(mgg,t1pfmet,Weight);
               }
-              if (t1pfmet < 0) fTH1DMap["t1pfmet_n-1"]->Fill(t1pfmet,Weight);  
+              if (t1pfmet < 100) fTH1DMap["t1pfmet_n-1"]->Fill(t1pfmet,Weight);  
               if (pfmet < 100)   fTH1DMap["pfmet_n-1"]->Fill(pfmet,Weight);
               if (calomet < 100) fTH1DMap["calomet_n-1"]->Fill(calomet,Weight);
-              if (ptgg<0) fTH1DMap["ptgg_n-1"]->Fill(ptgg,Weight);  
+              /*if (ptgg<0)*/ fTH1DMap["ptgg_n-1"]->Fill(ptgg,Weight);  
               //if (mgg >= 110 && mgg <= 130) fTH1DMap["t1pfmet_selmgg"]->Fill(t1pfmet,Weight); 
               //if (t1pfmet >= 100) fTH1DMap["mgg_selt1pfmet"]->Fill(mgg,Weight); 
             }
