@@ -3,9 +3,10 @@
 
 #mkdir -p data/mergedFinal
 
-hadd data/25ns_v7_LooseSel_wPUwMETfilwNewSel/GJets.root	data/25ns_v7_LooseSel_wPUwMETfilwNewSel/GJet_Pt-20to40.root	data/25ns_v7_LooseSel_wPUwMETfilwNewSel/GJet_Pt-40toInf.root 
-hadd data/25ns_v7_LooseSel_wPUwMETfilwNewSel/QCD.root		data/25ns_v7_LooseSel_wPUwMETfilwNewSel/QCD_Pt-30to40.root	data/25ns_v7_LooseSel_wPUwMETfilwNewSel/QCD_Pt-30toInf.root	data/25ns_v7_LooseSel_wPUwMETfilwNewSel/QCD_Pt-40toInf.root 
-hadd data/25ns_v7_LooseSel_wPUwMETfilwNewSel/DoubleEG.root	data/25ns_v7_LooseSel_wPUwMETfilwNewSel/DoubleEG_05Oct.root	data/25ns_v7_LooseSel_wPUwMETfilwNewSel/DoubleEG_PromptV4.root 
+hadd data/25ns_v1-1-0_wOrigSel/GJets.root	data/25ns_v1-1-0_wOrigSel/GJet_Pt-20to40.root	data/25ns_v1-1-0_wOrigSel/GJet_Pt-40toInf.root 
+hadd data/25ns_v1-1-0_wOrigSel/QCD.root		data/25ns_v1-1-0_wOrigSel/QCD_Pt-30to40.root	data/25ns_v1-1-0_wOrigSel/QCD_Pt-30toInf.root	data/25ns_v1-1-0_wOrigSel/QCD_Pt-40toInf.root 
+hadd data/25ns_v1-1-0_wOrigSel/DoubleEG.root	data/25ns_v1-1-0_wOrigSel/DoubleEG_05Oct.root	data/25ns_v1-1-0_wOrigSel/DoubleEG_PromptV4.root 
+
 #hadd data/25ns_v7_LooseSel/DoubleEG.root	data/25ns_v7_LooseSel/DoubleEG_p.root	data/25ns_v7_LooseSel/DoubleEG_0.root	data/25ns_v7_LooseSel/DoubleEG_1.root	data/25ns_v7_LooseSel/DoubleEG_2.root 
 
 #hadd data/50ns/GJets.root data/50ns/GJet_Pt-20to40.root data/50ns/GJet_Pt-40toInf.root 

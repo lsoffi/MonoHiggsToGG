@@ -77,6 +77,7 @@ process.diPhoAna = cms.EDAnalyzer('NewDiPhoAnalyzer',
                                   generatorInfo = cms.InputTag("generator"),
 				  bits	        = cms.InputTag('TriggerResults::HLT'),
                                   flags         = cms.InputTag('TriggerResults::PAT'),
+                                  #flags         = cms.InputTag('TriggerResults::RECO'), #MZIENTEK use for FLASHgg DATA (PROMPT & RECO)
                                   dopureweight = PU, 
                                   sampleIndex  = SI,
                                   puWFileName  = weights,

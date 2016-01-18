@@ -33,6 +33,8 @@ python extractFilesAndWeight.py -i lists_25ns_v1_1_0/MC/2HDM_MZP2500.json	-o pri
 
 python extractFilesAndWeight.py -i lists_25ns_v1_1_0/Data/DoubleEG/RunIISpring15-ReMiniAOD-1_1_0-25ns-1_1_0-v0-Run2015D-05Oct2015-v1.json 	-o DoubleEG_05Oct	-d lists_25ns_v1_1_0
 python extractFilesAndWeight.py -i lists_25ns_v1_1_0/Data/DoubleEG/RunIISpring15-Prompt-1_1_0-25ns-1_1_0-v0-Run2015D-PromptReco-v4.json		-o DoubleEG_PromptV4	-d lists_25ns_v1_1_0
+python extractFilesAndWeight.py -i lists_25ns_v1_1_0/Data/DoubleEG.json		-o DoubleEG_ReReco	-d lists_25ns_v1_1_0
+python extractFilesAndWeight.py -i lists_25ns_v1_1_0/Data/DoubleEG/RunIISpring15-Prompt-1_1_0-25ns-1_1_0.json		-o DoubleEG_Prompt	-d lists_25ns_v1_1_0
 
 
 # all 25ns, Spring15BetaV7 
