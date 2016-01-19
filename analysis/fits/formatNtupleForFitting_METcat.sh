@@ -19,7 +19,7 @@
 
 
 indir="../macro/data/25ns_v1-1-0_ReReco/"
-outdir="ntuples4fit_METcat"
+outdir="ntuples4fit_newSelMETcat"
 
 mkdir -p $outdir
 
@@ -52,4 +52,5 @@ EOF
 echo "Done"
 
 echo "Adding MC Files Together"
-#hadd $outdir/Output_MC.root $outdir/2HDM_mZP* $outdir/GluGluHToGG_new.root $outdir/VH_new.root $outdir/QCD_new.root $outdir/GJets_new.root $outdir/DiPhoton_new.root $outdir/DYJetsToLL_new.root 
+
+hadd $outdir/Output_MC.root $outdir/2HDM_mZP* $outdir/GluGluHToGG_new.root $outdir/VH_new.root $outdir/QCD_new.root $outdir/GJets_new.root $outdir/DiPhoton_new.root $outdir/DYJetsToLL_new.root 

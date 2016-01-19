@@ -56,7 +56,7 @@ void fitterFormatting(TString inDir, TString outDir, TString type, Int_t prompt,
   // vector to store values of selection
   std::vector<Int_t> MetCut;
   MetCut.push_back(0);
-  MetCut.push_back(100);
+  MetCut.push_back(50);
 
   // vector to store how selection is applied to trees
   std::vector<TString> MetCat;
@@ -347,7 +347,7 @@ void fitterFormatting(TString inDir, TString outDir, TString type, Int_t prompt,
     if (prompt==1 && (genmatch1==1 && genmatch2==1)) continue;   // only PF and FF for gjets  
     if (prompt==2 && (genmatch1==1 && genmatch2==1)) continue;   // only PF and FF for gjets  
 
-    if (mgg >= 100 && mgg <= 200){
+    if (mgg >= 100 && mgg <= 200 && pt1>80 && pt2>30 ){
 
       // split events by eta
       EB1 = false;

@@ -14,9 +14,12 @@ using namespace std;
 //   6th: sample name
 //   7th: outFile name
 
-void fitterFormatting(TString inDir, TString outDir, TString type, Int_t prompt, const char* filename, TString theSample, TString outFile) {
+void fitterFormatting(TString inDir, TString outDir, TString type, Int_t prompt, const char* filename, TString theSample, TString outFile ) {
   cout << "Formatting " << inDir << filename << endl;
   cout << "Move to Pasquale's format for fit." << endl;
+
+  Bool_t doMETcat = false;
+  if (doMETcat) std::cout << "Do MET cat on top of PHO cat" << std::endl;
 
   TFile *fileOrig = 0;
   TTree *treeOrig = 0;
@@ -50,6 +53,8 @@ void fitterFormatting(TString inDir, TString outDir, TString type, Int_t prompt,
   thePhotonCat.push_back("EBLowR9");
   thePhotonCat.push_back("EEHighR9");
   thePhotonCat.push_back("EELowR9");
+  thePhotonCat.push_back("EB");
+  thePhotonCat.push_back("EE");
   UInt_t numPhoCat = thePhotonCat.size();
 
   // setup for the met categories out
@@ -57,23 +62,21 @@ void fitterFormatting(TString inDir, TString outDir, TString type, Int_t prompt,
   std::vector<Int_t> MetCut;
   MetCut.push_back(0);
   MetCut.push_back(50);
-  MetCut.push_back(100);
-  MetCut.push_back(150);
   // vector to store how selection is applied to trees
   std::vector<TString> MetCat;
   MetCat.push_back(TString::Format("t1pfmet>=%d",MetCut[0]));			 	// met > MetCut0
   MetCat.push_back(TString::Format("t1pfmet>=%d && t1pfmet<%d",MetCut[0],MetCut[1]));	// met [MetCut0,MetCut1] 
-  MetCat.push_back(TString::Format("t1pfmet>=%d && t1pfmet<%d",MetCut[1],MetCut[2])); 	// met [MetCut1,MetCut2]
-  MetCat.push_back(TString::Format("t1pfmet>=%d && t1pfmet<%d",MetCut[2],MetCut[3]));   // met [MetCut2,MetCut3]
-  MetCat.push_back(TString::Format("t1pfmet>=%d",MetCut[3]));				// met > MetCut3
+  //MetCat.push_back(TString::Format("t1pfmet>=%d && t1pfmet<%d",MetCut[1],MetCut[2])); 	// met [MetCut1,MetCut2]
+  //MetCat.push_back(TString::Format("t1pfmet>=%d && t1pfmet<%d",MetCut[2],MetCut[3]));   // met [MetCut2,MetCut3]
+  MetCat.push_back(TString::Format("t1pfmet>=%d",MetCut[1]));				// met > MetCut3
   UInt_t numMetCat = MetCat.size();
   // vector to store names for met cat out
   std::vector<TString> theMetCat;
   theMetCat.push_back(TString::Format("met%d",MetCut[0]));
   theMetCat.push_back(TString::Format("met%d-%d",MetCut[0],MetCut[1]));
-  theMetCat.push_back(TString::Format("met%d-%d",MetCut[1],MetCut[2]));
-  theMetCat.push_back(TString::Format("met%d-%d",MetCut[2],MetCut[3]));
-  theMetCat.push_back(TString::Format("met%d",MetCut[3]));
+  //theMetCat.push_back(TString::Format("met%d-%d",MetCut[1],MetCut[2]));
+  //theMetCat.push_back(TString::Format("met%d-%d",MetCut[2],MetCut[3]));
+  theMetCat.push_back(TString::Format("met%d",MetCut[1]));
 
   // make output file and new trees
   cout << "OutputFile: " << outDir << "/" << outFile << endl;
@@ -348,7 +351,7 @@ void fitterFormatting(TString inDir, TString outDir, TString type, Int_t prompt,
     if (prompt==1 && (genmatch1==1 && genmatch2==1)) continue;   // only PF and FF for gjets  
     if (prompt==2 && (genmatch1==1 && genmatch2==1)) continue;   // only PF and FF for gjets  
 
-    if (mgg >= 100 && mgg <= 200 && pt1>80 && pt2>30 /*&& t1pfmet >= 100*/ ){
+    if (mgg >= 100 && mgg <= 200 && pt1>80 && pt2>30 /*&& t1pfmet >= 50*/ ){
 
       // split events by eta
       EB1 = false;
@@ -405,6 +408,8 @@ void fitterFormatting(TString inDir, TString outDir, TString type, Int_t prompt,
 	    if (inEB && loR9) theTreeNew[2]->Fill();// pho=2 EBLowR9
 	    if (inEE && hiR9) theTreeNew[3]->Fill();// pho=3 EEHighR9
 	    if (inEE && loR9) theTreeNew[4]->Fill();// pho=4 EELowR9
+            if (inEB) 	      theTreeNew[5]->Fill();// pho=5 EB
+	    if (inEE)	      theTreeNew[6]->Fill();// pho=6 EE
       //   }
       //}//end filling loop
 
