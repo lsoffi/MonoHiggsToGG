@@ -9,11 +9,12 @@ using namespace std;
 //   1st: input directory
 //   2nd: output directory
 //   3rd: type (sig, bkg, data)
-//   4th: input filename 
-//   5th: sample name
-//   6th: outFile name
+//   4th: prompt (for duplicate removal)
+//   5th: input filename 
+//   6th: sample name
+//   7th: outFile name
 
-void fitterFormatting(TString inDir, TString outDir, TString type, const char* filename, TString theSample, TString outFile) {
+void fitterFormatting(TString inDir, TString outDir, TString type, Int_t prompt, const char* filename, TString theSample, TString outFile) {
   cout << "Formatting " << inDir << filename << endl;
   cout << "Move to Pasquale's format for fit." << endl;
 
@@ -51,18 +52,28 @@ void fitterFormatting(TString inDir, TString outDir, TString type, const char* f
   thePhotonCat.push_back("EELowR9");
   UInt_t numPhoCat = thePhotonCat.size();
 
-  // vector for new met categories out
+  // setup for the met categories out
+  // vector to store values of selection
   std::vector<Int_t> MetCut;
   MetCut.push_back(0);
+  MetCut.push_back(50);
   MetCut.push_back(100);
-  MetCut.push_back(250);
-
+  MetCut.push_back(150);
+  // vector to store how selection is applied to trees
   std::vector<TString> MetCat;
-  MetCat.push_back(TString::Format("t1pfmet>=%d",MetCut[0]));			 		// met > MetCut0
+  MetCat.push_back(TString::Format("t1pfmet>=%d",MetCut[0]));			 	// met > MetCut0
   MetCat.push_back(TString::Format("t1pfmet>=%d && t1pfmet<%d",MetCut[0],MetCut[1]));	// met [MetCut0,MetCut1] 
   MetCat.push_back(TString::Format("t1pfmet>=%d && t1pfmet<%d",MetCut[1],MetCut[2])); 	// met [MetCut1,MetCut2]
-  MetCat.push_back(TString::Format("t1pfmet>=%d",MetCut[2]));					// met > MetCut2
+  MetCat.push_back(TString::Format("t1pfmet>=%d && t1pfmet<%d",MetCut[2],MetCut[3]));   // met [MetCut2,MetCut3]
+  MetCat.push_back(TString::Format("t1pfmet>=%d",MetCut[3]));				// met > MetCut3
   UInt_t numMetCat = MetCat.size();
+  // vector to store names for met cat out
+  std::vector<TString> theMetCat;
+  theMetCat.push_back(TString::Format("met%d",MetCut[0]));
+  theMetCat.push_back(TString::Format("met%d-%d",MetCut[0],MetCut[1]));
+  theMetCat.push_back(TString::Format("met%d-%d",MetCut[1],MetCut[2]));
+  theMetCat.push_back(TString::Format("met%d-%d",MetCut[2],MetCut[3]));
+  theMetCat.push_back(TString::Format("met%d",MetCut[3]));
 
   // make output file and new trees
   cout << "OutputFile: " << outDir << "/" << outFile << endl;
@@ -148,6 +159,19 @@ void fitterFormatting(TString inDir, TString outDir, TString type, const char* f
   Int_t   eleveto1	= 0.;
   Int_t   eleveto2	= 0.;
   Int_t   hltDiphoton30Mass95 = 0.;
+  Int_t	  nEle		= 0.;
+  Int_t	  nMuons	= 0.;
+  Int_t	  nJets		= 0.;
+  Int_t	  nLooseBjets	= 0.;
+  Int_t	  nMediumBjets	= 0.;
+  Int_t	  vhtruth	= 0.;
+  Int_t	  metF_GV	= 0.;
+  Int_t	  metF_HBHENoise = 0.;
+  Int_t	  metF_HBHENoiseIso = 0.;
+  Int_t	  metF_CSC	= 0.;
+  Int_t	  metF_eeBadSC	= 0.;
+  Int_t   genmatch1	= 0.; 
+  Int_t   genmatch2	= 0.; 
 
   // branches from original tree
   TBranch *b_run;
@@ -182,6 +206,19 @@ void fitterFormatting(TString inDir, TString outDir, TString type, const char* f
   TBranch *b_eleveto1;
   TBranch *b_eleveto2;
   TBranch *b_hltDiphoton30Mass95;
+  TBranch *b_nEle;   //!
+  TBranch *b_nMuons;   //!
+  TBranch *b_nJets;   //!
+  TBranch *b_nLooseBjets;   //!
+  TBranch *b_nMediumBjets;   //!
+  TBranch *b_vhtruth;   //!
+  TBranch *b_metF_GV;   //!
+  TBranch *b_metF_HBHENoise;   //!
+  TBranch *b_metF_HBHENoiseIso;   //!
+  TBranch *b_metF_CSC;   //!
+  TBranch *b_metF_eeBadSC;   //!
+  TBranch *b_genmatch1; 
+  TBranch *b_genmatch2;
 
   // set branch addresses and branch pointers
   treeOrig->SetBranchAddress("run",		&run,		&b_run);
@@ -216,6 +253,19 @@ void fitterFormatting(TString inDir, TString outDir, TString type, const char* f
   treeOrig->SetBranchAddress("eleveto1",	&eleveto1,	&b_eleveto1);
   treeOrig->SetBranchAddress("eleveto2",	&eleveto2,	&b_eleveto2);
   treeOrig->SetBranchAddress("hltDiphoton30Mass95",	&hltDiphoton30Mass95,	&b_hltDiphoton30Mass95);  
+  treeOrig->SetBranchAddress("nEle", 		&nEle, 		&b_nEle);
+  treeOrig->SetBranchAddress("nMuons", 		&nMuons, 	&b_nMuons);
+  treeOrig->SetBranchAddress("nJets", 		&nJets, 	&b_nJets);
+  treeOrig->SetBranchAddress("nLooseBjets", 	&nLooseBjets, 	&b_nLooseBjets);
+  treeOrig->SetBranchAddress("nMediumBjets", 	&nMediumBjets, 	&b_nMediumBjets);
+  treeOrig->SetBranchAddress("vhtruth", 	&vhtruth, 	&b_vhtruth);
+  treeOrig->SetBranchAddress("metF_GV", 	&metF_GV, 	&b_metF_GV);
+  treeOrig->SetBranchAddress("metF_HBHENoise", 	&metF_HBHENoise,&b_metF_HBHENoise);
+  treeOrig->SetBranchAddress("metF_HBHENoiseIso",	&metF_HBHENoiseIso, 	&b_metF_HBHENoiseIso);
+  treeOrig->SetBranchAddress("metF_CSC", 	&metF_CSC, 	&b_metF_CSC);
+  treeOrig->SetBranchAddress("metF_eeBadSC", 	&metF_eeBadSC, 	&b_metF_eeBadSC);
+  treeOrig->SetBranchAddress("genmatch1", 	&genmatch1, 	&b_genmatch1);  
+  treeOrig->SetBranchAddress("genmatch2", 	&genmatch2, 	&b_genmatch2); 
 
   // new variables (needed if variable has diff name in new tree) 
   float mass;
@@ -285,7 +335,20 @@ void fitterFormatting(TString inDir, TString outDir, TString type, const char* f
   for (UInt_t i=0; i<nentriesOrig; i++){
     treeOrig->GetEntry(i);
 
-    if (mgg >= 100 && mgg <= 200){
+    // check that data passes METfilters
+    if (type=="data" && (metF_GV!=1 || metF_HBHENoise!=1 || metF_HBHENoiseIso!=1 || metF_CSC!=1 || metF_eeBadSC!=1)) continue; 
+
+    // check that passes trigger
+    if (hltDiphoton30Mass95==0) continue;
+
+    // apply electron veto
+    if (eleveto1==0 || eleveto2==0) continue;
+
+    // remove duplicate events
+    if (prompt==1 && (genmatch1==1 && genmatch2==1)) continue;   // only PF and FF for gjets  
+    if (prompt==2 && (genmatch1==1 && genmatch2==1)) continue;   // only PF and FF for gjets  
+
+    if (mgg >= 100 && mgg <= 200 && pt1>80 && pt2>30 /*&& t1pfmet >= 100*/ ){
 
       // split events by eta
       EB1 = false;
@@ -305,7 +368,7 @@ void fitterFormatting(TString inDir, TString outDir, TString type, const char* f
       hiR9 = false;
       loR9 = false;
       if (r91 > 0.94 && r92 > 0.94) hiR9 = true;
-      else if (r91 > 0.94 || r92 > 0.94) loR9 = true;
+      else if (r91 <= 0.94 || r92 <= 0.94) loR9 = true;
 
       for (UInt_t met=0; met<numMetCat; met++){
 	passMet[met]=false;
