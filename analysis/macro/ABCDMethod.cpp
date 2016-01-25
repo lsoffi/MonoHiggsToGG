@@ -13,11 +13,11 @@ ABCDMethod::ABCDMethod( SamplePairVec Samples, const Double_t inLumi, const TStr
 
   // values for the different bin edges
   mgg_minAB1 = 100.;
-  mgg_minCD  = 120.;
-  mgg_maxCD  = 130.;
+  mgg_minCD  = 115.;
+  mgg_maxCD  = 135.;
   mgg_maxAB2 = 150.; 
   met_minB   = 0.;
-  met_minD   = 250.;
+  met_minD   = 50.;
   met_maxD   = 999.;
 
   // titles for output Latex table

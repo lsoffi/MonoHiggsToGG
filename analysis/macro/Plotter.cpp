@@ -96,6 +96,8 @@ void Plotter::DoPlots(int prompt){
     fTH1DMap["selection"]->Fill(i+0.5,fSelection[i]);
   }
 
+  Int_t numFailingMETfil = 0;
+
   for (UInt_t entry = 0; entry < nentries; entry++){
     tpho->GetEntry(entry);
 
@@ -152,17 +154,24 @@ void Plotter::DoPlots(int prompt){
     if (passCH2 && passNH2 && passPH2 && passS2 && passHE2 && passEV2) passAll2 = true;
     if (passAll1 && passAll2) passBoth = true;
 
-    //if (!passEV1 || !passEV2) std::cout << "Eleveto didn't work! " << std::endl;
+
+    Bool_t EB1, EB2, EE1, EE2, inEE, inEB;
+    Bool_t hiR9, loR9;
 
     // Check if the Data passes MET filters
     Bool_t passMETfil = true;
     if (isData){
       if (metF_GV!=1 || metF_HBHENoise!=1 || metF_HBHENoiseIso!=1 || metF_CSC!=1 || metF_eeBadSC!=1 ) passMETfil = false; 
     }
+    if (!passMETfil) numFailingMETfil++;
+
+    // Check that the weight is not less than 0
+    Bool_t weightNegative = false;
+    if (Weight <= 0) weightNegative = true;
 
     //start full selection for plots
-    if (passMETfil){ //Data passes MET filters
-      if (mgg >= 100 && mgg < 200 /*&& passBoth &&  pt1 > mgg/3 && pt2 > mgg/4*/ ){
+    if (passMETfil && !weightNegative){ //Data passes MET filters && not a negativeWeight
+      if (mgg >= 100 && mgg < 200 && passBoth /*&&  pt1 > 80 && pt2 > 30*/ /*&& t1pfmet > 50*/ ){
         fTH1DMap["eff_sel"]->Fill(1.5,Weight);
         if (hltDiphoton30Mass95==1){ //passes trigger
 
@@ -172,17 +181,82 @@ void Plotter::DoPlots(int prompt){
           if (prompt==2 && (genmatch1==1 && genmatch2==1)) continue;   // only PF and FF for gjets  
           //if (prompt==2 && (genmatch1==1 || genmatch2==1)) continue;   // only FF for QCD       
 
-	  // test implementation:
-          //if (prompt==1 && (genmatch1==1 && genmatch2==1)) continue;   
-          //if (prompt==1 && (genmatch1==0 && genmatch2==0)) continue;   
-          //if (prompt==2 && (genmatch1==1 && genmatch2==1)) continue;  
-          //if (prompt==2 && (genmatch1==1 && genmatch2==0)) continue;  
-          //if (prompt==2 && (genmatch1==0 && genmatch2==1)) continue;
+          // split events by eta
+          EB1 = false;
+          EB2 = false;
+          EE1 = false;
+          EE2 = false;
+          if (fabs(eta1)>1.566)  EE1=true;
+          if (fabs(eta2)>1.566)  EE2=true;
+          if (fabs(eta1)<1.4442) EB1=true;
+          if (fabs(eta2)<1.4442) EB2=true; 
+          inEE=false;
+          inEB=false;
+          if (EB1 && EB2) inEB=true;
+          else if (EE1 || EE2) inEE=true;
+          
+          // split events by r9
+          hiR9 = false;
+          loR9 = false;
+          if (r91 > 0.94 && r92 > 0.94) hiR9 = true;
+          else if (r91 <= 0.94 || r92 <= 0.94) loR9 = true;
+
+          //if (passEV1 && passEV2){
+	  //  if (inEB && hiR9){  
+	  //    if (isData && doBlind){
+	  //      if (mgg<115 || mgg>135) fTH1DMap["EBHighR9_mgg"]->Fill(mgg,Weight);
+	  //      fTH1DMap["EBHighR9_ptgg"]->Fill(ptgg,Weight);
+	  //      if (t1pfmet<100) fTH1DMap["EBHighR9_t1pfmet"]->Fill(t1pfmet,Weight);
+	  //    }
+	  //    else{
+	  //      fTH1DMap["EBHighR9_mgg"]->Fill(mgg,Weight);
+	  //      fTH1DMap["EBHighR9_ptgg"]->Fill(ptgg,Weight);
+	  //      fTH1DMap["EBHighR9_t1pfmet"]->Fill(t1pfmet,Weight);
+	  //    }
+          //  }
+          //  if (inEB && loR9){
+	  //    if (isData && doBlind){
+	  //      if (mgg<115 || mgg>135) fTH1DMap["EBLowR9_mgg"]->Fill(mgg,Weight);
+	  //      fTH1DMap["EBLowR9_ptgg"]->Fill(ptgg,Weight);
+	  //      if (t1pfmet<100) fTH1DMap["EBLowR9_t1pfmet"]->Fill(t1pfmet,Weight);
+	  //    }
+	  //    else{
+	  //      fTH1DMap["EBLowR9_mgg"]->Fill(mgg,Weight);
+	  //      fTH1DMap["EBLowR9_ptgg"]->Fill(ptgg,Weight);
+	  //      fTH1DMap["EBLowR9_t1pfmet"]->Fill(t1pfmet,Weight);
+	  //    }
+          //  }
+          //  if (inEE && hiR9){
+	  //    if (isData && doBlind){
+	  //      if (mgg<115 || mgg>135) fTH1DMap["EEHighR9_mgg"]->Fill(mgg,Weight);
+	  //      fTH1DMap["EEHighR9_ptgg"]->Fill(ptgg,Weight);
+	  //      if (t1pfmet<100) fTH1DMap["EEHighR9_t1pfmet"]->Fill(t1pfmet,Weight);
+	  //    }
+	  //    else{
+	  //      fTH1DMap["EEHighR9_mgg"]->Fill(mgg,Weight);
+	  //      fTH1DMap["EEHighR9_ptgg"]->Fill(ptgg,Weight);
+	  //      fTH1DMap["EEHighR9_t1pfmet"]->Fill(t1pfmet,Weight);
+	  //    }
+          //  }
+          //  if (inEE && loR9){
+	  //    if (isData && doBlind){
+	  //      if (mgg<115 || mgg>135) fTH1DMap["EELowR9_mgg"]->Fill(mgg,Weight);
+	  //      fTH1DMap["EELowR9_ptgg"]->Fill(ptgg,Weight);
+	  //      if (t1pfmet<100) fTH1DMap["EELowR9_t1pfmet"]->Fill(t1pfmet,Weight);
+	  //    }
+	  //    else{
+	  //      fTH1DMap["EELowR9_mgg"]->Fill(mgg,Weight);
+	  //      fTH1DMap["EELowR9_ptgg"]->Fill(ptgg,Weight);
+	  //      fTH1DMap["EELowR9_t1pfmet"]->Fill(t1pfmet,Weight);
+	  //    }
+          //  }
+          //}
+
 
           fTH1DMap["eff_sel"]->Fill(2.5,Weight);
           //Fill histograms
           if (isData && doBlind){ // BLIND THE DATA mgg and met distributions
-            if (mgg < 100 || mgg > 150){
+            if (mgg < 115 || mgg > 135){
               fTH1DMap["mgg"]->Fill(mgg,Weight);
               fTH2DMap["mgg_PU"]->Fill(nvtx,mgg,Weight);
               fTH2DMap["mgg_ptgg"]->Fill(ptgg,mgg,Weight);
@@ -285,14 +359,14 @@ void Plotter::DoPlots(int prompt){
             if (isData && doBlind){// BLIND THE DATA
               if (mgg < 115 || mgg > 135){
                 fTH1DMap["mgg_n-1"]->Fill(mgg,Weight);  
-                if (t1pfmet < 0) fTH2DMap["t1pfmet_mgg"]->Fill(mgg,t1pfmet,Weight);
+                if (t1pfmet < 100) fTH2DMap["t1pfmet_mgg"]->Fill(mgg,t1pfmet,Weight);
               }
               if (t1pfmet < 100) fTH1DMap["t1pfmet_n-1"]->Fill(t1pfmet,Weight);  
               if (pfmet < 100)   fTH1DMap["pfmet_n-1"]->Fill(pfmet,Weight);
               if (calomet < 100) fTH1DMap["calomet_n-1"]->Fill(calomet,Weight);
               /*if (ptgg<0)*/ fTH1DMap["ptgg_n-1"]->Fill(ptgg,Weight);  
               //if (mgg >= 110 && mgg <= 130) fTH1DMap["t1pfmet_selmgg"]->Fill(t1pfmet,Weight); 
-              //if (t1pfmet >= 100) fTH1DMap["mgg_selt1pfmet"]->Fill(mgg,Weight); 
+              if (t1pfmet >= 50 && ( mgg < 115 || mgg > 135)) fTH1DMap["mgg_selt1pfmet"]->Fill(mgg,Weight);  
             }
             else{
               fTH1DMap["mgg_n-1"]->Fill(mgg,Weight);  
@@ -303,7 +377,7 @@ void Plotter::DoPlots(int prompt){
               fTH1DMap["ptgg_n-1"]->Fill(ptgg,Weight);  
               if (mgg >= 110 && mgg <= 130) fTH1DMap["t1pfmet_selmgg"]->Fill(t1pfmet,Weight); 
               if (ptgg > 70) fTH1DMap["t1pfmet_selptgg"]->Fill(t1pfmet,Weight);
-              if (t1pfmet >= 250){ 
+              if (t1pfmet >= 50){ 
                 fTH1DMap["mgg_selt1pfmet"]->Fill(mgg,Weight); 
                 fTH1DMap["ptgg_selt1pfmet"]->Fill(ptgg,Weight);
                 //std::cout << "DY mgg is " << mgg << std::endl;
@@ -358,6 +432,9 @@ void Plotter::DoPlots(int prompt){
    
   }// end loop over entries in tree
 
+
+  std::cout << "Number Events rejected by MET filters: " << numFailingMETfil << " out of " << nentries << " events. " << std::endl;
+
   Double_t effPU = 0;
   Double_t effpt = 0;
   Double_t bin = 0;
@@ -400,7 +477,7 @@ void Plotter::DoPlots(int prompt){
 void Plotter::SetUpPlots(){
   // fill all plots from tree
   fTH1DMap["nvtx"]		= Plotter::MakeTH1DPlot("nvtx","",40,0.,40.,"nvtx","");
-  fTH1DMap["mgg"]		= Plotter::MakeTH1DPlot("mgg","",25,100.,150.,"m_{#gamma#gamma} (GeV)","");  
+  fTH1DMap["mgg"]		= Plotter::MakeTH1DPlot("mgg","",26,99.,151.,"m_{#gamma#gamma} (GeV)","");  
   fTH1DMap["ptgg"]		= Plotter::MakeTH1DPlot("ptgg","",60,0.,600.,"p_{T,#gamma#gamma} (GeV)","");
   fTH1DMap["t1pfmet"]		= Plotter::MakeTH1DPlot("t1pfmet","",75,0.,900,"t1PF MET (GeV)","");
   fTH1DMap["t1pfmetphi"]	= Plotter::MakeTH1DPlot("t1pfmetphi","",20,-4.,4.,"t1PF MET #phi","");
@@ -431,7 +508,7 @@ void Plotter::SetUpPlots(){
 
   // n minus 1 plots
   fTH1DMap["nvtx_n-1"]		= Plotter::MakeTH1DPlot("nvtx_n-1","",40,0.,40.,"nvtx","");
-  fTH1DMap["mgg_n-1"]		= Plotter::MakeTH1DPlot("mgg_n-1","",25,100.,150.,"m_{#gamma#gamma} (GeV)","");  
+  fTH1DMap["mgg_n-1"]		= Plotter::MakeTH1DPlot("mgg_n-1","",26,99.,151.,"m_{#gamma#gamma} (GeV)","");  
   fTH1DMap["ptgg_n-1"]		= Plotter::MakeTH1DPlot("ptgg_n-1","",60,0.,600.,"p_{T,#gamma#gamma} (GeV)","");
   fTH1DMap["t1pfmet_n-1"]	= Plotter::MakeTH1DPlot("t1pfmet_n-1","",25,0.,200.,"t1PF MET (GeV)","");
   fTH1DMap["t1pfmetphi_n-1"]	= Plotter::MakeTH1DPlot("t1pfmetphi_n-1","",20,-4.,4.,"t1PF MET #phi","");
@@ -463,7 +540,7 @@ void Plotter::SetUpPlots(){
   fTH1DMap["dphi_ggmet"]	= Plotter::MakeTH1DPlot("dphi_ggmet","",20,-4.,4.,"#Delta#phi(#gamma#gamma,MET)","");
   fTH1DMap["absdphi_ggmet"]	= Plotter::MakeTH1DPlot("absdphi_ggmet","",20,0.,4.,"|#Delta#phi(#gamma#gamma,MET)|","");
   fTH1DMap["t1pfmet_selmgg"]	= Plotter::MakeTH1DPlot("t1pfmet_selmgg","",100,0.,1000.,"t1PF MET (GeV)","");
-  fTH1DMap["mgg_selt1pfmet"]	= Plotter::MakeTH1DPlot("mgg_selt1pfmet","",20,100.,200.,"m_{#gamma#gamma} (GeV)","");
+  fTH1DMap["mgg_selt1pfmet"]	= Plotter::MakeTH1DPlot("mgg_selt1pfmet","",26,99.,151.,"m_{#gamma#gamma} (GeV)","");
   fTH1DMap["phi1_pho2pass"]     = Plotter::MakeTH1DPlot("phi1_pho2pass","",80,-4.,4.,"","");
   fTH1DMap["phi2_pho1pass"]     = Plotter::MakeTH1DPlot("phi2_pho1pass","",80,-4.,4.,"","");
   fTH1DMap["t1pfmet_zoom"]	= Plotter::MakeTH1DPlot("t1pfmet_zoom","",60,0.,300.,"t1PF MET (GeV)","");
@@ -471,6 +548,20 @@ void Plotter::SetUpPlots(){
   fTH1DMap["absdeta_gg"]	= Plotter::MakeTH1DPlot("absdeta_gg","",20,0.,3.,"|#Delta#eta(#gamma#gamma)|","");
   fTH1DMap["ptgg_selt1pfmet"]	= Plotter::MakeTH1DPlot("ptgg_selt1pfmet","",60,0.,600.,"p_{T,#gamma#gamma} (GeV)","");
   fTH1DMap["t1pfmet_selptgg"]	= Plotter::MakeTH1DPlot("t1pfmet_selptgg","",100,0.,1000.,"t1PF MET (GeV)","");
+
+  //// pho cat plots
+  //fTH1DMap["EBHighR9_mgg"]	= Plotter::MakeTH1DPlot("EBHighR9_mgg","",26,99.,151.,"m_{#gamma#gamma} (GeV)","");  
+  //fTH1DMap["EBHighR9_ptgg"]	= Plotter::MakeTH1DPlot("EBHighR9_ptgg","",60,0.,600.,"p_{T,#gamma#gamma} (GeV)","");
+  //fTH1DMap["EBHighR9_t1pfmet"]	= Plotter::MakeTH1DPlot("EBHighR9_t1pfmet","",75,0.,900,"t1PF MET (GeV)","");
+  //fTH1DMap["EBLowR9_mgg"]	= Plotter::MakeTH1DPlot("EBLowR9_mgg","",26,99.,151.,"m_{#gamma#gamma} (GeV)","");  
+  //fTH1DMap["EBLowR9_ptgg"]	= Plotter::MakeTH1DPlot("EBLowR9_ptgg","",60,0.,600.,"p_{T,#gamma#gamma} (GeV)","");
+  //fTH1DMap["EBLowR9_t1pfmet"]	= Plotter::MakeTH1DPlot("EBLowR9_t1pfmet","",75,0.,900,"t1PF MET (GeV)","");
+  //fTH1DMap["EEHighR9_mgg"]	= Plotter::MakeTH1DPlot("EEHighR9_mgg","",26,99.,151.,"m_{#gamma#gamma} (GeV)","");  
+  //fTH1DMap["EEHighR9_ptgg"]	= Plotter::MakeTH1DPlot("EEHighR9_ptgg","",60,0.,600.,"p_{T,#gamma#gamma} (GeV)","");
+  //fTH1DMap["EEHighR9_t1pfmet"]	= Plotter::MakeTH1DPlot("EEHighR9_t1pfmet","",75,0.,900,"t1PF MET (GeV)","");
+  //fTH1DMap["EELowR9_mgg"]	= Plotter::MakeTH1DPlot("EELowR9_mgg","",26,99.,151.,"m_{#gamma#gamma} (GeV)","");  
+  //fTH1DMap["EELowR9_ptgg"]	= Plotter::MakeTH1DPlot("EELowR9_ptgg","",60,0.,600.,"p_{T,#gamma#gamma} (GeV)","");
+  //fTH1DMap["EELowR9_t1pfmet"]	= Plotter::MakeTH1DPlot("EELowR9_t1pfmet","",75,0.,900,"t1PF MET (GeV)","");
 
   // efficiency plots
   fTH1DMap["eff_sel"]		= Plotter::MakeTH1DPlot("eff_sel","",10,0.,10.,"","");
@@ -494,12 +585,13 @@ void Plotter::SetUpPlots(){
 TH1D * Plotter::MakeTH1DPlot(const TString hname, const TString htitle, const Int_t nbins, const Double_t xlow, const Double_t xhigh, const TString xtitle, const TString ytitle){
   TString ytitleNew;
   Float_t binwidth = (xhigh-xlow)/nbins;
+  //std::cout << "binwidth " <<  binwidth << std::endl;
   if (ytitle=="") ytitleNew = Form("Events/(%d)",binwidth);
   else ytitleNew = ytitle;
  
   TH1D * hist = new TH1D(hname.Data(),htitle.Data(),nbins,xlow,xhigh);
   hist->GetXaxis()->SetTitle(xtitle.Data());
-  hist->GetYaxis()->SetTitle(ytitleNew.Data());
+  hist->GetYaxis()->SetTitle(ytitle.Data());
   hist->Sumw2();
   gStyle->SetOptStat(1111111);
   return hist;
@@ -539,7 +631,7 @@ void Plotter::SavePlots(){
 
     CMSLumi(canv,0,fLumi);
 
-    // UNCOMMENT THESE LINES IF WANT TO MAKE OUTPUT FILES OF ALL PLOTS
+    //// UNCOMMENT THESE LINES IF WANT TO MAKE OUTPUT FILES OF ALL PLOTS
     //canv->SetLogy(0);
     //canv->SaveAs(Form("%s%s/%s.%s",fName.Data(),species.Data(),(*mapiter).first.Data(),fType.Data()));
 

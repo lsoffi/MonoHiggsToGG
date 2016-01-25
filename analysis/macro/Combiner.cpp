@@ -54,7 +54,7 @@ Combiner::Combiner( SamplePairVec Samples, const Double_t inLumi, const ColorMap
   fSampleTitleMap["2HDM_mZP1200"]	= "m_{Z'} = 1200 GeV";//#bar{#chi}#chi HH ,m_{#chi} = 10 GeV";
   fSampleTitleMap["2HDM_mZP1400"]	= "m_{Z'} = 1400 GeV";//#bar{#chi}#chi HH ,m_{#chi} = 10 GeV";
   fSampleTitleMap["2HDM_mZP1700"]	= "m_{Z'} = 1700 GeV";//#bar{#chi}#chi HH ,m_{#chi} = 100 GeV";
-  fSampleTitleMap["2HDM_mZP2000"]	= "m_{Z'} = 2000 GeV";//#bar{#chi}#chi HH ,m_{#chi} = 1000 GeV";
+  //fSampleTitleMap["2HDM_mZP2000"]	= "m_{Z'} = 2000 GeV";//#bar{#chi}#chi HH ,m_{#chi} = 1000 GeV";
   fSampleTitleMap["2HDM_mZP2500"]	= "m_{Z'} = 2500 GeV";//#bar{#chi}#chi HH ,m_{#chi} = 1000 GeV";
 
   //for (std::map<TString,TString>::iterator iter = fSampleTitleMap.begin(); iter != fSampleTitleMap.end(); ++iter) {
@@ -101,6 +101,7 @@ void Combiner::DoComb(){
 
     // sig: just add to legend
     for (UInt_t mc = 0; mc < fNSig; mc++){
+      //fInSigTH1DHists[th1d][mc]->Scale(0.001);
       //fInSigTH1DHists[th1d][mc]->Scale(lumi);
       fTH1DLegends[th1d]->AddEntry(fInSigTH1DHists[th1d][mc],fSampleTitleMap[fSigNames[mc]],"l");
     }
@@ -153,14 +154,9 @@ void Combiner::DoComb(){
     Double_t dataInt = fOutDataTH1DHists[th1d]->Integral();
     if (fNData > 0 && doStack && dataInt > 0) fTH1DLegends[th1d]->AddEntry(fOutDataTH1DHists[th1d],"Data","pl");
 
-
-
-
-    
-
   }// end loop over th1d histos
 
-  if (addText!="_n-1") Combiner::MakeEffPlots();
+  //if (addText!="_n-1") Combiner::MakeEffPlots();
   Combiner::MakeOutputCanvas();
 
 }// end Combiner::DoComb
@@ -302,11 +298,11 @@ void Combiner::DrawCanvasOverlay(const UInt_t th1d, const Bool_t isLogY){
   //minOverlay = Combiner::GetMinimum(th1d, false);  
 
   // start by drawing the sig first
-  if (isLogY) fInSigTH1DHists[th1d][0]->SetMaximum(maxOverlay*1000);
+  if (isLogY) fInSigTH1DHists[th1d][0]->SetMaximum(maxOverlay*100000);
   else fInSigTH1DHists[th1d][0]->SetMaximum(maxOverlay*1.1);
   //if (fNData > 0) fInSigTH1DHists[th1d][0]->SetMinimum(minOverlay*0.9);
   if (th1d==fIndexMgg){ 
-    fInSigTH1DHists[th1d][0]->SetMinimum(0.0001); 
+    fInSigTH1DHists[th1d][0]->SetMinimum(0.001); 
     fInSigTH1DHists[th1d][0]->SetMaximum(10);
   }
 
@@ -613,7 +609,7 @@ void Combiner::InitCanvAndHists(){
   fTH1DLegends.resize(fNTH1D);
   for (UInt_t th1d = 0; th1d < fNTH1D; th1d++){
     //fTH1DLegends[th1d] = new TLegend(0.6075,0.6536441,0.8575,0.9340678);
-    fTH1DLegends[th1d] = new TLegend(0.6075,0.6,0.9,0.934); // (x1,y1,x2,y2)
+    fTH1DLegends[th1d] = new TLegend(0.6075,0.5,0.9,0.934); // (x1,y1,x2,y2)
     fTH1DLegends[th1d]->SetBorderSize(4);
     fTH1DLegends[th1d]->SetLineColor(kBlack);
     fTH1DLegends[th1d]->SetTextSize(0.035);//0.03
@@ -709,5 +705,19 @@ void Combiner::InitTH1DNames(){
     fTH1DNames.push_back("selection");
     fIndexEff = fTH1DNames.size()-1;
     fTH1DNames.push_back("eff_sel");
+
+    //fTH1DNames.push_back("EBHighR9_mgg");
+    //fTH1DNames.push_back("EBHighR9_ptgg");
+    //fTH1DNames.push_back("EBHighR9_t1pfmet");
+    //fTH1DNames.push_back("EBLowR9_mgg");
+    //fTH1DNames.push_back("EBLowR9_ptgg");
+    //fTH1DNames.push_back("EBLowR9_t1pfmet");
+    //fTH1DNames.push_back("EEHighR9_mgg");
+    //fTH1DNames.push_back("EEHighR9_ptgg");
+    //fTH1DNames.push_back("EEHighR9_t1pfmet");
+    //fTH1DNames.push_back("EELowR9_mgg");
+    //fTH1DNames.push_back("EELowR9_ptgg");
+    //fTH1DNames.push_back("EELowR9_t1pfmet");
+
   }
 }// end Combiner::InitTH1DNames
