@@ -5,7 +5,7 @@ import FWCore.ParameterSet.Types as CfgTypes
 
 ######################
 # SET THESE BOOLS BEFORE RUNNING:
-isMC = True; 
+isMC = False; 
 isFLASHgg_1_1_0 = True;
 is2015DFromChiara = False;
 ######################
@@ -36,11 +36,24 @@ else:
 sampleType = 0;
 if (isMC):
     sampleType = 1;
-    print "SAMPLE IS TREATED AS MONTE CARLO."
+    print "SAMPLE IS MONTE CARLO. So mgg = massCorrSmear."
 else:
-    print "SAMPLE IS TREATED AS DATA."
+    print "SAMPLE IS DATA. So mgg = massCorrScale"
 
-process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32( 100 ) )
+
+if (isMC==False and isFLASHgg_1_1_0):
+    flag = 'TriggerResults::RECO'
+    print "Using name RECO"
+else:
+    flag = 'TriggerResults::PAT'
+    print "Using name PAT"
+
+# flags = cms.InputTag('TriggerResults::RECO'), #MZIENTEK use for FLASHgg Data (Prompt & ReReco)
+# flags = cms.InputTag('TriggerResults::PAT'),
+ 
+
+
+process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32( 5000 ) )
 
 process.source = cms.Source("PoolSource",
                             fileNames=cms.untracked.vstring(
@@ -78,8 +91,8 @@ process.source = cms.Source("PoolSource",
 	#"file:myMicroAODOutputFile_1.root" 
         #"file:myMicroAODOutputFile_privMC.root"
  	#"/store/user/mzientek/ZprimeToA0hToA0chichihAA_2HDM_MZp-1000_MA0-300_13TeV-madgraph/RunIISpring15-ReMiniAOD-1_1_0-25ns/160111_132609/0000/myMicroAODOutputFile_1.root"
-	#"/store/group/phys_higgs/cmshgg/sethzenz/flashgg/RunIISpring15-ReReco74X-1_1_0-25ns/1_1_0/DoubleEG/RunIISpring15-ReReco74X-1_1_0-25ns-1_1_0-v0-Run2015D-04Dec2015-v2/160112_095813/0000/myMicroAODOutputFile_1.root", 
-	"/store/group/phys_higgs/cmshgg/sethzenz/flashgg/RunIISpring15-ReMiniAOD-1_1_0-25ns/1_1_0/GluGluHToGG_M-125_13TeV_powheg_pythia8/RunIISpring15-ReMiniAOD-1_1_0-25ns-1_1_0-v0-RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/160105_223154/0000/myMicroAODOutputFile_5.root",
+	"/store/group/phys_higgs/cmshgg/sethzenz/flashgg/RunIISpring15-ReReco74X-1_1_0-25ns/1_1_0/DoubleEG/RunIISpring15-ReReco74X-1_1_0-25ns-1_1_0-v0-Run2015D-04Dec2015-v2/160112_095813/0000/myMicroAODOutputFile_1.root", 
+	#"/store/group/phys_higgs/cmshgg/sethzenz/flashgg/RunIISpring15-ReMiniAOD-1_1_0-25ns/1_1_0/GluGluHToGG_M-125_13TeV_powheg_pythia8/RunIISpring15-ReMiniAOD-1_1_0-25ns-1_1_0-v0-RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/160105_223154/0000/myMicroAODOutputFile_5.root",
 	#"/store/group/phys_higgs/cmshgg/sethzenz/flashgg/RunIISpring15-ReReco74X-1_1_0-25ns/1_1_0/DoubleEG/RunIISpring15-ReReco74X-1_1_0-25ns-1_1_0-v0-Run2015D-04Dec2015-v2/160112_095813/0000/myMicroAODOutputFile_10.root", 
 
         )
@@ -121,7 +134,8 @@ process.diPhoAna = cms.EDAnalyzer('NewDiPhoAnalyzer',
                                   generatorInfo = cms.InputTag("generator"),
                                   dopureweight = cms.untracked.int32(0),
                                   bits         = cms.InputTag('TriggerResults::HLT'),
-                                  flags        = cms.InputTag('TriggerResults::PAT'),
+                                  flags        = cms.InputTag(flag),
+                                  #flags        = cms.InputTag('TriggerResults::PAT'), 
                                   #flags        = cms.InputTag('TriggerResults::RECO'), #MZIENTEK use for FLASHgg Data (Prompt & ReReco)
 				  sampleIndex  = cms.untracked.int32(10004),
                                   #puWFileName  = cms.string('PURW_MC.root'),  
