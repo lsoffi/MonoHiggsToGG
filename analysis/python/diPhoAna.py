@@ -3,7 +3,7 @@ import FWCore.Utilities.FileUtils as FileUtils
 import FWCore.PythonUtilities.LumiList as LumiList  
 import FWCore.ParameterSet.Types as CfgTypes  
 
-isMC = False; 
+isMC = True; 
 isFLASHgg_1_1_0 = True;
 is2015DFromChiara = False;
 #shouldn't need to change the bools below:
@@ -33,7 +33,15 @@ else:
     process.GlobalTag = GlobalTag(process.GlobalTag, 'MCRUN2_74_V9', '')
     print "MCRUN2_74_V9"
 
-process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32( 10000 ) )
+
+sampleType = 0;
+if (isMC):
+    sampleType = 1;
+    print "SAMPLE IS TREATED AS MONTE CARLO."
+else:
+    print "SAMPLE IS TREATED AS DATA."
+
+process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32( 100 ) )
 
 process.source = cms.Source("PoolSource",
                             fileNames=cms.untracked.vstring(
@@ -71,8 +79,8 @@ process.source = cms.Source("PoolSource",
 	#"file:myMicroAODOutputFile_1.root" 
         #"file:myMicroAODOutputFile_privMC.root"
  	#"/store/user/mzientek/ZprimeToA0hToA0chichihAA_2HDM_MZp-1000_MA0-300_13TeV-madgraph/RunIISpring15-ReMiniAOD-1_1_0-25ns/160111_132609/0000/myMicroAODOutputFile_1.root"
-	"/store/group/phys_higgs/cmshgg/sethzenz/flashgg/RunIISpring15-ReReco74X-1_1_0-25ns/1_1_0/DoubleEG/RunIISpring15-ReReco74X-1_1_0-25ns-1_1_0-v0-Run2015D-04Dec2015-v2/160112_095813/0000/myMicroAODOutputFile_1.root", 
-#	"/store/group/phys_higgs/cmshgg/sethzenz/flashgg/RunIISpring15-ReMiniAOD-1_1_0-25ns/1_1_0/GluGluHToGG_M-125_13TeV_powheg_pythia8/RunIISpring15-ReMiniAOD-1_1_0-25ns-1_1_0-v0-RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/160105_223154/0000/myMicroAODOutputFile_5.root",
+	#"/store/group/phys_higgs/cmshgg/sethzenz/flashgg/RunIISpring15-ReReco74X-1_1_0-25ns/1_1_0/DoubleEG/RunIISpring15-ReReco74X-1_1_0-25ns-1_1_0-v0-Run2015D-04Dec2015-v2/160112_095813/0000/myMicroAODOutputFile_1.root", 
+	"/store/group/phys_higgs/cmshgg/sethzenz/flashgg/RunIISpring15-ReMiniAOD-1_1_0-25ns/1_1_0/GluGluHToGG_M-125_13TeV_powheg_pythia8/RunIISpring15-ReMiniAOD-1_1_0-25ns-1_1_0-v0-RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/160105_223154/0000/myMicroAODOutputFile_5.root",
 	#"/store/group/phys_higgs/cmshgg/sethzenz/flashgg/RunIISpring15-ReReco74X-1_1_0-25ns/1_1_0/DoubleEG/RunIISpring15-ReReco74X-1_1_0-25ns-1_1_0-v0-Run2015D-04Dec2015-v2/160112_095813/0000/myMicroAODOutputFile_10.root", 
 
         )
@@ -121,7 +129,8 @@ process.diPhoAna = cms.EDAnalyzer('NewDiPhoAnalyzer',
                                   puWFileName  = cms.string('/afs/cern.ch/user/c/crovelli/public/json2015/doubleEG/pileupWeights___processedAndGolden_finalAfewMissing__69mb.root'),   
                                   xsec         = cms.untracked.double(1), #pb
                                   kfac         = cms.untracked.double(1.),
-                                  sumDataset   = cms.untracked.double(100.0)   # chiara
+                                  sumDataset   = cms.untracked.double(100.0),   # chiara
+				  isMonteCarlo = cms.untracked.int32(sampleType) #margaret
                                   )
 
 process.p = cms.Path(process.flashggUnpackedJets*process.diPhoAna )     

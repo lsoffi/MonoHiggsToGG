@@ -34,7 +34,7 @@
 #include "DataFormats/Common/interface/TriggerResults.h"
 #include "FWCore/Common/interface/TriggerNames.h"
 
-
+#include "TRandom.h"
 #include "TMath.h"
 #include "TTree.h"
 #include "TVector3.h"
@@ -206,7 +206,11 @@ struct diphoTree_struc_ {
   int metF_HBHENoiseIso;
   int metF_CSC;
   int metF_eeBadSC;
+  float massSmeared; 
+  float massScaled;
+  float massRaw;
 };
+
 
 class NewDiPhoAnalyzer : public edm::EDAnalyzer {
   
@@ -253,6 +257,8 @@ private:
   int passLoosePHisoCuts(float sceta, float phiso, float pt);
   int passLooseHoeCuts(float sceta, float hoe);
 
+  float getSmearingValue(float sceta, float r9);
+
   // collections
   //edm::EDGetTokenT<EcalRecHitCollection> ecalHitEBToken_;
   //edm::EDGetTokenT<EcalRecHitCollection> ecalHitEEToken_;
@@ -287,6 +293,12 @@ private:
   // to compute weights for pileup
   std::vector<Double_t> puweights_;
   bool doOfficialPUrecipe = true;
+
+  // for smearing
+  int isMonteCarlo_;
+  bool scaleUp = 0;
+  bool scaleDown = 0;  
+
 
   // output tree with several diphoton infos
   TTree *DiPhotonTree;
@@ -339,6 +351,8 @@ NewDiPhoAnalyzer::NewDiPhoAnalyzer(const edm::ParameterSet& iConfig):
   genInfo_      = iConfig.getParameter<edm::InputTag>("generatorInfo"); 
 
   bTag_ = iConfig.getUntrackedParameter<string> ( "bTag", "combinedInclusiveSecondaryVertexV2BJetTags" );   
+
+  isMonteCarlo_ = iConfig.getUntrackedParameter<int>("isMonteCarlo", 0);
 };
 
 NewDiPhoAnalyzer::~NewDiPhoAnalyzer() { 
@@ -821,6 +835,8 @@ void NewDiPhoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
 		int nEle, nMuons, nJets, nLooseBjets, nMediumBjets;
 		int vhtruth;
 
+		float massSmeared, massScaled, massRaw;
+
 		// fully selected event: tree re-initialization                                                                          
 		initTreeStructure();        
 		
@@ -838,10 +854,10 @@ void NewDiPhoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
 		
 		//-------> diphoton system properties 
 		ptgg = candDiphoPtr->pt();
-		mgg  = candDiphoPtr->mass();
+		massRaw  = candDiphoPtr->mass();
 				
 		if (hltDiphoton30Mass95){
-		  if (mgg >= 120 && mgg <= 130){
+		  if (massRaw >= 120 && massRaw <= 130){
 	 	    h_selection->Fill(6.,perEveW);
 		    if (t1pfmet >= 250){
 		      eff_end++;
@@ -855,7 +871,7 @@ void NewDiPhoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
 		//std::vector<float> subleadCovnoZS = lazyToolnoZS->localCovariances(*(candDiphoPtr->subLeadingPhoton()->superCluster()->seed())) ;
 		
 		pt1       = candDiphoPtr->leadingPhoton()->et();
-		ptOverM1  = pt1/mgg;
+		ptOverM1  = pt1/massRaw;
 		eta1      = candDiphoPtr->leadingPhoton()->eta();
 		phi1      = candDiphoPtr->leadingPhoton()->phi();
 		sceta1    = (candDiphoPtr->leadingPhoton()->superCluster())->eta();
@@ -878,7 +894,7 @@ void NewDiPhoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
 		//std::cout << "Eleveto1 = " << eleveto1 << " Eleveto1b " << eleveto1b << std::endl;
 
 		pt2       = candDiphoPtr->subLeadingPhoton()->et();
-		ptOverM2  = pt2/mgg;
+		ptOverM2  = pt2/massRaw;
 		eta2      = candDiphoPtr->subLeadingPhoton()->eta();
 		phi2      = candDiphoPtr->subLeadingPhoton()->phi();
 		sceta2    = (candDiphoPtr->subLeadingPhoton()->superCluster())->eta();
@@ -907,6 +923,29 @@ void NewDiPhoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
 		//sel1 = testPhotonIsolation( rho, pt1, sceta1, r91, chiso1, neuiso1, phoiso1, hoe1, sieie1, eleveto1b ); 
 		//sel2 = testPhotonIsolation( rho, pt2, sceta2, r92, chiso2, neuiso2, phoiso2, hoe2, sieie2, eleveto2b ); 
 
+
+		// smearing of MC 
+		float leadSmearing	= getSmearingValue( sceta1, r91 );
+		float subleadSmearing	= getSmearingValue( sceta2, r92 );
+		float gaussSigma	= 0.5*sqrt((leadSmearing*leadSmearing) + (subleadSmearing*subleadSmearing));
+
+		float gaussMean		= 1.0;
+		if (scaleUp) gaussMean	= 1.01;
+		else if (scaleDown) gaussMean = 0.99;
+  
+		TRandom myRandom(12345);
+		float gaussSmearing	= myRandom.Gaus(gaussMean,gaussSigma);
+		massSmeared		= massRaw*gaussSmearing; 	
+
+		// scaling of Data
+		float leadScaling	= 1.0;
+		float subleadScaling	= 1.0;
+		float Scaling		= leadScaling*subleadScaling;
+		massScaled		= massRaw*Scaling;
+
+		// final mgg (has Smearing or Scaling applied)
+		if (isMonteCarlo_) mgg = massSmeared; 	// smear mass for MC
+                else mgg = massScaled; 			// scale mass for Data
 
                 //-------> pass each photon ID cut separately
 		// medium working point selection
@@ -1299,6 +1338,9 @@ void NewDiPhoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
 		treeDipho_.metF_HBHENoiseIso = metF_HBHENoiseIso;
 		treeDipho_.metF_CSC = metF_CSC;
 		treeDipho_.metF_eeBadSC = metF_eeBadSC;
+		treeDipho_.massSmeared = massSmeared;
+		treeDipho_.massScaled  = massScaled;
+		treeDipho_.massRaw     = massRaw;
 	
 		// Filling the trees
 		DiPhotonTree->Fill();
@@ -1464,6 +1506,9 @@ void NewDiPhoAnalyzer::beginJob() {
   DiPhotonTree->Branch("metF_HBHENoiseIso",&(treeDipho_.metF_HBHENoiseIso),"metF_HBHENoiseIso/I");
   DiPhotonTree->Branch("metF_CSC",&(treeDipho_.metF_CSC),"metF_CSC/I");
   DiPhotonTree->Branch("metF_eeBadSC",&(treeDipho_.metF_eeBadSC),"metF_eeBadSC/I");
+  DiPhotonTree->Branch("massSmeared",&(treeDipho_.massSmeared),"massSmeared/F");
+  DiPhotonTree->Branch("massScaled",&(treeDipho_.massScaled),"massScaled/F");
+  DiPhotonTree->Branch("massRaw",&(treeDipho_.massRaw),"massRaw/F");
 }
 
 void NewDiPhoAnalyzer::endJob() { }
@@ -1588,6 +1633,9 @@ void NewDiPhoAnalyzer::initTreeStructure() {
   treeDipho_.metF_HBHENoiseIso = -500;
   treeDipho_.metF_CSC = -500;
   treeDipho_.metF_eeBadSC = -500;
+  treeDipho_.massSmeared = -500;
+  treeDipho_.massScaled = -500;
+  treeDipho_.massRaw = -500;
 }
 
 void NewDiPhoAnalyzer::SetPuWeights(std::string puWeightFile) {
@@ -1919,6 +1967,27 @@ int NewDiPhoAnalyzer::effectiveAreaRegion(float sceta) {
   if (fabs(sceta)<=2.2 && fabs(sceta)>2.0)  theEAregion = 3;
   if (fabs(sceta)<=2.5 && fabs(sceta)>2.2)  theEAregion = 4;
   return theEAregion;
+}
+
+float NewDiPhoAnalyzer::getSmearingValue(float sceta, float r9){
+  float smearingValue = 0;
+  if (fabs(sceta)<=1.0){
+    if (r9 >= 0.94) smearingValue = 0.0079581;
+    else smearingValue = 0.0093795;
+  }
+  if (fabs(sceta)>1.0 && fabs(sceta)<=1.4442){
+    if (r9 >= 0.94) smearingValue = 0.011545;
+    else smearingValue = 0.018267;
+  }
+  if (fabs(sceta)>1.4442 && fabs(sceta)<=2.0){
+    if (r9 >= 0.94) smearingValue = 0.020104;
+    else smearingValue = 0.022131;
+  }
+  if (fabs(sceta)>2.0 && fabs(sceta)<=2.5){
+    if (r9 >= 0.94) smearingValue = 0.022984;
+    else smearingValue = 0.026830;
+  }
+  return smearingValue;
 }
 
 
