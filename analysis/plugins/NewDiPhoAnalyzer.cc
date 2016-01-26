@@ -206,8 +206,8 @@ struct diphoTree_struc_ {
   int metF_HBHENoiseIso;
   int metF_CSC;
   int metF_eeBadSC;
-  float massSmeared; 
-  float massScaled;
+  float massCorrSmear; 
+  float massCorrScale;
   float massRaw;
 };
 
@@ -835,7 +835,7 @@ void NewDiPhoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
 		int nEle, nMuons, nJets, nLooseBjets, nMediumBjets;
 		int vhtruth;
 
-		float massSmeared, massScaled, massRaw;
+		float massCorrSmear, massCorrScale, massRaw;
 
 		// fully selected event: tree re-initialization                                                                          
 		initTreeStructure();        
@@ -935,17 +935,17 @@ void NewDiPhoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
   
 		TRandom myRandom(12345);
 		float gaussSmearing	= myRandom.Gaus(gaussMean,gaussSigma);
-		massSmeared		= massRaw*gaussSmearing; 	
+		massCorrSmear		= massRaw*gaussSmearing; 	
 
 		// scaling of Data
 		float leadScaling	= 1.0;
 		float subleadScaling	= 1.0;
 		float Scaling		= leadScaling*subleadScaling;
-		massScaled		= massRaw*Scaling;
+		massCorrScale		= massRaw*Scaling;
 
 		// final mgg (has Smearing or Scaling applied)
-		if (isMonteCarlo_) mgg = massSmeared; 	// smear mass for MC
-                else mgg = massScaled; 			// scale mass for Data
+		if (isMonteCarlo_) mgg = massCorrSmear;	// smear mass for MC
+                else mgg = massCorrScale; 			// scale mass for Data
 
                 //-------> pass each photon ID cut separately
 		// medium working point selection
@@ -1338,8 +1338,8 @@ void NewDiPhoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
 		treeDipho_.metF_HBHENoiseIso = metF_HBHENoiseIso;
 		treeDipho_.metF_CSC = metF_CSC;
 		treeDipho_.metF_eeBadSC = metF_eeBadSC;
-		treeDipho_.massSmeared = massSmeared;
-		treeDipho_.massScaled  = massScaled;
+		treeDipho_.massCorrSmear = massCorrSmear;
+		treeDipho_.massCorrScale = massCorrScale;
 		treeDipho_.massRaw     = massRaw;
 	
 		// Filling the trees
@@ -1506,8 +1506,8 @@ void NewDiPhoAnalyzer::beginJob() {
   DiPhotonTree->Branch("metF_HBHENoiseIso",&(treeDipho_.metF_HBHENoiseIso),"metF_HBHENoiseIso/I");
   DiPhotonTree->Branch("metF_CSC",&(treeDipho_.metF_CSC),"metF_CSC/I");
   DiPhotonTree->Branch("metF_eeBadSC",&(treeDipho_.metF_eeBadSC),"metF_eeBadSC/I");
-  DiPhotonTree->Branch("massSmeared",&(treeDipho_.massSmeared),"massSmeared/F");
-  DiPhotonTree->Branch("massScaled",&(treeDipho_.massScaled),"massScaled/F");
+  DiPhotonTree->Branch("massCorrSmear",&(treeDipho_.massCorrSmear),"massCorrSmear/F");
+  DiPhotonTree->Branch("massCorrScale",&(treeDipho_.massCorrScale),"massCorrScale/F");
   DiPhotonTree->Branch("massRaw",&(treeDipho_.massRaw),"massRaw/F");
 }
 
@@ -1633,8 +1633,8 @@ void NewDiPhoAnalyzer::initTreeStructure() {
   treeDipho_.metF_HBHENoiseIso = -500;
   treeDipho_.metF_CSC = -500;
   treeDipho_.metF_eeBadSC = -500;
-  treeDipho_.massSmeared = -500;
-  treeDipho_.massScaled = -500;
+  treeDipho_.massCorrSmear = -500;
+  treeDipho_.massCorrScale = -500;
   treeDipho_.massRaw = -500;
 }
 

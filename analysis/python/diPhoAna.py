@@ -3,13 +3,12 @@ import FWCore.Utilities.FileUtils as FileUtils
 import FWCore.PythonUtilities.LumiList as LumiList  
 import FWCore.ParameterSet.Types as CfgTypes  
 
+######################
+# SET THESE BOOLS BEFORE RUNNING:
 isMC = True; 
 isFLASHgg_1_1_0 = True;
 is2015DFromChiara = False;
-#shouldn't need to change the bools below:
-is25ns = True;
-is2015D =  True;
-
+######################
 
 process = cms.Process("diPhoAna")
 
@@ -23,7 +22,7 @@ from Configuration.AlCa.GlobalTag import GlobalTag
 #process.GlobalTag.globaltag = 'POSTLS170_V5::All'     # Phys14 samples
 #process.GlobalTag.globaltag = 'MCRUN2_74_V9A'         # 50ns
 
-if ((isMC==False and is2015D)):
+if ((isMC==False)):
     process.GlobalTag = GlobalTag(process.GlobalTag, '74X_dataRun2_Prompt_v2', '')
     print "74X_dataRun2_Prompt_v2"
 elif (isMC and isFLASHgg_1_1_0):
