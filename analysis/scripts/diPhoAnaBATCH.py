@@ -3,12 +3,12 @@ import FWCore.Utilities.FileUtils as FileUtils
 import FWCore.PythonUtilities.LumiList as LumiList  
 import FWCore.ParameterSet.Types as CfgTypes  
 
+######################
+# SET THESE BOOLS BEFORE RUNNING:
 isMC = False;
 isFLASHgg_1_1_0 = True;
 is2015DFromChiara = False;
-#should actually not need to change the bools below
-is25ns = True;
-is2015D = True;
+######################
 
 
 process = cms.Process("diPhoAna")
@@ -19,8 +19,10 @@ process.load("Configuration.StandardSequences.GeometryDB_cff")
 process.load("Configuration.StandardSequences.MagneticField_cff")
 process.load("Configuration.StandardSequences.FrontierConditions_GlobalTag_condDBv2_cff")
 from Configuration.AlCa.GlobalTag import GlobalTag
+#process.GlobalTag.globaltag = 'MCRUN2_74_V9A' 		#50ns
+#process.GlobalTag.globaltag = 'POSTLS170_V5::All' 	#Phys14
 
-if ((isMC==False and is2015D)):
+if ((isMC==False)):
     process.GlobalTag = GlobalTag(process.GlobalTag, '74X_dataRun2_Prompt_v2', '')
     print "74X_dataRun2_Prompt_v2"
 elif (isMC and isFLASHgg_1_1_0):
@@ -30,8 +32,21 @@ else:
     process.GlobalTag = GlobalTag(process.GlobalTag, 'MCRUN2_74_V9', '')
     print "MCRUN2_74_V9"
 
-#process.GlobalTag.globaltag = 'MCRUN2_74_V9A' 		#50ns
-#process.GlobalTag.globaltag = 'POSTLS170_V5::All' 	#Phys14
+sampleType = 0;
+if (isMC):
+    sampleType = 1;
+    print "SAMPLE IS MONTE CARLO. So mgg = massCorrSmear."
+else:
+    print "SAMPLE IS DATA. So mgg = massCorrScale"
+
+
+if (isMC==False and isFLASHgg_1_1_0):
+    flag = 'TriggerResults::RECO'
+    print "Using name RECO"
+else:
+    flag = 'TriggerResults::PAT'
+    print "Using name PAT"
+
 
 process.MessageLogger.cerr.FwkReport.reportEvery = cms.untracked.int32( 1000 )
 
@@ -76,14 +91,14 @@ process.diPhoAna = cms.EDAnalyzer('NewDiPhoAnalyzer',
                                   PileUpTag = cms.untracked.InputTag('slimmedAddPileupInfo'),
                                   generatorInfo = cms.InputTag("generator"),
 				  bits	        = cms.InputTag('TriggerResults::HLT'),
-                                  flags         = cms.InputTag('TriggerResults::PAT'),
-                                  #flags         = cms.InputTag('TriggerResults::RECO'), #MZIENTEK use for FLASHgg DATA (PROMPT & RECO)
+                                  flags        = cms.InputTag(flag),
                                   dopureweight = PU, 
                                   sampleIndex  = SI,
                                   puWFileName  = weights,
                                   xsec         = XS,
                                   kfac         = KF,
-                                  sumDataset   = SDS
+                                  sumDataset   = SDS,
+				  isMonteCarlo = cms.untracked.int32(sampleType)
                                   )
 
 process.p = cms.Path(process.flashggUnpackedJets*process.diPhoAna)
