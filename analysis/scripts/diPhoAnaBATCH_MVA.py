@@ -71,7 +71,7 @@ UnpackedJetCollectionVInputTag = cms.VInputTag()
 for i in range(0,maxJetCollections):
     UnpackedJetCollectionVInputTag.append(cms.InputTag('flashggUnpackedJets',str(i)))                            
 
-process.diPhoAna = cms.EDAnalyzer('NewDiPhoAnalyzer',
+process.diPhoAna = cms.EDAnalyzer('DiPhoAnalyzer_MVASel',
                                   VertexTag = cms.untracked.InputTag('offlineSlimmedPrimaryVertices'),
 				  METTag=cms.untracked.InputTag('slimmedMETs'),
                                   inputTagJets= UnpackedJetCollectionVInputTag,  
