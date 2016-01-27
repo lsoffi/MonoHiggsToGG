@@ -162,6 +162,9 @@ struct diphoTree_struc_ {
   float genmgg;
   float geniso1;   
   float geniso2;
+  float higgsVtxX; 
+  float higgsVtxY; 
+  float higgsVtxZ; 
   float genVtxX; 
   float genVtxY; 
   float genVtxZ;
@@ -296,7 +299,6 @@ private:
   bool doOfficialPUrecipe = true;
 
   // for smearing
-  int isMonteCarlo_;
   bool scaleUp = 0;
   bool scaleDown = 0;  
 
@@ -317,6 +319,7 @@ private:
 
   // counters to get eff
   Int_t eff_start = 0;
+  Int_t eff_passingHLT = 0;
   Int_t eff_end = 0;
 
   // 74X only: met filters lists
@@ -352,13 +355,12 @@ NewDiPhoAnalyzer::NewDiPhoAnalyzer(const edm::ParameterSet& iConfig):
   genInfo_      = iConfig.getParameter<edm::InputTag>("generatorInfo"); 
 
   bTag_ = iConfig.getUntrackedParameter<string> ( "bTag", "combinedInclusiveSecondaryVertexV2BJetTags" );   
-
-  isMonteCarlo_ = iConfig.getUntrackedParameter<int>("isMonteCarlo", 0);
 };
 
 NewDiPhoAnalyzer::~NewDiPhoAnalyzer() { 
   std::cout << "Number of Initial Events = " << eff_start << std::endl;
-  std::cout << "Number Events After Sel. = " << eff_end   << std::endl;
+  std::cout << "Number of Events Passing HLT = " << eff_passingHLT << std::endl;
+  //std::cout << "Number Events After Sel. = " << eff_end   << std::endl;
 };
 
 void NewDiPhoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup){
@@ -447,7 +449,7 @@ void NewDiPhoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
   for( unsigned index = 0; index < triggerNames.size(); ++index ) {
     // print out triggers that match "HLT_Photon or HLT_Diphoton" and have "Mass" as well
     //if( (TString::Format((triggerNames.triggerName( index )).c_str())).Contains("HLT_Photon") && (TString::Format((triggerNames.triggerName( index )).c_str())).Contains("Mass")  ) cout << index << " " << triggerNames.triggerName( index ) << " " << triggerBits->accept( index ) << endl;
-    //if( (TString::Format((triggerNames.triggerName( index )).c_str())).Contains("HLT_Diphoton") && (TString::Format((triggerNames.triggerName( index )).c_str())).Contains("Mass")  ) cout << index << " " << triggerNames.triggerName( index ) << " " << triggerBits->accept( index ) << endl;
+    if( (TString::Format((triggerNames.triggerName( index )).c_str())).Contains("HLT_Diphoton") && (TString::Format((triggerNames.triggerName( index )).c_str())).Contains("Mass")  ) cout << index << " " << triggerNames.triggerName( index ) << " " << triggerBits->accept( index ) << endl;
     //print ALL HLT triggers: 
     //if( (TString::Format((triggerNames.triggerName( index )).c_str())).Contains("HLT") ) cout << index << " " << triggerNames.triggerName( index ) << " " << triggerBits->accept( index ) << endl;
 
@@ -463,6 +465,8 @@ void NewDiPhoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
     if( (TString::Format((triggerNames.triggerName( index )).c_str())).Contains("HLT_Diphoton30EB") && (TString::Format((triggerNames.triggerName( index )).c_str())).Contains("DoublePixelVeto_Mass55")  )hltDiphoton30Mass55EB = triggerBits->accept( index );
 
 }
+
+  if (hltDiphoton30Mass95) eff_passingHLT++;
 
   // Event info
   int run   = iEvent.eventAuxiliary().run();
@@ -798,6 +802,13 @@ void NewDiPhoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
 	      // this is why I put this selection AFTER the diphoton choice
 	      bool goodVtx = true;
 	      int theVertex = candDiphoPtr->vertexIndex();
+  
+	      //float vtxBDT = candDiphoPtr->vtxProbMVA();
+	      //edm::Ptr<reco::Vertex> vtx = candDiphoPtr->vtx();
+	      //float bdtVtxX=vtx->x();
+	      //float bdtVtxY=vtx->y();
+	      //float bdtVtxZ=vtx->z();
+
 	      float vtxX = (primaryVertices->ptrAt(theVertex))->position().x();
 	      float vtxY = (primaryVertices->ptrAt(theVertex))->position().y();
 	      float d0vtx = sqrt( vtxX*vtxX + vtxY*vtxY );
@@ -827,7 +838,8 @@ void NewDiPhoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
 		int genmatch1, genmatch2;
 		float genmgg;
 		float geniso1, geniso2;
-		float genVtxX, genVtxY, genVtxZ;   
+		float higgsVtxX, higgsVtxY, higgsVtxZ;
+		float genVtxX, genVtxY, genVtxZ; 
 		int eleveto1, eleveto2;
 		float pfmet,pfmetPhi, pfmetSumEt,t1pfmet,t1pfmetPhi, t1pfmetSumEt,calomet,calometPhi, calometSumEt;
                 int passCHiso1, passCHiso2, passNHiso1, passNHiso2, passPHiso1, passPHiso2, passSieie1, passSieie2, passHoe1, passHoe2;
@@ -945,7 +957,9 @@ void NewDiPhoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
 		massCorrScale		= massRaw*sqrt(Scaling);
 
 		// final mgg (has Smearing or Scaling applied)
-		if (isMonteCarlo_) mgg = massCorrSmear;	// smear mass for MC
+		if (sampleID>0 && sampleID<10000){
+		  mgg = massCorrSmear;	// smear mass for MC
+		}
                 else mgg = massCorrScale; 		// scale mass for Data
 
                 //-------> pass each photon ID cut separately
@@ -1016,13 +1030,26 @@ void NewDiPhoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
 		genVtxX = -999.;
 		genVtxY = -999.;
 		genVtxZ = -999.;
+		higgsVtxX  = -999.;
+		higgsVtxY  = -999.;
+		higgsVtxZ  = -999.;
 		if (sampleID>0 && sampleID<10000) {     // MC
 		  for( unsigned int genLoop = 0 ; genLoop < genParticles->size(); genLoop++ ) {
 		    
-		    if( genParticles->ptrAt( genLoop )->pdgId() != 2212 || genParticles->ptrAt( genLoop )->vertex().z() != 0. ) {
+		    if( genParticles->ptrAt( genLoop )->pdgId() != 2212 || genParticles->ptrAt( genLoop )->vertex().z() != 0. ) { // pdg1d=2212 is proton vtx
 		      genVtxX = genParticles->ptrAt( genLoop )->vertex().x();
 		      genVtxY = genParticles->ptrAt( genLoop )->vertex().y();
 		      genVtxZ = genParticles->ptrAt( genLoop )->vertex().z();
+		      break;
+		    }
+		  }
+		}
+		if (sampleID>0 && sampleID<10000) {     // MC
+		  for( unsigned int genLoop = 0 ; genLoop < genParticles->size(); genLoop++ ) {
+		    if( genParticles->ptrAt( genLoop )->pdgId() == 25 || genParticles->ptrAt( genLoop )->pdgId()==22 ){ // Higgs or Photon 
+		      higgsVtxX = genParticles->ptrAt( genLoop )->vertex().x();// Margaret added Higgs vtx
+		      higgsVtxY = genParticles->ptrAt( genLoop )->vertex().y();// Margaret added Higgs vtx
+		      higgsVtxZ = genParticles->ptrAt( genLoop )->vertex().z();// Margaret added Higgs vtx
 		      break;
 		    }
 		  }
@@ -1295,6 +1322,9 @@ void NewDiPhoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
 		treeDipho_.genmgg  = genmgg;        // -999: not enough gen level gamma; -1999: strange association with reco
 		treeDipho_.geniso1 = geniso1; 
 		treeDipho_.geniso2 = geniso2; 
+		treeDipho_.higgsVtxX = higgsVtxX;
+		treeDipho_.higgsVtxY = higgsVtxY;
+		treeDipho_.higgsVtxZ = higgsVtxZ;
 		treeDipho_.genVtxX = genVtxX;
 		treeDipho_.genVtxY = genVtxY;
 		treeDipho_.genVtxZ = genVtxZ;
@@ -1463,6 +1493,9 @@ void NewDiPhoAnalyzer::beginJob() {
   DiPhotonTree->Branch("vtxX",&(treeDipho_.vtxX),"vtxX/F");
   DiPhotonTree->Branch("vtxY",&(treeDipho_.vtxY),"vtxY/F");
   DiPhotonTree->Branch("vtxZ",&(treeDipho_.vtxZ),"vtxZ/F");
+  DiPhotonTree->Branch("higgsVtxX",&(treeDipho_.higgsVtxX),"higgsVtxX/F");
+  DiPhotonTree->Branch("higgsVtxY",&(treeDipho_.higgsVtxY),"higgsVtxY/F");
+  DiPhotonTree->Branch("higgsVtxZ",&(treeDipho_.higgsVtxZ),"higgsVtxZ/F");
   DiPhotonTree->Branch("genVtxX",&(treeDipho_.genVtxX),"genVtxX/F");
   DiPhotonTree->Branch("genVtxY",&(treeDipho_.genVtxY),"genVtxY/F");
   DiPhotonTree->Branch("genVtxZ",&(treeDipho_.genVtxZ),"genVtxZ/F");
@@ -1590,6 +1623,9 @@ void NewDiPhoAnalyzer::initTreeStructure() {
   treeDipho_.genmgg  = -500.;
   treeDipho_.geniso1 = -500.;
   treeDipho_.geniso2 = -500.;
+  treeDipho_.higgsVtxX = -500.;
+  treeDipho_.higgsVtxY = -500.;
+  treeDipho_.higgsVtxZ = -500.;
   treeDipho_.genVtxX = -500.;
   treeDipho_.genVtxY = -500.;
   treeDipho_.genVtxZ = -500.;
