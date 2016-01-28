@@ -7,7 +7,6 @@ import FWCore.ParameterSet.Types as CfgTypes
 # SET THESE BOOLS BEFORE RUNNING:
 isMC = True; 
 isFLASHgg_1_1_0 = True;
-is2015DFromChiara = False;
 ######################
 
 process = cms.Process("diPhoAna")
@@ -85,10 +84,10 @@ process.source = cms.Source("PoolSource",
 
         )
                             )
-if (isMC==False and is2015DFromChiara):
+if (isMC==False):
     print "applying 2015D json"                                
     process.source.lumisToProcess = CfgTypes.untracked(CfgTypes.VLuminosityBlockRange())  
-    JSONfile = '/afs/cern.ch/user/c/crovelli/public/json2015/doubleEG/processedAndGolden_2015D_oct25.json'
+    JSONfile = '/afs/cern.ch/user/m/mzientek/public/goldenAndProcessed.json'
     myLumis = LumiList.LumiList(filename = JSONfile).getCMSSWString().split(',')  
     process.source.lumisToProcess.extend(myLumis)                              
     print myLumis 
@@ -120,12 +119,11 @@ process.diPhoAna = cms.EDAnalyzer('NewDiPhoAnalyzer',
                                   DiPhotonTag = cms.untracked.InputTag('flashggDiPhotons'),
                                   PileUpTag = cms.untracked.InputTag('slimmedAddPileupInfo'),
                                   generatorInfo = cms.InputTag("generator"),
-                                  dopureweight = cms.untracked.int32(0),
+                                  dopureweight = cms.untracked.int32(1),
                                   bits         = cms.InputTag('TriggerResults::HLT'),
                                   flags        = cms.InputTag(flag),
 				  sampleIndex  = cms.untracked.int32(105),
-                                  #puWFileName  = cms.string('PURW_MC.root'),  
-                                  puWFileName  = cms.string('/afs/cern.ch/user/c/crovelli/public/json2015/doubleEG/pileupWeights___processedAndGolden_finalAfewMissing__69mb.root'),   
+                                  puWFileName  = cms.string('/afs/cern.ch/user/m/mzientek/public/pileupWeights_fullReReco74X.root'),  
                                   xsec         = cms.untracked.double(1), #pb
                                   kfac         = cms.untracked.double(1.),
                                   sumDataset   = cms.untracked.double(100.0),   # chiara
