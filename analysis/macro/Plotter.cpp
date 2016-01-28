@@ -165,9 +165,16 @@ void Plotter::DoPlots(int prompt){
     }
     if (!passMETfil) numFailingMETfil++;
 
+    if (!isData && !passMETfil) std::cout << "SOMETHING WRONG W/ MET FILTERS" << std::endl;
+
     // Check that the weight is not less than 0
     Bool_t weightNegative = false;
     if (Weight <= 0) weightNegative = true;
+
+    if ((passMETfil || !passMETfil) && !weightNegative && mgg >= 100 && mgg < 200 && passBoth && hltDiphoton30Mass95==1){
+      if (isData && doBlind && t1pfmet < 100) fTH1DMap["t1pfmet_zoom_wofil"]->Fill(t1pfmet,Weight);      
+      else fTH1DMap["t1pfmet_zoom_wofil"]->Fill(t1pfmet,Weight);
+    }
 
     //start full selection for plots
     if (passMETfil && !weightNegative){ //Data passes MET filters && not a negativeWeight
@@ -284,6 +291,9 @@ void Plotter::DoPlots(int prompt){
             fTH2DMap["t1pfmet_ptgg"]->Fill(ptgg,t1pfmet,Weight);
             fTH2DMap["t1pfmet_ptgg"]->Fill(ptgg,t1pfmet,Weight);
           }
+	  // UNBLINDED plot to get inclusive numbers for ABCD ONLY.
+          //if (mgg>100 && mgg<180) fTH2DMap["met_mgg"]->Fill(mgg,t1pfmet,Weight);
+
           fTH1DMap["nvtx"]->Fill(nvtx,Weight);
           fTH1DMap["pt1"]->Fill(pt1,Weight);
           fTH1DMap["pt2"]->Fill(pt2,Weight);
@@ -544,6 +554,7 @@ void Plotter::SetUpPlots(){
   fTH1DMap["phi1_pho2pass"]     = Plotter::MakeTH1DPlot("phi1_pho2pass","",80,-4.,4.,"","");
   fTH1DMap["phi2_pho1pass"]     = Plotter::MakeTH1DPlot("phi2_pho1pass","",80,-4.,4.,"","");
   fTH1DMap["t1pfmet_zoom"]	= Plotter::MakeTH1DPlot("t1pfmet_zoom","",60,0.,300.,"t1PF MET (GeV)","");
+  fTH1DMap["t1pfmet_zoom_wofil"]= Plotter::MakeTH1DPlot("t1pfmet_zoom_wofil","",60,0.,300.,"t1PF MET (GeV)","");
   fTH1DMap["deta_gg"]		= Plotter::MakeTH1DPlot("deta_gg","",20,-3.,3.,"#Delta#eta(#gamma#gamma)","");
   fTH1DMap["absdeta_gg"]	= Plotter::MakeTH1DPlot("absdeta_gg","",20,0.,3.,"|#Delta#eta(#gamma#gamma)|","");
   fTH1DMap["ptgg_selt1pfmet"]	= Plotter::MakeTH1DPlot("ptgg_selt1pfmet","",60,0.,600.,"p_{T,#gamma#gamma} (GeV)","");
@@ -579,6 +590,9 @@ void Plotter::SetUpPlots(){
   fTH2DMap["t1pfmet_PU"]	= Plotter::MakeTH2DPlot("t1pfmet_PU","",60,50.,300.,100,0.,1000.,"nvtx","MET (GeV)");
   fTH2DMap["t1pfmet_ptgg"]	= Plotter::MakeTH2DPlot("t1pfmet_ptgg","",60,0.,60.,100,0.,1000.,"p_{T,#gamma#gamma} (GeV)","MET (GeV)");
   fTH2DMap["t1pfmet_mgg"]	= Plotter::MakeTH2DPlot("t1pfmet_mgg","",800,100.,300.,4000,0.,1000,"m_{#gamma#gamma} (GeV)","MET (GeV)");
+
+  // Special plot that is UNBLINDED to get inclusive numbers for ABCD table  
+  //fTH2DMap["met_mgg"]		= Plotter::MakeTH2DPlot("met_mgg","",320,100.,180.,4000,0.,1000,"m_{#gamma#gamma} (GeV)","MET (GeV)");
 
 }// end Plotter::SetUpPlots
 

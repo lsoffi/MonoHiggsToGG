@@ -40,16 +40,16 @@ int main(){
   //////////////////////////////////////////////////////////////////////////////////////
 
   TString inDir = "data/25ns_v1-1-0_ReReco/"; 		// input directory of the samples
-  TString outDir = "./diPhoPlots/25ns_v1-1-0_ReReco_v2/";	// output directory to send results
+  TString outDir = "./diPhoPlots/25ns_v1-1-0_ReReco/";	// output directory to send results
 
   bool doFakeData = false;	// use FakeData to test combiner (mimicks data)
   bool sortMC = false;		// use if want to sort bkg smallest to biggest, else uses order given
   bool doBlind = true;		// use to blind the analysis for Data (don't use distributions for met>100 & 115<mgg<135)
   bool makePURWfiles = false;	// recompute PURW and make files (need also doReweightPU=true for this to run)
   bool doReweightPU = false;	// use PURW from old files if !makePURWfiles
-  bool doPlots = true;		// make plots for each sample individually
-  bool doComb = true;		// make stack/overlay plots
-  bool doABCD = false;		// run ABCD method 
+  bool doPlots = false;		// make plots for each sample individually
+  bool doComb = false;		// make stack/overlay plots
+  bool doABCD = true;		// run ABCD method 
   bool doCompare = false;	// call Comparer 
 
   Double_t lumi =  2246.0; //2137.5; // in pb^-1 
@@ -260,11 +260,11 @@ int main(){
     delete DMH_mZP1400;
     std::cout << "Finished DMHgg 2HDM MZP1400 sample" << std::endl;
 
-    //std::cout << "Working on DMHgg 2HDM MZP1700 sample" << std::endl;
-    //Plotter * DMH_mZP1700 = new Plotter(inDir,outDir,"2HDM_mZP1700",puweights_MC,lumi,false,doBlind,type);
-    //DMH_mZP1700->DoPlots(0);
-    //delete DMH_mZP1700;
-    //std::cout << "Finished DMHgg 2HDM MZP1700 sample" << std::endl;
+    std::cout << "Working on DMHgg 2HDM MZP1700 sample" << std::endl;
+    Plotter * DMH_mZP1700 = new Plotter(inDir,outDir,"2HDM_mZP1700",puweights_MC,lumi,false,doBlind,type);
+    DMH_mZP1700->DoPlots(0);
+    delete DMH_mZP1700;
+    std::cout << "Finished DMHgg 2HDM MZP1700 sample" << std::endl;
 
     //std::cout << "Working on DMHgg 2HDM MZP2000 sample" << std::endl;
     //Plotter * DMH_mZP2000 = new Plotter(inDir,outDir,"2HDM_mZP2000",puweights_MC,lumi,false,doBlind,type);
@@ -272,11 +272,11 @@ int main(){
     //delete DMH_mZP2000;
     //std::cout << "Finished DMHgg 2HDM MZP2500 sample" << std::endl;
 
-    //std::cout << "Working on DMHgg 2HDM MZP2500 sample" << std::endl;
-    //Plotter * DMH_mZP2500 = new Plotter(inDir,outDir,"2HDM_mZP2500",puweights_MC,lumi,false,doBlind,type);
-    //DMH_mZP2500->DoPlots(0);
-    //delete DMH_mZP2500;
-    //std::cout << "Finished DMHgg 2HDM MZP2500 sample" << std::endl;
+    std::cout << "Working on DMHgg 2HDM MZP2500 sample" << std::endl;
+    Plotter * DMH_mZP2500 = new Plotter(inDir,outDir,"2HDM_mZP2500",puweights_MC,lumi,false,doBlind,type);
+    DMH_mZP2500->DoPlots(0);
+    delete DMH_mZP2500;
+    std::cout << "Finished DMHgg 2HDM MZP2500 sample" << std::endl;
     
     //std::cout << "Working on DMHgg M1000 sample" << std::endl;
     //Plotter * DMH_M1000 = new Plotter(inDir,outDir,"DMHtoGG_M1000",puweights_sig,lumi,false,doBlind,type);
@@ -324,18 +324,18 @@ int main(){
   colorMap["2HDM_mZP1000"]		= kMagenta;
   colorMap["2HDM_mZP1200"]		= kPink-6;
   colorMap["2HDM_mZP1400"]		= kPink+4;
-  //colorMap["2HDM_mZP1700"]		= kPink+6;
+  colorMap["2HDM_mZP1700"]		= kPink+6;
   //colorMap["2HDM_mZP2000"]		= kPink-1;
-  //colorMap["2HDM_mZP2500"]		= kPink+8;
+  colorMap["2HDM_mZP2500"]		= kPink+8;
 
   SamplePairVec Samples; // vector to also be used for stack plots
   //ordered to match Livia
   Samples.push_back(SamplePair("VH",1));
   Samples.push_back(SamplePair("GluGluHToGG",1)); 
   Samples.push_back(SamplePair("DYJetsToLL",1));
-  Samples.push_back(SamplePair("DiPhoton",1));
-  Samples.push_back(SamplePair("GJets",1)); 
   Samples.push_back(SamplePair("QCD",1)); 
+  Samples.push_back(SamplePair("GJets",1)); 
+  Samples.push_back(SamplePair("DiPhoton",1));
   //Samples.push_back(SamplePair("DMHtoGG_M1",0)); 
   //Samples.push_back(SamplePair("DMHtoGG_M10",0)); 
   //Samples.push_back(SamplePair("DMHtoGG_M100",0)); 
@@ -347,9 +347,9 @@ int main(){
   Samples.push_back(SamplePair("2HDM_mZP1000",0)); 
   Samples.push_back(SamplePair("2HDM_mZP1200",0)); 
   Samples.push_back(SamplePair("2HDM_mZP1400",0)); 
-  //Samples.push_back(SamplePair("2HDM_mZP1700",0)); 
+  Samples.push_back(SamplePair("2HDM_mZP1700",0)); 
   //Samples.push_back(SamplePair("2HDM_mZP2000",0));  
-  //Samples.push_back(SamplePair("2HDM_mZP2500",0));  
+  Samples.push_back(SamplePair("2HDM_mZP2500",0));  
 
   UInt_t nbkg = 0;
   UInt_t nsig = 0;
@@ -457,15 +457,14 @@ int main(){
     stackAll->DoComb();
     delete stackAll;   
  
-    // chiara
-    //// do overlay plots for n-1 plots
-    Combiner *combAlln1 = new Combiner(Samples,lumi,colorMap,outDir,true,false,type);
-    combAlln1->DoComb();
-    delete combAlln1;   
-    //// do stack plots for n-1 plots 
-    Combiner *stackAlln1 = new Combiner(Samples,lumi,colorMap,outDir,true,true,type);
-    stackAlln1->DoComb();
-    delete stackAlln1;   
+    ////// do overlay plots for n-1 plots
+    //Combiner *combAlln1 = new Combiner(Samples,lumi,colorMap,outDir,true,false,type);
+    //combAlln1->DoComb();
+    //delete combAlln1;   
+    ////// do stack plots for n-1 plots 
+    //Combiner *stackAlln1 = new Combiner(Samples,lumi,colorMap,outDir,true,true,type);
+    //stackAlln1->DoComb();
+    //delete stackAlln1;   
   }// end doComb
 
   ////////////////////////////////////////////////////

@@ -762,7 +762,7 @@ void ABCDMethod::InitHists(){
   fInBkgTH2DHists.resize(fNTH2D);
   fInSigTH2DHists.resize(fNTH2D);
 
-  for (UInt_t th2d = 0; th2d < fNTH2D; th2d++){ // loop over 1d hists
+  for (UInt_t th2d = 0; th2d < fNTH2D; th2d++){ // loop over 2d hists
     fInDataTH2DHists[th2d].resize(fNData); 
     for (UInt_t data = 0; data < fNData; data++) { // init data double hists
       fInDataTH2DHists[th2d][data] = (TH2D*)fDataFiles[data]->Get(Form("%s",fTH2DNames[th2d].Data()));
@@ -792,5 +792,8 @@ void ABCDMethod::InitVariables(){
 
   // 2D histograms of interest
   fTH2DNames.push_back("t1pfmet_mgg");
+
+  // UNBLINDED PLOT TO GET INCLUSIVE NUMBERS:
+  //fTH2DNames.push_back("met_mgg");
 }
 

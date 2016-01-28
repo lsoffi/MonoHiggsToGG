@@ -300,6 +300,8 @@ void Combiner::DrawCanvasOverlay(const UInt_t th1d, const Bool_t isLogY){
   // start by drawing the sig first
   if (isLogY) fInSigTH1DHists[th1d][0]->SetMaximum(maxOverlay*100000);
   else fInSigTH1DHists[th1d][0]->SetMaximum(maxOverlay*1.1);
+
+  fInSigTH1DHists[th1d][0]->SetMinimum(0.0);
   //if (fNData > 0) fInSigTH1DHists[th1d][0]->SetMinimum(minOverlay*0.9);
   if (th1d==fIndexMgg){ 
     fInSigTH1DHists[th1d][0]->SetMinimum(0.001); 
@@ -364,7 +366,7 @@ void Combiner::DrawCanvasStack(const UInt_t th1d, const Bool_t isLogY){
   // start by drawing the sig first
   if (isLogY) fInSigTH1DHists[th1d][0]->SetMaximum(maxval*1000000);
   else fInSigTH1DHists[th1d][0]->SetMaximum(maxval*1.1);
-  if (fNData > 0) fInSigTH1DHists[th1d][0]->SetMinimum(minval);
+  if (fNData > 0) fInSigTH1DHists[th1d][0]->SetMinimum(1E-2);
   fInSigTH1DHists[th1d][0]->SetTitle("");
   fInSigTH1DHists[th1d][0]->Draw("HIST");
 
@@ -693,6 +695,7 @@ void Combiner::InitTH1DNames(){
     //fTH1DNames.push_back("phi1_pho2pass");
     //fTH1DNames.push_back("phi2_pho1pass");
     fTH1DNames.push_back("t1pfmet_zoom");
+    fTH1DNames.push_back("t1pfmet_zoom_wofil");
     fTH1DNames.push_back("mgg_selt1pfmet");
     fTH1DNames.push_back("t1pfmet_selmgg");
     fTH1DNames.push_back("phigg");

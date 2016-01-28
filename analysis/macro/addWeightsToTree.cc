@@ -110,6 +110,9 @@ void addWeights(const char* filename, float lumiForW, float massTrue=1) {
   Float_t         geniso1;
   Float_t         geniso2;
   Int_t           vtxIndex;
+  Float_t         higgsVtxX;
+  Float_t         higgsVtxY;
+  Float_t         higgsVtxZ;
   Float_t         vtxX;
   Float_t         vtxY;
   Float_t         vtxZ;
@@ -155,6 +158,13 @@ void addWeights(const char* filename, float lumiForW, float massTrue=1) {
   Int_t           metF_HBHENoiseIso;    
   Int_t           metF_CSC;    
   Int_t           metF_eeBadSC;    
+  Float_t         massCorrSmear;
+  Float_t         massCorrSmearScaleUp;
+  Float_t         massCorrSmearScaleDown;
+  Float_t         massCorrScale;
+  Float_t         massRaw;
+  Float_t         mva1;
+  Float_t         mva2;
   
   // List of branches - original tree
   TBranch        *b_run; 
@@ -263,6 +273,16 @@ void addWeights(const char* filename, float lumiForW, float massTrue=1) {
   TBranch        *b_metF_HBHENoiseIso;    
   TBranch        *b_metF_CSC;    
   TBranch        *b_metF_eeBadSC;    
+  TBranch        *b_higgsVtxX;   //!
+  TBranch        *b_higgsVtxY;   //!
+  TBranch        *b_higgsVtxZ;   //!
+  TBranch        *b_massCorrSmear;   //!
+  TBranch        *b_massCorrSmearScaleUp;   //!
+  TBranch        *b_massCorrSmearScaleDown;   //!
+  TBranch        *b_massCorrScale;   //!
+  TBranch        *b_massRaw;   //!
+  TBranch        *b_mva1;   //!
+  TBranch        *b_mva2;   //!
 
 
   // Set branch addresses and branch pointers 
@@ -372,6 +392,16 @@ void addWeights(const char* filename, float lumiForW, float massTrue=1) {
   treeOrig->SetBranchAddress("metF_HBHENoiseIso",&metF_HBHENoiseIso,&b_metF_HBHENoiseIso);
   treeOrig->SetBranchAddress("metF_CSC",&metF_CSC,&b_metF_CSC);
   treeOrig->SetBranchAddress("metF_eeBadSC",&metF_eeBadSC,&b_metF_eeBadSC);
+  treeOrig->SetBranchAddress("higgsVtxX", &higgsVtxX, &b_higgsVtxX);
+  treeOrig->SetBranchAddress("higgsVtxY", &higgsVtxY, &b_higgsVtxY);
+  treeOrig->SetBranchAddress("higgsVtxZ", &higgsVtxZ, &b_higgsVtxZ);
+  treeOrig->SetBranchAddress("massCorrSmear", &massCorrSmear, &b_massCorrSmear);
+  treeOrig->SetBranchAddress("massCorrSmearScaleUp", &massCorrSmearScaleUp, &b_massCorrSmearScaleUp);
+  treeOrig->SetBranchAddress("massCorrSmearScaleDown", &massCorrSmearScaleDown, &b_massCorrSmearScaleDown);
+  treeOrig->SetBranchAddress("massCorrScale", &massCorrScale, &b_massCorrScale);
+  treeOrig->SetBranchAddress("massRaw", &massRaw, &b_massRaw);
+  treeOrig->SetBranchAddress("mva1", &mva1, &b_mva1);
+  treeOrig->SetBranchAddress("mva2", &mva2, &b_mva2);
 
   // new variables to be added
   Float_t xsecWeight;
@@ -497,6 +527,16 @@ void addWeights(const char* filename, float lumiForW, float massTrue=1) {
     theTreeNew->Branch("metF_HBHENoiseIso",&metF_HBHENoiseIso,"metF_HBHENoiseIso/I");
     theTreeNew->Branch("metF_CSC",&metF_CSC,"metF_CSC/I");
     theTreeNew->Branch("metF_eeBadSC",&metF_eeBadSC,"metF_eeBadSC/I");
+    theTreeNew->Branch("higgsVtxX", &higgsVtxX, &b_higgsVtxX);
+    theTreeNew->Branch("higgsVtxY", &higgsVtxY, &b_higgsVtxY);
+    theTreeNew->Branch("higgsVtxZ", &higgsVtxZ, &b_higgsVtxZ);
+    theTreeNew->Branch("massCorrSmear", &massCorrSmear, &b_massCorrSmear);
+    theTreeNew->Branch("massCorrSmearScaleUp", &massCorrSmearScaleUp, &b_massCorrSmearScaleUp);
+    theTreeNew->Branch("massCorrSmearScaleDown", &massCorrSmearScaleDown, &b_massCorrSmearScaleDown);
+    theTreeNew->Branch("massCorrScale", &massCorrScale, &b_massCorrScale);
+    theTreeNew->Branch("massRaw", &massRaw, &b_massRaw);
+    theTreeNew->Branch("mva1", &mva1, &b_mva1);
+    theTreeNew->Branch("mva2", &mva2, &b_mva2);
   }
   
   for(int i=0; i<nentriesOrig; i++) {
@@ -510,7 +550,13 @@ void addWeights(const char* filename, float lumiForW, float massTrue=1) {
 
     if (i==0) xsecToWeight = totXsec;
    
-    // new variables
+    //if (sampleID>=100 && sampleID<200){//sig
+    //  xsecWeight = perEveW * lumiForW * totXsec / sampleSumWeight;             
+    //  weight     = xsecWeight * pu_weight * 0.001; // Margaret this was to scale the sig to 1fb since I had produced at 1pb
+    //  mggNominal = massTrue;
+    //  mggGen     = genmgg;
+    //}
+
     if (sampleID>0 && sampleID<10000) { //MC
       xsecWeight = perEveW * lumiForW * totXsec / sampleSumWeight;             
       weight     = xsecWeight * pu_weight;
