@@ -527,16 +527,16 @@ void addWeights(const char* filename, float lumiForW, float massTrue=1) {
     theTreeNew->Branch("metF_HBHENoiseIso",&metF_HBHENoiseIso,"metF_HBHENoiseIso/I");
     theTreeNew->Branch("metF_CSC",&metF_CSC,"metF_CSC/I");
     theTreeNew->Branch("metF_eeBadSC",&metF_eeBadSC,"metF_eeBadSC/I");
-    theTreeNew->Branch("higgsVtxX", &higgsVtxX, &b_higgsVtxX);
-    theTreeNew->Branch("higgsVtxY", &higgsVtxY, &b_higgsVtxY);
-    theTreeNew->Branch("higgsVtxZ", &higgsVtxZ, &b_higgsVtxZ);
-    theTreeNew->Branch("massCorrSmear", &massCorrSmear, &b_massCorrSmear);
-    theTreeNew->Branch("massCorrSmearScaleUp", &massCorrSmearScaleUp, &b_massCorrSmearScaleUp);
-    theTreeNew->Branch("massCorrSmearScaleDown", &massCorrSmearScaleDown, &b_massCorrSmearScaleDown);
-    theTreeNew->Branch("massCorrScale", &massCorrScale, &b_massCorrScale);
-    theTreeNew->Branch("massRaw", &massRaw, &b_massRaw);
-    theTreeNew->Branch("mva1", &mva1, &b_mva1);
-    theTreeNew->Branch("mva2", &mva2, &b_mva2);
+    theTreeNew->Branch("higgsVtxX", &higgsVtxX, "b_higgsVtxX/F");
+    theTreeNew->Branch("higgsVtxY", &higgsVtxY, "b_higgsVtxY/F");
+    theTreeNew->Branch("higgsVtxZ", &higgsVtxZ, "b_higgsVtxZ/F");
+    theTreeNew->Branch("massCorrSmear", &massCorrSmear, "b_massCorrSmear/F");
+    theTreeNew->Branch("massCorrSmearScaleUp", &massCorrSmearScaleUp, "b_massCorrSmearScaleUp/F");
+    theTreeNew->Branch("massCorrSmearScaleDown", &massCorrSmearScaleDown, "b_massCorrSmearScaleDown/F");
+    theTreeNew->Branch("massCorrScale", &massCorrScale, "b_massCorrScale/F");
+    theTreeNew->Branch("massRaw", &massRaw, "b_massRaw/F");
+    theTreeNew->Branch("mva1", &mva1, "b_mva1/F");
+    theTreeNew->Branch("mva2", &mva2, "b_mva2/F");
   }
   
   for(int i=0; i<nentriesOrig; i++) {

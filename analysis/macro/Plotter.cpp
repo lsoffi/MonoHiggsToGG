@@ -171,7 +171,7 @@ void Plotter::DoPlots(int prompt){
     Bool_t weightNegative = false;
     if (Weight <= 0) weightNegative = true;
 
-    if ((passMETfil || !passMETfil) && !weightNegative && mgg >= 100 && mgg < 200 && passBoth && hltDiphoton30Mass95==1){
+    if ((passMETfil || !passMETfil) && !weightNegative && mgg >= 100 && mgg < 200 /*&& passBoth*/ && passEV1 && passEV2 && hltDiphoton30Mass95==1){
       if (isData && doBlind && t1pfmet < 100) fTH1DMap["t1pfmet_zoom_wofil"]->Fill(t1pfmet,Weight);      
       else fTH1DMap["t1pfmet_zoom_wofil"]->Fill(t1pfmet,Weight);
     }
@@ -759,6 +759,16 @@ void Plotter::SetBranchAddresses(){
   tpho->SetBranchAddress("metF_HBHENoiseIso", &metF_HBHENoiseIso, &b_metF_HBHENoiseIso);
   tpho->SetBranchAddress("metF_CSC", &metF_CSC, &b_metF_CSC);
   tpho->SetBranchAddress("metF_eeBadSC", &metF_eeBadSC, &b_metF_eeBadSC);
+  tpho->SetBranchAddress("higgsVtxX", &higgsVtxX, &b_higgsVtxX);
+  tpho->SetBranchAddress("higgsVtxY", &higgsVtxY, &b_higgsVtxY);
+  tpho->SetBranchAddress("higgsVtxZ", &higgsVtxZ, &b_higgsVtxZ);
+  tpho->SetBranchAddress("massCorrSmear", &massCorrSmear, &b_massCorrSmear);
+  tpho->SetBranchAddress("massCorrSmearScaleUp", &massCorrSmearScaleUp, &b_massCorrSmearScaleUp);
+  tpho->SetBranchAddress("massCorrSmearScaleDown", &massCorrSmearScaleDown, &b_massCorrSmearScaleDown);
+  tpho->SetBranchAddress("massCorrScale", &massCorrScale, &b_massCorrScale);
+  tpho->SetBranchAddress("massRaw", &massRaw, &b_massRaw);
+  tpho->SetBranchAddress("mva1", &mva1, &b_mva1);
+  tpho->SetBranchAddress("mva2", &mva2, &b_mva2);
 
 
   //tpho->SetBranchAddress("", &, &b_);

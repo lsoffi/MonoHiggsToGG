@@ -151,6 +151,16 @@ private:
   Int_t         metF_HBHENoiseIso;
   Int_t         metF_CSC;
   Int_t         metF_eeBadSC;
+  Float_t       higgsVtxX;
+  Float_t       higgsVtxY;
+  Float_t       higgsVtxZ;
+  Float_t       massCorrSmear;
+  Float_t       massCorrSmearScaleUp;
+  Float_t       massCorrSmearScaleDown;
+  Float_t       massCorrScale;
+  Float_t       massRaw;
+  Float_t       mva1;
+  Float_t       mva2;
 
 
   // branches
@@ -222,6 +232,16 @@ private:
   TBranch       *b_metF_HBHENoiseIso;   //!
   TBranch       *b_metF_CSC;   //!
   TBranch       *b_metF_eeBadSC;   //!
+  TBranch       *b_higgsVtxX;   //!
+  TBranch       *b_higgsVtxY;   //!
+  TBranch       *b_higgsVtxZ;   //!
+  TBranch       *b_massCorrSmear;   //!
+  TBranch       *b_massCorrSmearScaleUp;   //!
+  TBranch       *b_massCorrSmearScaleDown;   //!
+  TBranch       *b_massCorrScale;   //!
+  TBranch       *b_massRaw;   //!
+  TBranch       *b_mva1;   //!
+  TBranch       *b_mva2;   //!
 
 };
 
