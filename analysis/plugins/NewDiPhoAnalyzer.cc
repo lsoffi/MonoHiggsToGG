@@ -311,6 +311,11 @@ private:
   TH1F *h_sumW;
   bool isFilled;
 
+  // numbers to store the passing of cuts
+  std::vector< int > numPassingCuts;
+  int numCuts = 7;
+
+
   // events breakdown
   TH1F *h_selection;
 
@@ -325,7 +330,6 @@ private:
    
 
 NewDiPhoAnalyzer::NewDiPhoAnalyzer(const edm::ParameterSet& iConfig):
-
   // collections
   //reducedBarrelRecHitCollection_ = iConfig.getParameter<edm::InputTag>("reducedBarrelRecHitCollection");
   //reducedBarrelRecHitCollectionToken_ = mayConsume<EcalRecHitCollection>(reducedBarrelRecHitCollection_);
@@ -343,6 +347,9 @@ NewDiPhoAnalyzer::NewDiPhoAnalyzer(const edm::ParameterSet& iConfig):
   triggerBitsToken_( consumes<edm::TriggerResults>( iConfig.getParameter<edm::InputTag>( "bits" ) ) ),
   triggerFlagsToken_( consumes<edm::TriggerResults>( iConfig.getParameter<edm::InputTag>( "flags" ) ) )
 { 
+  numPassingCuts.resize(numCuts);
+  for (int i=0; i<numCuts; i++) numPassingCuts[i]=0;
+
   dopureweight_ = iConfig.getUntrackedParameter<int>("dopureweight", 0);
   sampleIndex_  = iConfig.getUntrackedParameter<int>("sampleIndex",0);
   puWFileName_  = iConfig.getParameter<std::string>("puWFileName");   
@@ -358,6 +365,8 @@ NewDiPhoAnalyzer::~NewDiPhoAnalyzer() {
   std::cout << "Number of Initial Events = " << eff_start << std::endl;
   std::cout << "Number of Events Passing HLT = " << eff_passingHLT << std::endl;
   //std::cout << "Number Events After Sel. = " << eff_end   << std::endl;
+  std::cout << "passing cuts" << std::endl;
+  for (int i=0; i<numCuts; i++) std::cout << "number passing " << i << " is " << numPassingCuts[i] << std::endl;
 };
 
 void NewDiPhoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup){
@@ -536,6 +545,8 @@ void NewDiPhoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
   float totXsec = 1.;
   if (sampleID>0 && sampleID<10000) totXsec = xsec_ * kfac_;
 
+
+
   // other weights for the dataset
   float sumDataset = 1.;  
   float perEveW    = 1.;
@@ -558,7 +569,10 @@ void NewDiPhoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
   }
 
   // Events breakdown
-  if (hltDiphoton30Mass95) h_selection->Fill(0.,perEveW);
+  if (hltDiphoton30Mass95){
+    h_selection->Fill(0.,perEveW);
+    numPassingCuts[0]++;
+  }
   //if (hltDiphoton30Mass95) std::cout << "  MADE IT PASSED HLT !!!! " << std::endl; 
  
   // Setup bool to check that events in MC actually pass trigger requirements
@@ -614,8 +628,10 @@ void NewDiPhoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
 
     if (hltDiphoton30Mass95){
     if (preselDipho.size()>0) {
-      if (hltDiphoton30Mass95) h_selection->Fill(1.,perEveW);
-      
+      if (hltDiphoton30Mass95){
+        h_selection->Fill(1.,perEveW);
+        numPassingCuts[1]++;
+      } 
       // Diphoton candidates: Id/isolation selection
       vector<int> selectedDipho;
       for( size_t diphotonlooper = 0; diphotonlooper < preselDipho.size(); diphotonlooper++ ) {
@@ -723,7 +739,10 @@ void NewDiPhoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
       }
      
       if (selectedDipho.size()>0) {
-	if (hltDiphoton30Mass95) h_selection->Fill(2.,perEveW);
+	if (hltDiphoton30Mass95){
+          h_selection->Fill(2.,perEveW);
+          numPassingCuts[2]++;
+        }
 
 	// Diphoton candidates: pT cuts
 	vector<int> kineDipho;
@@ -742,8 +761,10 @@ void NewDiPhoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
 
 
 	if (kineDipho.size()>0) {
-	  if (hltDiphoton30Mass95) h_selection->Fill(3.,perEveW);
-
+	  if (hltDiphoton30Mass95){
+            h_selection->Fill(3.,perEveW);
+            numPassingCuts[3]++;
+          }
 	  // Diphoton candidates: mgg cut
 	  vector<int> massDipho;
 	  for( size_t diphotonlooper = 0; diphotonlooper < kineDipho.size(); diphotonlooper++ ) {
@@ -764,7 +785,10 @@ void NewDiPhoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
 	  }
   
 	  if (massDipho.size()>0) {
-	    if (hltDiphoton30Mass95) h_selection->Fill(4.,perEveW);
+	    if (hltDiphoton30Mass95){
+              h_selection->Fill(4.,perEveW);
+              numPassingCuts[4]++;
+            }
 
 	    // Diphoton candidates choice: highest scalar sum pT
 	    float maxSumPt = -999.;
@@ -800,8 +824,10 @@ void NewDiPhoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
 	      if (isVtxFake) goodVtx = false;
 
 	      if (goodVtx) {
-		if (hltDiphoton30Mass95) h_selection->Fill(5.,perEveW);
-
+		if (hltDiphoton30Mass95){
+                  h_selection->Fill(5.,perEveW);
+		  numPassingCuts[5]++;
+                } 
 		// to be kept in the tree
 		float ptgg, mgg;
 		int eventClass;
@@ -852,8 +878,9 @@ void NewDiPhoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
 		massRaw  = candDiphoPtr->mass();
 				
 		if (hltDiphoton30Mass95){
-		  if (massRaw >= 120 && massRaw <= 130){
+		  if (massRaw >= 100 && massRaw <= 180){
 	 	    h_selection->Fill(6.,perEveW);
+		    numPassingCuts[6]++;
 		    if (t1pfmet >= 250){
 		      eff_end++;
 		      h_selection->Fill(7.,perEveW);
@@ -1383,6 +1410,9 @@ void NewDiPhoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
     }         // diphoton candidate passing trigger cuts & preselection
    }         // passes trigger
   }          // at least 1 reco diphoton candidate  
+
+
+
 
   // delete
   //delete lazyToolnoZS;

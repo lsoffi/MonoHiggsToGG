@@ -39,8 +39,8 @@ int main(){
   //////////////////////////////////////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////////////////////////////////
 
-  TString inDir = "data/25ns_v1-1-0_MVAwPU/"; 		// input directory of the samples
-  TString outDir = "./diPhoPlots/25ns_v1-1-0_MVAwPU/";	// output directory to send results
+  TString inDir = "data/25ns_v1-1-0_ReReco_FullStat/"; 		// input directory of the samples
+  TString outDir = "./diPhoPlots/25ns_v1-1-0_ReReco_FullStat/";	// output directory to send results
 
   bool doFakeData = false;	// use FakeData to test combiner (mimicks data)
   bool sortMC = false;		// use if want to sort bkg smallest to biggest, else uses order given
@@ -52,7 +52,7 @@ int main(){
   bool doABCD = false;		// run ABCD method 
   bool doCompare = false;	// call Comparer 
 
-  Double_t lumi =  2208.9; //2137.5; // in pb^-1 
+  Double_t lumi =  2245; // in pb^-1 
   UInt_t nBins_vtx = 60; // number of bins for PURW 
   TString type = "png"; // type of plots to be made
   

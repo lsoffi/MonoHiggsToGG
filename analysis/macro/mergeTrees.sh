@@ -2,28 +2,28 @@
 # this scripts creates a merged root file in the self-created merged
 
 # FLASHgg version 1_1_0
-mkdir -p data/25ns_v1-1-0_MVAwPU/
-mkdir -p /afs/cern.ch/work/m/mzientek/private/25ns_v1-1-0_MVAwPU/
+mkdir -p data/25ns_v1-1-0_ReReco_FullStat/
+mkdir -p /afs/cern.ch/work/m/mzientek/private/25ns_v1-1-0_ReReco_FullStat/
 
-hadd /afs/cern.ch/work/m/mzientek/private/25ns_v1-1-0_MVAwPU/2HDM_mZP600.root	../../output/job_2016127_144849/privMC_2HDM_MZP600/privMC_2HDM_MZP600*.root
-hadd /afs/cern.ch/work/m/mzientek/private/25ns_v1-1-0_MVAwPU/2HDM_mZP800.root	../../output/job_2016127_144927/privMC_2HDM_MZP800/privMC_2HDM_MZP800*.root
-hadd /afs/cern.ch/work/m/mzientek/private/25ns_v1-1-0_MVAwPU/2HDM_mZP1000.root	../../output/job_2016127_145046/privMC_2HDM_MZP1000/privMC_2HDM_MZP1000*.root
-hadd /afs/cern.ch/work/m/mzientek/private/25ns_v1-1-0_MVAwPU/2HDM_mZP1200.root	../../output/job_2016127_145130/privMC_2HDM_MZP1200/privMC_2HDM_MZP1200*.root
-hadd /afs/cern.ch/work/m/mzientek/private/25ns_v1-1-0_MVAwPU/2HDM_mZP1400.root	../../output/job_2016127_145154/privMC_2HDM_MZP1400/privMC_2HDM_MZP1400*.root
-hadd /afs/cern.ch/work/m/mzientek/private/25ns_v1-1-0_MVAwPU/2HDM_mZP1700.root	../../output/job_2016127_145218/privMC_2HDM_MZP1700/privMC_2HDM_MZP1700*.root
-hadd /afs/cern.ch/work/m/mzientek/private/25ns_v1-1-0_MVAwPU/2HDM_mZP2500.root	../../output/job_2016127_145245/privMC_2HDM_MZP2500/privMC_2HDM_MZP2500*.root
+hadd /afs/cern.ch/work/m/mzientek/private/25ns_v1-1-0_ReReco_FullStat/2HDM_mZP600.root		../../output/job_2016129_231548/privMC_2HDM_MZP600/privMC_2HDM_MZP600*.root
+hadd /afs/cern.ch/work/m/mzientek/private/25ns_v1-1-0_ReReco_FullStat/2HDM_mZP800.root		../../output/job_2016129_231624/privMC_2HDM_MZP800/privMC_2HDM_MZP800*.root
+hadd /afs/cern.ch/work/m/mzientek/private/25ns_v1-1-0_ReReco_FullStat/2HDM_mZP1000.root		../../output/job_2016129_231821/privMC_2HDM_MZP1000/privMC_2HDM_MZP1000*.root
+hadd /afs/cern.ch/work/m/mzientek/private/25ns_v1-1-0_ReReco_FullStat/2HDM_mZP1200.root		../../output/job_2016129_231955/privMC_2HDM_MZP1200/privMC_2HDM_MZP1200*.root
+hadd /afs/cern.ch/work/m/mzientek/private/25ns_v1-1-0_ReReco_FullStat/2HDM_mZP1400.root		../../output/job_2016129_232044/privMC_2HDM_MZP1400/privMC_2HDM_MZP1400*.root
+hadd /afs/cern.ch/work/m/mzientek/private/25ns_v1-1-0_ReReco_FullStat/2HDM_mZP1700.root		../../output/job_2016129_232128/privMC_2HDM_MZP1700/privMC_2HDM_MZP1700*.root
+hadd /afs/cern.ch/work/m/mzientek/private/25ns_v1-1-0_ReReco_FullStat/2HDM_mZP2500.root		../../output/job_2016129_23229/privMC_2HDM_MZP2500/privMC_2HDM_MZP2500*.root
 
-hadd /afs/cern.ch/work/m/mzientek/private/25ns_v1-1-0_MVAwPU/DiPhoton.root		../../output/job_2016127_144645/DiPhoton/DiPhoton*.root
-hadd /afs/cern.ch/work/m/mzientek/private/25ns_v1-1-0_MVAwPU/GJet_Pt-20to40.root	../../output/job_2016127_14475/GJet_Pt-20to40/GJet_Pt-20to40*.root
-hadd /afs/cern.ch/work/m/mzientek/private/25ns_v1-1-0_MVAwPU/GJet_Pt-40toInf.root	../../output/job_2016127_144713/GJet_Pt-40toInf/GJet_Pt-40toInf*.root
-hadd /afs/cern.ch/work/m/mzientek/private/25ns_v1-1-0_MVAwPU/QCD_Pt-30to40.root		../../output/job_2016127_144737/QCD_Pt-30to40/QCD_Pt-30to40*.root
-hadd /afs/cern.ch/work/m/mzientek/private/25ns_v1-1-0_MVAwPU/QCD_Pt-30toInf.root	../../output/job_2016127_144743/QCD_Pt-30toInf/QCD_Pt-30toInf*.root
-hadd /afs/cern.ch/work/m/mzientek/private/25ns_v1-1-0_MVAwPU/QCD_Pt-40toInf.root	../../output/job_2016127_144755/QCD_Pt-40toInf/QCD_Pt-40toInf*.root
-hadd /afs/cern.ch/work/m/mzientek/private/25ns_v1-1-0_MVAwPU/GluGluHToGG.root		../../output/job_2016127_14482/GluGluHToGG/GluGluHToGG*.root
-hadd /afs/cern.ch/work/m/mzientek/private/25ns_v1-1-0_MVAwPU/VH.root			../../output/job_2016127_14485/VH/VH*.root
-hadd /afs/cern.ch/work/m/mzientek/private/25ns_v1-1-0_MVAwPU/DYJetsToLL.root		../../output/job_2016127_14486/DYJetsToLL/DYJetsToLL*.root
+hadd /afs/cern.ch/work/m/mzientek/private/25ns_v1-1-0_ReReco_FullStat/DiPhoton.root		../../output/job_2016129_231324/DiPhoton/DiPhoton*.root
+hadd /afs/cern.ch/work/m/mzientek/private/25ns_v1-1-0_ReReco_FullStat/GJet_Pt-20to40.root	../../output/job_2016129_231351/GJet_Pt-20to40/GJet_Pt-20to40*.root
+hadd /afs/cern.ch/work/m/mzientek/private/25ns_v1-1-0_ReReco_FullStat/GJet_Pt-40toInf.root	../../output/job_2016129_23141/GJet_Pt-40toInf/GJet_Pt-40toInf*.root
+hadd /afs/cern.ch/work/m/mzientek/private/25ns_v1-1-0_ReReco_FullStat/QCD_Pt-30to40.root	../../output/job_2016129_231427/QCD_Pt-30to40/QCD_Pt-30to40*.root
+hadd /afs/cern.ch/work/m/mzientek/private/25ns_v1-1-0_ReReco_FullStat/QCD_Pt-30toInf.root	../../output/job_2016129_231435/QCD_Pt-30toInf/QCD_Pt-30toInf*.root
+hadd /afs/cern.ch/work/m/mzientek/private/25ns_v1-1-0_ReReco_FullStat/QCD_Pt-40toInf.root	../../output/job_2016129_231446/QCD_Pt-40toInf/QCD_Pt-40toInf*.root
+hadd /afs/cern.ch/work/m/mzientek/private/25ns_v1-1-0_ReReco_FullStat/GluGluHToGG.root		../../output/job_2016129_231455/GluGluHToGG/GluGluHToGG*.root
+hadd /afs/cern.ch/work/m/mzientek/private/25ns_v1-1-0_ReReco_FullStat/VH.root			../../output/job_2016129_231457/VH/VH*.root
+hadd /afs/cern.ch/work/m/mzientek/private/25ns_v1-1-0_ReReco_FullStat/DYJetsToLL.root		../../output/job_2016129_231457/DYJetsToLL/DYJetsToLL*.root
 
-hadd /afs/cern.ch/work/m/mzientek/private/25ns_v1-1-0_MVAwPU/DoubleEG.root  		../../output/job_2016127_22382/DoubleEG_ReReco/DoubleEG*.root
+hadd /afs/cern.ch/work/m/mzientek/private/25ns_v1-1-0_ReReco_FullStat/DoubleEG.root  		../../output/job_2016129_121141/DoubleEG/DoubleEG*.root
 
 ## Original Selection
 #hadd /afs/cern.ch/work/m/mzientek/private/25ns_v7_LooseSel_wPUwMETfilwOrigSel/2HDM_mZP600.root		../../output/job_2016114_155011/privMC_2HDM_MZP600/privMC_2HDM_MZP600*.root

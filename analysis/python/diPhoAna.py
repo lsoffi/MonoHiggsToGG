@@ -5,7 +5,7 @@ import FWCore.ParameterSet.Types as CfgTypes
 
 ######################
 # SET THESE BOOLS BEFORE RUNNING:
-isMC = True; 
+isMC = False; 
 isFLASHgg_1_1_0 = True;
 ######################
 
@@ -39,7 +39,7 @@ else:
     print "Using name PAT"
 
 
-process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32( 10000 ) )
+process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32( 40000 ) )
 
 process.source = cms.Source("PoolSource",
                             fileNames=cms.untracked.vstring(
@@ -77,9 +77,9 @@ process.source = cms.Source("PoolSource",
 	#"file:myMicroAODOutputFile_1.root" 
         #"file:myMicroAODOutputFile_privMC.root"
  	#"/store/user/mzientek/ZprimeToA0hToA0chichihAA_2HDM_MZp-1000_MA0-300_13TeV-madgraph/RunIISpring15-ReMiniAOD-1_1_0-25ns/160111_132609/0000/myMicroAODOutputFile_1.root"
-	#"/store/group/phys_higgs/cmshgg/sethzenz/flashgg/RunIISpring15-ReReco74X-1_1_0-25ns/1_1_0/DoubleEG/RunIISpring15-ReReco74X-1_1_0-25ns-1_1_0-v0-Run2015D-04Dec2015-v2/160112_095813/0000/myMicroAODOutputFile_1.root", 
+	"/store/group/phys_higgs/cmshgg/sethzenz/flashgg/RunIISpring15-ReReco74X-1_1_0-25ns/1_1_0/DoubleEG/RunIISpring15-ReReco74X-1_1_0-25ns-1_1_0-v0-Run2015D-04Dec2015-v2/160112_095813/0000/myMicroAODOutputFile_1.root", 
 	#"/store/group/phys_higgs/cmshgg/sethzenz/flashgg/RunIISpring15-ReMiniAOD-1_1_0-25ns/1_1_0/DiPhotonJetsBox_MGG-80toInf_13TeV-Sherpa/RunIISpring15-ReMiniAOD-1_1_0-25ns-1_1_0-v0-RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/160105_222618/0000/myMicroAODOutputFile_18.root"
-	"/store/group/phys_higgs/cmshgg/sethzenz/flashgg/RunIISpring15-ReMiniAOD-1_1_0-25ns/1_1_0/GluGluHToGG_M-125_13TeV_powheg_pythia8/RunIISpring15-ReMiniAOD-1_1_0-25ns-1_1_0-v0-RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/160105_223154/0000/myMicroAODOutputFile_5.root",
+	#"/store/group/phys_higgs/cmshgg/sethzenz/flashgg/RunIISpring15-ReMiniAOD-1_1_0-25ns/1_1_0/GluGluHToGG_M-125_13TeV_powheg_pythia8/RunIISpring15-ReMiniAOD-1_1_0-25ns-1_1_0-v0-RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/160105_223154/0000/myMicroAODOutputFile_5.root",
 	#"/store/group/phys_higgs/cmshgg/sethzenz/flashgg/RunIISpring15-ReReco74X-1_1_0-25ns/1_1_0/DoubleEG/RunIISpring15-ReReco74X-1_1_0-25ns-1_1_0-v0-Run2015D-04Dec2015-v2/160112_095813/0000/myMicroAODOutputFile_10.root", 
 
         )
@@ -119,10 +119,10 @@ process.diPhoAna = cms.EDAnalyzer('NewDiPhoAnalyzer',
                                   DiPhotonTag = cms.untracked.InputTag('flashggDiPhotons'),
                                   PileUpTag = cms.untracked.InputTag('slimmedAddPileupInfo'),
                                   generatorInfo = cms.InputTag("generator"),
-                                  dopureweight = cms.untracked.int32(1),
+                                  dopureweight = cms.untracked.int32(0),
                                   bits         = cms.InputTag('TriggerResults::HLT'),
                                   flags        = cms.InputTag(flag),
-				  sampleIndex  = cms.untracked.int32(105),
+				  sampleIndex  = cms.untracked.int32(10005),
                                   puWFileName  = cms.string('/afs/cern.ch/user/m/mzientek/public/pileupWeights_fullReReco74X.root'),  
                                   xsec         = cms.untracked.double(1), #pb
                                   kfac         = cms.untracked.double(1.),

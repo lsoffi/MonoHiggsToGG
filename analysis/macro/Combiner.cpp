@@ -137,6 +137,15 @@ void Combiner::DoComb(){
         }
       }
     } 
+    if (th1d==fIndexNvtx && addText!="_n-1"){
+      std::cout << "DoubleEG" << " in " << fTH1DNames[th1d] << " = " << fOutDataTH1DHists[th1d]->Integral()  << std::endl;
+      for (UInt_t mc = 0; mc < fNBkg; mc++){// print out values of integrals
+        std::cout << fBkgNames[mc] << " in " << fTH1DNames[th1d] << " = " << fInBkgTH1DHists[th1d][mc]->Integral()  << std::endl;
+      }
+      for (UInt_t mc = 0; mc < fNSig; mc++){// print out values of integrals
+        std::cout << fSigNames[mc] << " in " << fTH1DNames[th1d] << " = " << fInSigTH1DHists[th1d][mc]->Integral()  << std::endl;
+      }
+    } 
     //fOutBkgTH1DHists[th1d]->Sumw2();
     //std::cout << "histo# " << th1d << std::endl;
     //std::cout << "maxbin " << fOutBkgTH1DHists[th1d]->GetSize() << std::endl;
@@ -301,10 +310,10 @@ void Combiner::DrawCanvasOverlay(const UInt_t th1d, const Bool_t isLogY){
   if (isLogY) fInSigTH1DHists[th1d][0]->SetMaximum(maxOverlay*100000);
   else fInSigTH1DHists[th1d][0]->SetMaximum(maxOverlay*1.1);
 
-  fInSigTH1DHists[th1d][0]->SetMinimum(0.0);
+  //fInSigTH1DHists[th1d][0]->SetMinimum(0.0);
   //if (fNData > 0) fInSigTH1DHists[th1d][0]->SetMinimum(minOverlay*0.9);
   if (th1d==fIndexMgg){ 
-    fInSigTH1DHists[th1d][0]->SetMinimum(0.001); 
+    //fInSigTH1DHists[th1d][0]->SetMinimum(0.001); 
     fInSigTH1DHists[th1d][0]->SetMaximum(10);
   }
 
@@ -366,7 +375,7 @@ void Combiner::DrawCanvasStack(const UInt_t th1d, const Bool_t isLogY){
   // start by drawing the sig first
   if (isLogY) fInSigTH1DHists[th1d][0]->SetMaximum(maxval*1000000);
   else fInSigTH1DHists[th1d][0]->SetMaximum(maxval*1.1);
-  if (fNData > 0) fInSigTH1DHists[th1d][0]->SetMinimum(1E-2);
+  //if (fNData > 0) fInSigTH1DHists[th1d][0]->SetMinimum(0.0);
   fInSigTH1DHists[th1d][0]->SetTitle("");
   fInSigTH1DHists[th1d][0]->Draw("HIST");
 
@@ -660,6 +669,7 @@ void Combiner::InitTH1DNames(){
   fTH1DNames.push_back("ptgg");
   fIndexPtgg = fTH1DNames.size()-1;
   fTH1DNames.push_back("nvtx"); 
+  fIndexNvtx = fTH1DNames.size()-1;
   fTH1DNames.push_back("t1pfmetphi");
   fTH1DNames.push_back("t1pfmet");
   //fTH1DNames.push_back("pfmetphi");

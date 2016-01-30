@@ -83,7 +83,7 @@ void Plotter::DoPlots(int prompt){
   Plotter::SetUpPlots();
  
   nentries = tpho->GetEntries(); 
-
+  std::cout << "nentries = " << nentries << std::endl;
   
   Double_t effPUn[60]={0};
   Double_t effPUd[60]={0};
@@ -97,7 +97,12 @@ void Plotter::DoPlots(int prompt){
   }
 
   Int_t numFailingMETfil = 0;
-
+  Int_t numOutOfMggRange = 0;
+  Int_t numNegativeWeight = 0;
+  Int_t numFailEV = 0;
+  Int_t numDuplicateRemoved = 0;
+  Int_t numPassingAll = 0;
+ 
   for (UInt_t entry = 0; entry < nentries; entry++){
     tpho->GetEntry(entry);
 
@@ -171,14 +176,22 @@ void Plotter::DoPlots(int prompt){
     Bool_t weightNegative = false;
     if (Weight <= 0) weightNegative = true;
 
-    if ((passMETfil || !passMETfil) && !weightNegative && mgg >= 100 && mgg < 200 /*&& passBoth*/ && passEV1 && passEV2 && hltDiphoton30Mass95==1){
-      if (isData && doBlind && t1pfmet < 100) fTH1DMap["t1pfmet_zoom_wofil"]->Fill(t1pfmet,Weight);      
+    if ((passMETfil || !passMETfil) && !weightNegative && mgg >= 100 && mgg < 200 && passBoth && hltDiphoton30Mass95==1){
+      if (isData && doBlind){
+       if (t1pfmet < 100) fTH1DMap["t1pfmet_zoom_wofil"]->Fill(t1pfmet,Weight);
+      }
       else fTH1DMap["t1pfmet_zoom_wofil"]->Fill(t1pfmet,Weight);
+    }
+    if (mgg < 100 || mgg >= 180) numOutOfMggRange++;
+    if (weightNegative) numNegativeWeight++;
+    if (!passEV1 || !passEV2) numFailEV++;
+    if (prompt==1 || prompt==2){
+      if (genmatch1==1 && genmatch2==1) numDuplicateRemoved++;
     }
 
     //start full selection for plots
     if (passMETfil && !weightNegative){ //Data passes MET filters && not a negativeWeight
-      if (mgg >= 100 && mgg < 200 && passBoth /*&&  pt1 > 80 && pt2 > 30*/ /*&& t1pfmet > 50*/ ){
+      if (mgg >= 100 && mgg < 180 /*&& passBoth*/ && passEV1 && passEV2 /*&&  pt1 > 80 && pt2 > 30*/ /*&& t1pfmet > 50*/ ){
         fTH1DMap["eff_sel"]->Fill(1.5,Weight);
         if (hltDiphoton30Mass95==1){ //passes trigger
 
@@ -187,6 +200,8 @@ void Plotter::DoPlots(int prompt){
           if (prompt==1 && (genmatch1==1 && genmatch2==1)) continue;   // only PF and FF for gjets  
           if (prompt==2 && (genmatch1==1 && genmatch2==1)) continue;   // only PF and FF for gjets  
           //if (prompt==2 && (genmatch1==1 || genmatch2==1)) continue;   // only FF for QCD       
+
+	  numPassingAll++;
 
           // split events by eta
           EB1 = false;
@@ -442,8 +457,13 @@ void Plotter::DoPlots(int prompt){
    
   }// end loop over entries in tree
 
-
-  std::cout << "Number Events rejected by MET filters: " << numFailingMETfil << " out of " << nentries << " events. " << std::endl;
+  std::cout << "Number Events that have passed Analyzer: " << nentries << " events. " << std::endl;
+  std::cout << "Number Events rejected by MET filters:   " << numFailingMETfil    << " out of " << nentries << " events. " << std::endl;
+  std::cout << "Number Events rejected by Mgg range:     " << numOutOfMggRange    << " out of " << nentries << " events. " << std::endl; 
+  std::cout << "Number Events rejected by Neg Weight:    " << numNegativeWeight   << " out of " << nentries << " events. " << std::endl; 
+  std::cout << "Number Events rejected by ElectronVeto:  " << numFailEV           << " out of " << nentries << " events. " << std::endl; 
+  std::cout << "Number Events rejected by DupRemoval:    " << numDuplicateRemoved << " out of " << nentries << " events. " << std::endl;  
+  std::cout << "Number Events PASSING all selection:     " << numPassingAll       << " out of " << nentries << " events. " << std::endl; 
 
   Double_t effPU = 0;
   Double_t effpt = 0;
@@ -670,8 +690,8 @@ void Plotter::SavePlots(){
 
     CMSLumi(canv2d,0,fLumi);
 
-    canv2d->SetLogy(0);
-    canv2d->SaveAs(Form("%s%s/%s.%s",fName.Data(),species.Data(),(*mapiter).first.Data(),fType.Data()));
+    //canv2d->SetLogy(0);
+    //canv2d->SaveAs(Form("%s%s/%s.%s",fName.Data(),species.Data(),(*mapiter).first.Data(),fType.Data()));
   }// end of loop over mapiter for 2d plots
   delete canv2d;
 

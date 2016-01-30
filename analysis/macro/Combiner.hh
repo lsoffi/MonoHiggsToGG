@@ -63,6 +63,7 @@ private:
   UInt_t	fIndexEff;
   UInt_t	fIndexMgg;
   UInt_t 	fIndexPtgg;
+  UInt_t	fIndexNvtx;
   UInt_t	fIndexDphi;
   UInt_t	fIndexDeta;
 
