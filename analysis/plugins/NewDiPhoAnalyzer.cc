@@ -214,6 +214,8 @@ struct diphoTree_struc_ {
   float massCorrSmearScaleDown; 
   float massCorrScale;
   float massRaw;
+  int genZ;
+  float ptZ;
 };
 
 
@@ -858,6 +860,9 @@ void NewDiPhoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
 		float massCorrSmear, massCorrScale, massRaw;
 		float massCorrSmearScaleUp, massCorrSmearScaleDown;
 
+		int genZ;
+		float ptZ;
+
 		// fully selected event: tree re-initialization                                                                          
 		initTreeStructure();        
 		
@@ -1165,6 +1170,28 @@ void NewDiPhoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
 		  }
 		}
 
+		// Margaret added for Z'->ZH comparisons with SM ZH
+		genZ = -1;
+		ptZ  = -999.;
+		if (sampleID==11 || sampleID==20){ //VH or ZpZH
+		  std::cout << "sampleID " << sampleID << std::endl;
+		  for (unsigned int genLoop = 0; genLoop < genParticles->size(); genLoop++){
+		    if (genParticles->ptrAt( genLoop )->mother(0)){
+		      int mothid = fabs(genParticles->ptrAt( genLoop )->mother(0)->pdgId()); 
+		      int daugid = fabs(genParticles->ptrAt( genLoop )->pdgId());
+		      std::cout << "mothid " << mothid << " daugid " << daugid << std::endl;
+		      if (mothid==23){ // only interested in Z events
+			if (daugid==12 || daugid==14 || daugid==16){// if Z decays to neutrinos
+			  genZ = 1;// Z->neutrinos
+			  ptZ = genParticles->ptrAt( genLoop )->mother(0)->pt();// for these events store the pt of the Z
+			}
+		        else genZ = 2;// Z NOT -> neutrinos
+		      }
+		      else genZ = 0;// NO Z in event
+		    }
+		  }
+		}
+
 		//--------> gen level mgg for signal samples
 		genmgg = -999.;
 		if (sampleID>99 && sampleID<10000) {  // signal only 
@@ -1397,7 +1424,9 @@ void NewDiPhoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
 		treeDipho_.massCorrSmearScaleUp = massCorrSmearScaleUp;
 		treeDipho_.massCorrSmearScaleDown = massCorrSmearScaleDown;
 		treeDipho_.massCorrScale = massCorrScale;
-		treeDipho_.massRaw     = massRaw;
+		treeDipho_.massRaw = massRaw;
+		treeDipho_.genZ	= genZ;
+		treeDipho_.ptZ = ptZ;
 	
 		// Filling the trees
 		DiPhotonTree->Fill();
@@ -1574,6 +1603,8 @@ void NewDiPhoAnalyzer::beginJob() {
   DiPhotonTree->Branch("massCorrSmearScaleDown",&(treeDipho_.massCorrSmearScaleDown),"massCorrSmearScaleDown/F");
   DiPhotonTree->Branch("massCorrScale",&(treeDipho_.massCorrScale),"massCorrScale/F");
   DiPhotonTree->Branch("massRaw",&(treeDipho_.massRaw),"massRaw/F");
+  DiPhotonTree->Branch("genZ",&(treeDipho_.genZ),"genZ/I");
+  DiPhotonTree->Branch("ptZ",&(treeDipho_.ptZ),"ptZ/F");
 }
 
 void NewDiPhoAnalyzer::endJob() { }
@@ -1706,6 +1737,8 @@ void NewDiPhoAnalyzer::initTreeStructure() {
   treeDipho_.massCorrSmearScaleDown = -500;
   treeDipho_.massCorrScale = -500;
   treeDipho_.massRaw = -500;
+  treeDipho_.genZ = -500;
+  treeDipho_.ptZ = -500;
 }
 
 void NewDiPhoAnalyzer::SetPuWeights(std::string puWeightFile) {
