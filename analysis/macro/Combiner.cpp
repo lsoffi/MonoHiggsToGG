@@ -99,13 +99,6 @@ void Combiner::DoComb(){
   // copy th1d plots into output hists/stacks
   for (UInt_t th1d = 0; th1d < fNTH1D; th1d++){
 
-    // sig: just add to legend
-    for (UInt_t mc = 0; mc < fNSig; mc++){
-      //fInSigTH1DHists[th1d][mc]->Scale(0.001);
-      //fInSigTH1DHists[th1d][mc]->Scale(lumi);
-      fTH1DLegends[th1d]->AddEntry(fInSigTH1DHists[th1d][mc],fSampleTitleMap[fSigNames[mc]],"l");
-    }
-
     // data : copy first histogram & add all others too it 
     //if (fNData > 0){
       for (UInt_t data = 0; data < fNData; data++){
@@ -120,8 +113,8 @@ void Combiner::DoComb(){
       fOutBkgTH1DStacks[th1d]->Add(fInBkgTH1DHists[th1d][mc]);
       fOutBkgTH1DStacksForUncer[th1d]->Add(fInBkgTH1DHists[th1d][mc]);
       // draw bkg in legend as box for stack plots, and line for overlay plot
-      if (doStack) fTH1DLegends[th1d]->AddEntry(fInBkgTH1DHists[th1d][mc],fSampleTitleMap[fBkgNames[mc]],"f");
-      else fTH1DLegends[th1d]->AddEntry(fInBkgTH1DHists[th1d][mc],fSampleTitleMap[fBkgNames[mc]],"l");
+      //if (doStack) fTH1DLegends[th1d]->AddEntry(fInBkgTH1DHists[th1d][mc],fSampleTitleMap[fBkgNames[mc]],"f");
+      //else fTH1DLegends[th1d]->AddEntry(fInBkgTH1DHists[th1d][mc],fSampleTitleMap[fBkgNames[mc]],"l");
       if (mc == 0){
         fOutBkgTH1DHists[th1d] = (TH1D*)fInBkgTH1DHists[th1d][mc]->Clone();
       }
@@ -155,13 +148,31 @@ void Combiner::DoComb(){
     fOutBkgTH1DHists[th1d]->SetFillColor(kGray+3);
     fOutBkgTH1DHists[th1d]->SetFillStyle(3003);
     fOutBkgTH1DHists[th1d]->SetMarkerSize(0);
+
+    // LEGEND 
+    // add data to legend if int > 0
+    Double_t dataInt = fOutDataTH1DHists[th1d]->Integral();
+    if (fNData > 0 && doStack && dataInt > 0) fTH1DLegends[th1d]->AddEntry(fOutDataTH1DHists[th1d],"Data","pl");
+    
+    // do sig[0] so that the bkg uncertainty is below it
+    fTH1DLegends[th1d]->AddEntry(fInSigTH1DHists[th1d][0],fSampleTitleMap[fSigNames[0]],"l");
     // add uncertainty in stack plot
     fOutBkgTH1DStacksForUncer[th1d]->Add(fOutBkgTH1DHists[th1d],"E2");
     if (doStack) fTH1DLegends[th1d]->AddEntry(fOutBkgTH1DHists[th1d],"Bkg Uncertainty","F");
 
-    // add data to legend if int > 0
-    Double_t dataInt = fOutDataTH1DHists[th1d]->Integral();
-    if (fNData > 0 && doStack && dataInt > 0) fTH1DLegends[th1d]->AddEntry(fOutDataTH1DHists[th1d],"Data","pl");
+    // sig: just add to legend
+    for (UInt_t mc = 1; mc < fNSig; mc++){
+      //fInSigTH1DHists[th1d][mc]->Scale(lumi);
+      fTH1DLegends[th1d]->AddEntry(fInSigTH1DHists[th1d][mc],fSampleTitleMap[fSigNames[mc]],"l");
+    }
+    // bkg : copy histos and add to stacks
+    for (UInt_t mc = 0; mc < fNBkg; mc++){
+      // draw bkg in legend as box for stack plots, and line for overlay plot
+      if (doStack) fTH1DLegends[th1d]->AddEntry(fInBkgTH1DHists[th1d][mc],fSampleTitleMap[fBkgNames[mc]],"f");
+      else fTH1DLegends[th1d]->AddEntry(fInBkgTH1DHists[th1d][mc],fSampleTitleMap[fBkgNames[mc]],"l");
+    }
+
+
 
   }// end loop over th1d histos
 
@@ -264,16 +275,16 @@ void Combiner::MakeOutputCanvas(){
     }
     if (fNData > 0) fOutDataTH1DHists[th1d]->Scale(lumi);
 */
-    Bool_t isLogY = true;
+    Bool_t isLogY = false;
     if (doStack){// do Stack plots
       Combiner::DrawCanvasStack(th1d,isLogY);
-      isLogY = false;
+      isLogY = true;
       Combiner::DrawCanvasStack(th1d,isLogY);
       if (fNData > 0) fOutTH1DRatioPads[th1d]->Clear(); //delete the ratio plot for overlay plots
     }
     else{// do overlay next 
       Combiner::DrawCanvasOverlay(th1d,isLogY);
-      isLogY = false;
+      isLogY = true;
       Combiner::DrawCanvasOverlay(th1d,isLogY);
     }
   }
@@ -307,15 +318,15 @@ void Combiner::DrawCanvasOverlay(const UInt_t th1d, const Bool_t isLogY){
   //minOverlay = Combiner::GetMinimum(th1d, false);  
 
   // start by drawing the sig first
-  if (isLogY) fInSigTH1DHists[th1d][0]->SetMaximum(maxOverlay*100000);
+  if (isLogY) fInSigTH1DHists[th1d][0]->SetMaximum(maxOverlay*1E3);
   else fInSigTH1DHists[th1d][0]->SetMaximum(maxOverlay*1.1);
 
   //fInSigTH1DHists[th1d][0]->SetMinimum(0.0);
   //if (fNData > 0) fInSigTH1DHists[th1d][0]->SetMinimum(minOverlay*0.9);
-  if (th1d==fIndexMgg){ 
-    //fInSigTH1DHists[th1d][0]->SetMinimum(0.001); 
-    fInSigTH1DHists[th1d][0]->SetMaximum(10);
-  }
+  //if (th1d==fIndexMgg){ 
+  //  //fInSigTH1DHists[th1d][0]->SetMinimum(0.001); 
+  //  fInSigTH1DHists[th1d][0]->SetMaximum(10);
+  //}
 
   fInSigTH1DHists[th1d][0]->SetTitle("");
   fInSigTH1DHists[th1d][0]->Draw("hist");
@@ -351,7 +362,6 @@ void Combiner::DrawCanvasStack(const UInt_t th1d, const Bool_t isLogY){
   fOutTH1DStackPads[th1d]->Draw();
   fOutTH1DStackPads[th1d]->cd();
 
-
  /* for (UInt_t mc = 0; mc < fNSig; mc++){
     fInSigTH1DHists[th1d][mc]->Scale(lumi);
   }
@@ -364,19 +374,24 @@ void Combiner::DrawCanvasStack(const UInt_t th1d, const Bool_t isLogY){
    // }
   }*/
 
-
   Double_t maxval = -100;
   maxval = Combiner::GetMaximum(th1d, true);
-  Double_t minval = 1E20;
-  minval = 1E-6;
+  //Double_t minval = 1E20;
   //minval = Combiner::GetMinimum(th1d, true);
 
-
   // start by drawing the sig first
-  if (isLogY) fInSigTH1DHists[th1d][0]->SetMaximum(maxval*1000000);
-  else fInSigTH1DHists[th1d][0]->SetMaximum(maxval*1.1);
-  //if (fNData > 0) fInSigTH1DHists[th1d][0]->SetMinimum(0.0);
   fInSigTH1DHists[th1d][0]->SetTitle("");
+  fInSigTH1DHists[th1d][0]->GetYaxis()->SetTitle("Events");
+  fInSigTH1DHists[th1d][0]->GetXaxis()->SetTitleOffset(999);
+  fInSigTH1DHists[th1d][0]->GetXaxis()->SetLabelSize(0);
+  if (isLogY){
+    fInSigTH1DHists[th1d][0]->SetMaximum(maxval*1E3);
+    fInSigTH1DHists[th1d][0]->SetMinimum(1E-3);
+  }
+  else {
+    fInSigTH1DHists[th1d][0]->SetMaximum(maxval*1.5);
+    fInSigTH1DHists[th1d][0]->SetMinimum(0);
+  }
   fInSigTH1DHists[th1d][0]->Draw("HIST");
 
   fOutBkgTH1DStacks[th1d]->Draw("HIST SAME");
@@ -396,7 +411,9 @@ void Combiner::DrawCanvasStack(const UInt_t th1d, const Bool_t isLogY){
       fInSigTH1DHists[th1d][mc]->Draw("AXIS SAME");
     }
   }
-  
+
+  //fInSigTH1DHists[th1d][0]->Draw("AXIS SAME");
+
   fOutBkgTH1DHists[th1d]->Draw("E2 SAME");//E2 draws error as rectangle
   fTH1DLegends[th1d]->Draw("SAME"); 
 
@@ -431,6 +448,7 @@ void Combiner::DrawCanvasStack(const UInt_t th1d, const Bool_t isLogY){
     fOutRatioTH1DHists[th1d]->Draw("EP SAME");
   } 
 
+  fOutTH1DCanvases[th1d]->Update();
 
   CMSLumi(fOutTH1DCanvases[th1d],11,lumi);
 
@@ -619,11 +637,12 @@ void Combiner::InitCanvAndHists(){
 
   fTH1DLegends.resize(fNTH1D);
   for (UInt_t th1d = 0; th1d < fNTH1D; th1d++){
-    //fTH1DLegends[th1d] = new TLegend(0.6075,0.6536441,0.8575,0.9340678);
-    fTH1DLegends[th1d] = new TLegend(0.6075,0.5,0.9,0.934); // (x1,y1,x2,y2)
+    //fTH1DLegends[th1d] = new TLegend(0.6075,0.5,0.9,0.934); // (x1,y1,x2,y2)
+    fTH1DLegends[th1d] = new TLegend(0.32,0.7,0.9,0.934); // (x1,y1,x2,y2)
+    fTH1DLegends[th1d]->SetNColumns(2);
     fTH1DLegends[th1d]->SetBorderSize(4);
     fTH1DLegends[th1d]->SetLineColor(kBlack);
-    fTH1DLegends[th1d]->SetTextSize(0.035);//0.03
+    fTH1DLegends[th1d]->SetTextSize(0.03);//0.035
     fTH1DLegends[th1d]->SetLineWidth(2);
   }
 
@@ -642,15 +661,15 @@ void Combiner::InitCanvAndHists(){
     fOutTH1DCanvases[th1d]->cd();
 
     //fOutTH1DStackPads[th1d] = new TPad("","",0,0.3,1.0,0.99);
-    fOutTH1DStackPads[th1d] = new TPad("","",0.01,0.13,0.99,1.);//x1,y1,x2,y2
+    fOutTH1DStackPads[th1d] = new TPad("","",0.01,0.2,0.99,1.);//x1,y1,x2,y2
     fOutTH1DStackPads[th1d]->SetBottomMargin(0); // upper and lower pad are joined
     fOutTH1DStackPads[th1d]->SetRightMargin(0.06); 
     fOutTH1DStackPads[th1d]->SetLeftMargin(0.12); 
 
     //if (fNData > 0){// for lower pad with ratio plot
       //fOutTH1DRatioPads[th1d] = new TPad("","",0,0.05,1.0,0.3);
-      fOutTH1DRatioPads[th1d] = new TPad("","",0.01,0.001,0.99,0.2);//x1,y1,x2,y2
-      fOutTH1DRatioPads[th1d]->SetTopMargin(0);
+      fOutTH1DRatioPads[th1d] = new TPad("","",0.01,0.001,0.99,0.19);//x1,y1,x2,y2
+      fOutTH1DRatioPads[th1d]->SetTopMargin(0.01);
       fOutTH1DRatioPads[th1d]->SetRightMargin(0.06);
       fOutTH1DRatioPads[th1d]->SetLeftMargin(0.12);
       fOutTH1DRatioPads[th1d]->SetBottomMargin(0.4);
@@ -677,7 +696,7 @@ void Combiner::InitTH1DNames(){
   //fTH1DNames.push_back("calometphi");
   //fTH1DNames.push_back("calomet");
 
-  //// photon variables
+  // photon variables
   fTH1DNames.push_back("pt1");
   fTH1DNames.push_back("pt2");     
   fTH1DNames.push_back("eta1");

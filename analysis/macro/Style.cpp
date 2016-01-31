@@ -68,7 +68,7 @@ void CMSLumi(TCanvas *& canvas, const Int_t iPosX, const Double_t inlumi){
   TString extraText      = "Preliminary";
   Double_t extraTextFont = 52;  // default is helvetica-italics
 
-  TString lumiText = Form("%3.1f pb^{-1} (13 TeV)", inlumi);
+  TString lumiText = Form("%1.1f fb^{-1} (13 TeV)", inlumi);
   
   // text sizes and text offsets with respect to the top frame
   // in unit of the top margin size

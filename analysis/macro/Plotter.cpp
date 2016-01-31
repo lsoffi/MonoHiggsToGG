@@ -191,7 +191,7 @@ void Plotter::DoPlots(int prompt){
 
     //start full selection for plots
     if (passMETfil && !weightNegative){ //Data passes MET filters && not a negativeWeight
-      if (mgg >= 100 && mgg < 180 /*&& passBoth*/ && passEV1 && passEV2 /*&&  pt1 > 80 && pt2 > 30*/ /*&& t1pfmet > 50*/ ){
+      if (mgg >= 100 && mgg < 200 /*&& passBoth*/ && passEV1 && passEV2 /*&&  pt1 > 80 && pt2 > 30*/ /*&& t1pfmet > 50*/ ){
         fTH1DMap["eff_sel"]->Fill(1.5,Weight);
         if (hltDiphoton30Mass95==1){ //passes trigger
 

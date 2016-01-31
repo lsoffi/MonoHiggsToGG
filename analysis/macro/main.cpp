@@ -47,14 +47,15 @@ int main(){
   bool doBlind = true;		// use to blind the analysis for Data (don't use distributions for met>100 & 115<mgg<135)
   bool makePURWfiles = false;	// recompute PURW and make files (need also doReweightPU=true for this to run)
   bool doReweightPU = false;	// use PURW from old files if !makePURWfiles
-  bool doPlots = true;		// make plots for each sample individually
+  bool doCompare = false;	// call Comparer (not yet working) 
+
+  bool doPlots = false;		// make plots for each sample individually
   bool doComb = true;		// make stack/overlay plots
   bool doABCD = false;		// run ABCD method 
-  bool doCompare = false;	// call Comparer 
 
-  Double_t lumi =  2245; // in pb^-1 
+  Double_t lumi =  2.2;  // in fb^-1  
+  TString type = "pdf";  // type of plots to be made
   UInt_t nBins_vtx = 60; // number of bins for PURW 
-  TString type = "png"; // type of plots to be made
   
   //////////////////////////////////////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////////////////////////////////
