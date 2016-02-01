@@ -2,8 +2,10 @@
 #run extractJSONS.py for all samples in file
 
 # FLASHgg version 1_0_0 for 25ns
-python extractFilesAndWeight.py -i lists_25ns_v1_1_0/Data/DoubleEG.json		-o DoubleEG		-d lists_25ns_v1_1_0
-python extractFilesAndWeight.py	-i lists_25ns_v1_1_0/MC/ZpZH.json		-o ZpZH			-d lists_25ns_v1_1_0
+#python extractFilesAndWeight.py -i lists_25ns_v1_1_0/Data/DoubleEG.json		-o DoubleEG		-d lists_25ns_v1_1_0
+#python extractFilesAndWeight.py	-i lists_25ns_v1_1_0/MC/ZpZH.json		-o ZpZH			-d lists_25ns_v1_1_0
+python extractFilesAndWeight.py	-i lists_25ns_v1_1_0/MC/ttHJetToGG_M125.json		-o ttHJetToGG		-d lists_25ns_v1_1_0
+python extractFilesAndWeight.py	-i lists_25ns_v1_1_0/MC/VBFHToGG_M-125.json		-o VBFHToGG		-d lists_25ns_v1_1_0
 
 #python extractFilesAndWeight.py -i lists_25ns_v1_1_0/MC/GJet_Pt-20to40.json	-o GJet_Pt-20to40	-d lists_25ns_v1_1_0
 #python extractFilesAndWeight.py -i lists_25ns_v1_1_0/MC/GJet_Pt-40toInf.json	-o GJet_Pt-40toInf	-d lists_25ns_v1_1_0

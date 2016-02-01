@@ -2,9 +2,10 @@
 #run extractJSONS.py for all samples in file
 
 # FLASHgg version 1_0_0 for 25ns: 
-python extractJSONS.py -i datasets/datasets_rereco74x_all-1_1_0-Or-1_2_0-25ns.json	-o DoubleEG 	-d lists_25ns_v1_1_0/Data
-
-python extractJSONS.py -i datasets/datasets_7415_v1-1-0_ZpZH.json	-o ZpZH			-d lists_25ns_v1_1_0/MC
+#python extractJSONS.py -i datasets/datasets_rereco74x_all-1_1_0-Or-1_2_0-25ns.json	-o DoubleEG 	-d lists_25ns_v1_1_0/Data
+#python extractJSONS.py -i datasets/datasets_7415_v1-1-0_ZpZH.json	-o ZpZH			-d lists_25ns_v1_1_0/MC
+python extractJSONS.py -i datasets/datasets_7415_v1-1-0_all.json	-o ttHJetToGG_M125	-d lists_25ns_v1_1_0/MC
+python extractJSONS.py -i datasets/datasets_7415_v1-1-0_all.json	-o VBFHToGG_M-125	-d lists_25ns_v1_1_0/MC
 
 #python extractJSONS.py -i datasets/datasets_7415_v1-1-0_all.json	-o DiPhoton		-d lists_25ns_v1_1_0/MC
 #python extractJSONS.py -i datasets/datasets_7415_v1-1-0_all.json	-o DYJetsToLL		-d lists_25ns_v1_1_0/MC
