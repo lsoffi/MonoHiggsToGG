@@ -453,7 +453,7 @@ void NewDiPhoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
   int hltDiphoton30Mass55PV=-500;
 
   const edm::TriggerNames &triggerNames = iEvent.triggerNames( *triggerBits );
-  vector<std::string> const &names = triggerNames.triggerNames();  
+  //  vector<std::string> const &names = triggerNames.triggerNames();  
   for( unsigned index = 0; index < triggerNames.size(); ++index ) {
     // print out triggers that match "HLT_Photon or HLT_Diphoton" and have "Mass" as well
     //if( (TString::Format((triggerNames.triggerName( index )).c_str())).Contains("HLT_Photon") && (TString::Format((triggerNames.triggerName( index )).c_str())).Contains("Mass")  ) cout << index << " " << triggerNames.triggerName( index ) << " " << triggerBits->accept( index ) << endl;
@@ -854,7 +854,7 @@ void NewDiPhoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
                 int passCHiso1, passCHiso2, passNHiso1, passNHiso2, passPHiso1, passPHiso2, passSieie1, passSieie2, passHoe1, passHoe2;
                 int passTightCHiso1, passTightCHiso2, passTightNHiso1, passTightNHiso2, passTightPHiso1, passTightPHiso2, passTightSieie1, passTightSieie2, passTightHoe1, passTightHoe2;
                 int passLooseCHiso1, passLooseCHiso2, passLooseNHiso1, passLooseNHiso2, passLoosePHiso1, passLoosePHiso2, passLooseSieie1, passLooseSieie2, passLooseHoe1, passLooseHoe2;
-		int nEle, nMuons, nJets, nLooseBjets, nMediumBjets;
+		//		int nEle, nMuons, nJets, nLooseBjets, nMediumBjets;
 		int vhtruth;
 
 		float massCorrSmear, massCorrScale, massRaw;
@@ -1243,7 +1243,7 @@ void NewDiPhoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
 		    }
 		  }
 		}
-	      
+		/*
 		// leptons and jets
 		nEle   = 0;
 		nMuons = 0;
@@ -1307,7 +1307,7 @@ void NewDiPhoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
 		  if( bDiscriminatorValue > 0.679 ) nMediumBjets++;       // hardcoded
 		  
 		} // loop over jets
-
+		*/
 		// Variables for the tree
 		treeDipho_.hltPhoton26Photon16Mass60=hltPhoton26Photon16Mass60;
 		treeDipho_.hltPhoton36Photon22Mass15=hltPhoton36Photon22Mass15;
@@ -1419,11 +1419,11 @@ void NewDiPhoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
 		treeDipho_.passLooseSieie2 = passLooseSieie2;
 		treeDipho_.passLooseHoe1 = passLooseHoe1;
 		treeDipho_.passLooseHoe2 = passLooseHoe2;	
-		treeDipho_.nEle   = nEle;
+		/*	treeDipho_.nEle   = nEle;
 		treeDipho_.nMuons = nMuons;
 		treeDipho_.nJets  = nJets;
 		treeDipho_.nLooseBjets  = nLooseBjets;
-		treeDipho_.nMediumBjets = nMediumBjets;
+		treeDipho_.nMediumBjets = nMediumBjets;*/
 		treeDipho_.vhtruth = vhtruth;
 		treeDipho_.metF_GV = metF_GV;
 		treeDipho_.metF_HBHENoise = metF_HBHENoise;
