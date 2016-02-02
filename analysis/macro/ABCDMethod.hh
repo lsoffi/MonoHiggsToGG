@@ -41,6 +41,7 @@ public:
   ABCDMethod(const SamplePairVec Samples, const Double_t inLumi, const TString outname, Bool_t Blind);
   void DoAnalysis();
   Double_t ComputeIntAndErr(TH2D *& h, Double_t & error, const UInt_t minX, const UInt_t maxX, const UInt_t minY, const UInt_t maxY);
+  Double_t ComputeIntAndErr1D(TH1D *& h, Double_t & error, const UInt_t minX, const UInt_t maxX);
   void GetFinalValuesForABCDReg();
   void DoABCDCalculations();
   Double_t FindDiff(const Double_t NA, const Double_t NB, const Double_t NC, const Double_t ND);
@@ -60,6 +61,8 @@ private:
   UInt_t	i_gg;
   UInt_t	i_gj;
   UInt_t	i_dy;
+  UInt_t	i_tth;
+  UInt_t	i_vbf;
 
   Double_t	mgg_minAB1;
   Double_t	mgg_minCD;
@@ -132,6 +135,10 @@ private:
   TH1DVecVec	fInDataTH1DHists;
   TH1DVecVec	fInBkgTH1DHists;
   TH1DVecVec	fInSigTH1DHists;
+
+  TH1DVec	fOutDataTH1DHists; 
+  TH1DVec	fOutBkgTH1DHists;
+  TH1DVec	fOutSelBkgTH1DHists;
 
   TH2DVecVec	fInDataTH2DHists;
   TH2DVecVec	fInBkgTH2DHists;

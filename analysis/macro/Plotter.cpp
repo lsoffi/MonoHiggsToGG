@@ -176,12 +176,13 @@ void Plotter::DoPlots(int prompt){
     Bool_t weightNegative = false;
     if (Weight <= 0) weightNegative = true;
 
-    if ((passMETfil || !passMETfil) && !weightNegative && mgg >= 100 && mgg < 200 && passBoth && hltDiphoton30Mass95==1){
-      if (isData && doBlind){
-       if (t1pfmet < 100) fTH1DMap["t1pfmet_zoom_wofil"]->Fill(t1pfmet,Weight);
-      }
-      else fTH1DMap["t1pfmet_zoom_wofil"]->Fill(t1pfmet,Weight);
-    }
+    //if ((passMETfil || !passMETfil) && !weightNegative && mgg >= 100 && mgg < 200 && passBoth && hltDiphoton30Mass95==1){
+    //  if (isData && doBlind){
+    //   if (t1pfmet < 100) fTH1DMap["t1pfmet_zoom_wofil"]->Fill(t1pfmet,Weight);
+    //  }
+    //  else fTH1DMap["t1pfmet_zoom_wofil"]->Fill(t1pfmet,Weight);
+    //}
+
     if (mgg < 100 || mgg >= 180) numOutOfMggRange++;
     if (weightNegative) numNegativeWeight++;
     if (!passEV1 || !passEV2) numFailEV++;
@@ -191,7 +192,7 @@ void Plotter::DoPlots(int prompt){
 
     //start full selection for plots
     if (passMETfil && !weightNegative){ //Data passes MET filters && not a negativeWeight
-      if (mgg >= 100 && mgg < 200 /*&& passBoth*/ && passEV1 && passEV2 /*&&  pt1 > 80 && pt2 > 30*/ /*&& t1pfmet > 50*/ ){
+      if (mgg >= 100 && mgg < 180 && passBoth &&  pt1 > 0.65*mgg && pt2 > 0.25*mgg & t1pfmet > 80 ){
         fTH1DMap["eff_sel"]->Fill(1.5,Weight);
         if (hltDiphoton30Mass95==1){ //passes trigger
 
@@ -574,7 +575,7 @@ void Plotter::SetUpPlots(){
   fTH1DMap["phi1_pho2pass"]     = Plotter::MakeTH1DPlot("phi1_pho2pass","",80,-4.,4.,"","");
   fTH1DMap["phi2_pho1pass"]     = Plotter::MakeTH1DPlot("phi2_pho1pass","",80,-4.,4.,"","");
   fTH1DMap["t1pfmet_zoom"]	= Plotter::MakeTH1DPlot("t1pfmet_zoom","",60,0.,300.,"t1PF MET (GeV)","");
-  fTH1DMap["t1pfmet_zoom_wofil"]= Plotter::MakeTH1DPlot("t1pfmet_zoom_wofil","",60,0.,300.,"t1PF MET (GeV)","");
+  //fTH1DMap["t1pfmet_zoom_wofil"]= Plotter::MakeTH1DPlot("t1pfmet_zoom_wofil","",60,0.,300.,"t1PF MET (GeV)","");
   fTH1DMap["deta_gg"]		= Plotter::MakeTH1DPlot("deta_gg","",20,-3.,3.,"#Delta#eta(#gamma#gamma)","");
   fTH1DMap["absdeta_gg"]	= Plotter::MakeTH1DPlot("absdeta_gg","",20,0.,3.,"|#Delta#eta(#gamma#gamma)|","");
   fTH1DMap["ptgg_selt1pfmet"]	= Plotter::MakeTH1DPlot("ptgg_selt1pfmet","",60,0.,600.,"p_{T,#gamma#gamma} (GeV)","");
