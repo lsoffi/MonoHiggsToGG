@@ -165,7 +165,11 @@ void addWeights(const char* filename, float lumiForW, float massTrue=1) {
   Float_t         massRaw;
   Float_t         mva1;
   Float_t         mva2;
-  
+  Int_t		  genZ;
+  Float_t	  ptZ;
+  Float_t	  etaZ;
+  Float_t	  phiZ; 
+ 
   // List of branches - original tree
   TBranch        *b_run; 
   TBranch        *b_event;
@@ -283,7 +287,10 @@ void addWeights(const char* filename, float lumiForW, float massTrue=1) {
   TBranch        *b_massRaw;   //!
   TBranch        *b_mva1;   //!
   TBranch        *b_mva2;   //!
-
+  TBranch	 *b_genZ;
+  TBranch	 *b_ptZ;
+  TBranch	 *b_etaZ;
+  TBranch	 *b_phiZ;
 
   // Set branch addresses and branch pointers 
   treeOrig->SetBranchAddress("run", &run, &b_run);
@@ -402,6 +409,10 @@ void addWeights(const char* filename, float lumiForW, float massTrue=1) {
   treeOrig->SetBranchAddress("massRaw", &massRaw, &b_massRaw);
   treeOrig->SetBranchAddress("mva1", &mva1, &b_mva1);
   treeOrig->SetBranchAddress("mva2", &mva2, &b_mva2);
+  treeOrig->SetBranchAddress("genZ", &genZ, &b_genZ);
+  treeOrig->SetBranchAddress("ptZ", &ptZ, &b_ptZ);
+  treeOrig->SetBranchAddress("etaZ", &etaZ, &b_etaZ);
+  treeOrig->SetBranchAddress("phiZ", &phiZ, &b_phiZ);
 
   // new variables to be added
   Float_t xsecWeight;
@@ -537,6 +548,10 @@ void addWeights(const char* filename, float lumiForW, float massTrue=1) {
     theTreeNew->Branch("massRaw", &massRaw, "b_massRaw/F");
     theTreeNew->Branch("mva1", &mva1, "b_mva1/F");
     theTreeNew->Branch("mva2", &mva2, "b_mva2/F");
+    theTreeNew->Branch("genZ", &genZ, "b_genZ/I");
+    theTreeNew->Branch("ptZ", &ptZ, "b_ptZ/F");
+    theTreeNew->Branch("etaZ", &etaZ, "b_etaZ/F");
+    theTreeNew->Branch("phiZ", &phiZ, "b_phiZ/F");
   }
   
   for(int i=0; i<nentriesOrig; i++) {

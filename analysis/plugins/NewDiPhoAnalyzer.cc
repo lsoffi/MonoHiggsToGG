@@ -216,6 +216,8 @@ struct diphoTree_struc_ {
   float massRaw;
   int genZ;
   float ptZ;
+  float etaZ;
+  float phiZ;
 };
 
 
@@ -861,7 +863,7 @@ void NewDiPhoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
 		float massCorrSmearScaleUp, massCorrSmearScaleDown;
 
 		int genZ;
-		float ptZ;
+		float ptZ, etaZ, phiZ;
 
 		// fully selected event: tree re-initialization                                                                          
 		initTreeStructure();        
@@ -1173,31 +1175,16 @@ void NewDiPhoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
 		// Margaret added for Z'->ZH comparisons with SM ZH
 		genZ = -1;
 		ptZ  = -999.;
+		etaZ = -999.;
+		phiZ = -999.;
 		if (sampleID==11 || sampleID==20){ //VH or ZpZH
-		  //std::cout << "sampleID " << sampleID << std::endl;
 		  for (unsigned int genLoop = 0; genLoop < genParticles->size(); genLoop++){
-		    if (genParticles->ptrAt( genLoop )->mother(0)){
-		      int mothid = fabs(genParticles->ptrAt( genLoop )->mother(0)->pdgId()); 
-		      int daugid = fabs(genParticles->ptrAt( genLoop )->pdgId());
-		      std::cout << "mothid " << mothid << " daugid " << daugid << std::endl;
-		      if (daugid==23){
-			unsigned int numDaugh = genParticles->ptrAt( genLoop )->mother(0)->numberOfDaughters();
-			std::cout << "number daughters " << numDaugh << std::endl; 
-			bool otherDaughIsHiggs = false;
-			for (unsigned int daugLoop = 0; daugLoop < numDaugh; daugLoop++){
-			  std::cout << "daug ID = " << fabs(genParticles->ptrAt ( genLoop )->mother(0)->daughter( daugLoop )->pdgId()) << std::endl;
-			  if (fabs(genParticles->ptrAt ( genLoop )->mother(0)->daughter( daugLoop )->pdgId()) == 25) otherDaughIsHiggs = true;  
-			}
-			std::cout << "otherDaughIsHiggs " << otherDaughIsHiggs<< std::endl;
-		      } 
-		      //std::cout << "daug1id " << daug1id << " daug2id " << daug2id << std::endl;
-		      if (mothid==23){ // only interested in Z events
-		        genZ = 1;// Z event
-		        if (daugid==12 || daugid==14 || daugid==16){// if Z decays to neutrinos
-
-		          ptZ = genParticles->ptrAt( genLoop )->mother(0)->pt();// for these events store the pt of the Z
-		        }
-		      }
+		    int thePdgId = fabs(genParticles->ptrAt( genLoop )->pdgId()); 
+		    if (thePdgId==23){ // Z boson
+		      genZ = 1;
+		      ptZ = genParticles->ptrAt( genLoop )->pt();
+		      etaZ = genParticles->ptrAt( genLoop )->eta();
+		      phiZ = genParticles->ptrAt( genLoop )->phi();
 		    }
 		  }
 		}
@@ -1437,6 +1424,8 @@ void NewDiPhoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
 		treeDipho_.massRaw = massRaw;
 		treeDipho_.genZ	= genZ;
 		treeDipho_.ptZ = ptZ;
+		treeDipho_.etaZ = etaZ;
+		treeDipho_.phiZ = phiZ;
 	
 		// Filling the trees
 		DiPhotonTree->Fill();
@@ -1615,6 +1604,8 @@ void NewDiPhoAnalyzer::beginJob() {
   DiPhotonTree->Branch("massRaw",&(treeDipho_.massRaw),"massRaw/F");
   DiPhotonTree->Branch("genZ",&(treeDipho_.genZ),"genZ/I");
   DiPhotonTree->Branch("ptZ",&(treeDipho_.ptZ),"ptZ/F");
+  DiPhotonTree->Branch("etaZ",&(treeDipho_.etaZ),"etaZ/F");
+  DiPhotonTree->Branch("phiZ",&(treeDipho_.phiZ),"phiZ/F");
 }
 
 void NewDiPhoAnalyzer::endJob() { }
@@ -1749,6 +1740,8 @@ void NewDiPhoAnalyzer::initTreeStructure() {
   treeDipho_.massRaw = -500;
   treeDipho_.genZ = -500;
   treeDipho_.ptZ = -500;
+  treeDipho_.etaZ = -500;
+  treeDipho_.phiZ = -500;
 }
 
 void NewDiPhoAnalyzer::SetPuWeights(std::string puWeightFile) {

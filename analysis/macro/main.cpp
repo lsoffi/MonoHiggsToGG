@@ -39,8 +39,12 @@ int main(){
   //////////////////////////////////////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////////////////////////////////
 
-  TString inDir = "data/25ns_v1-1-0_ReReco_FullStat/"; 		// input directory of the samples
-  TString outDir = "./diPhoPlots/25ns_v1-1-0_ReReco_FullStat/";	// output directory to send results
+  TString inDir = "data/25ns_v1-1-0_ReReco_FullStat/"; 			// input directory of the samples
+  TString outDir = "./diPhoPlots/25ns_v1-1-0_ReReco_FullStat_OptSel_woMETcut/";	// output directory to send results
+
+  bool doPlots = false;		// make plots for each sample individually
+  bool doComb = false;		// make stack/overlay plots
+  bool doABCD = true;		// run ABCD method, NB: it crashes first time making output file but will run fine next time - this should be fixed. 
 
   bool doFakeData = false;	// use FakeData to test combiner (mimicks data)
   bool sortMC = false;		// use if want to sort bkg smallest to biggest, else uses order given
@@ -49,9 +53,6 @@ int main(){
   bool doReweightPU = false;	// use PURW from old files if !makePURWfiles
   bool doCompare = false;	// call Comparer (not yet working) 
 
-  bool doPlots = false;		// make plots for each sample individually
-  bool doComb = true;		// make stack/overlay plots
-  bool doABCD = false;		// run ABCD method 
 
   Double_t lumi =  2.2;  // in fb^-1  
   TString type = "pdf";  // type of plots to be made
@@ -218,12 +219,24 @@ int main(){
     GGHGG->DoPlots(0);
     delete GGHGG;
     std::cout << "Finished GluGluH sample" << std::endl;
+
+    std::cout << "Working on ttHJetsToGG sample" << std::endl;
+    Plotter * ttH = new Plotter(inDir,outDir,"ttHJetsToGG",puweights_MC,lumi,false,doBlind,type);
+    ttH->DoPlots(0);
+    delete ttH;
+    std::cout << "Finished ttHJetsToGG sample" << std::endl;
+
+    std::cout << "Working on VBFHToGG sample" << std::endl;
+    Plotter * VBF = new Plotter(inDir,outDir,"VBFHToGG",puweights_MC,lumi,false,doBlind,type);
+    VBF->DoPlots(0);
+    delete VBF;
+    std::cout << "Finished VBFHToGG sample" << std::endl;
   
     std::cout << "Working on DiPhoton sample" << std::endl;
     Plotter * GG = new Plotter(inDir,outDir,"DiPhoton",puweights_MC,lumi,false,doBlind,type);
     GG->DoPlots(0);
     delete GG;
-    std::cout << "Finished GluGluH sample" << std::endl;
+    std::cout << "Finished DiPhoton sample" << std::endl;
 
     std::cout << "Working on DYJets sample" << std::endl;
     Plotter * DY = new Plotter(inDir,outDir,"DYJetsToLL",puweights_MC,lumi,false,doBlind,type);
@@ -312,6 +325,8 @@ int main(){
   colorMap["GJets"] 			= kGreen-9;
   colorMap["VH"]			= kOrange-3;
   colorMap["GluGluHToGG"]		= kOrange-2;
+  colorMap["ttHJetsToGG"]		= kOrange-4;
+  colorMap["VBFHToGG"]			= kYellow-7;
   colorMap["DiPhoton"]			= kTeal-1;
   colorMap["DYJetsToLL"]		= kTeal-7;
   colorMap["DMHtoGG_M1"]		= kPink-2;
@@ -325,13 +340,15 @@ int main(){
   colorMap["2HDM_mZP1000"]		= kMagenta;
   colorMap["2HDM_mZP1200"]		= kPink-6;
   colorMap["2HDM_mZP1400"]		= kPink+4;
-  colorMap["2HDM_mZP1700"]		= kPink+6;
+  colorMap["2HDM_mZP1700"]		= kMagenta-2;
   //colorMap["2HDM_mZP2000"]		= kPink-1;
-  colorMap["2HDM_mZP2500"]		= kPink+8;
+  colorMap["2HDM_mZP2500"]		= kMagenta+2;
 
   SamplePairVec Samples; // vector to also be used for stack plots
   //ordered to match Livia
+  Samples.push_back(SamplePair("ttHJetsToGG",1)); 
   Samples.push_back(SamplePair("VH",1));
+  Samples.push_back(SamplePair("VBFHToGG",1)); 
   Samples.push_back(SamplePair("GluGluHToGG",1)); 
   Samples.push_back(SamplePair("DYJetsToLL",1));
   Samples.push_back(SamplePair("QCD",1)); 
