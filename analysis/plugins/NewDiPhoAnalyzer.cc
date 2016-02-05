@@ -212,8 +212,8 @@ struct diphoTree_struc_ {
   int metF_CSC;
   int metF_eeBadSC;
   float massCorrSmear; 
-  float massCorrSmearScaleUp; 
-  float massCorrSmearScaleDown; 
+  float massCorrSmearUp; 
+  float massCorrSmearDown; 
   float massCorrScale;
   float massRaw;
   int genZ;
@@ -340,6 +340,8 @@ private:
   Int_t preselAccLivia;
   Int_t preselHoELivia;
   Int_t preselIsoLivia;
+  Int_t preselIsoRelLivia;
+  Int_t preselR9Livia;
   Int_t selLivia;
   Int_t kinLivia;
   Int_t kinScalLivia;
@@ -385,13 +387,16 @@ NewDiPhoAnalyzer::~NewDiPhoAnalyzer() {
   std::cout<<"tot:    "<<totLivia<<std::endl;
   std::cout<<"trig:   "<<trigLivia<<std::endl;
   std::cout<<"onereco:   "<<onerecoLivia<<std::endl;
-  std::cout<<"notrig:   "<<notrigLivia<<std::endl;
+  /*  std::cout<<"notrig:   "<<notrigLivia<<std::endl;
   std::cout<<"nomasstrig:   "<<notrigLivia<<std::endl;
   std::cout<<"noleadtrig:   "<<notrigLivia<<std::endl;
-  std::cout<<"nosubleadtrig:   "<<notrigLivia<<std::endl;
+  std::cout<<"nosubleadtrig:   "<<notrigLivia<<std::endl;*/
   std::cout<<"Acc: "<<preselAccLivia<<std::endl;
+  std::cout<<"r9: "<<preselR9Livia<<std::endl;
   std::cout<<"Iso: "<<preselIsoLivia<<std::endl;
+  std::cout<<"IsoRel: "<<preselIsoRelLivia<<std::endl;
   std::cout<<"HoE: "<<preselHoELivia<<std::endl;
+  std::cout<<"presel:    "<<preselLivia<<std::endl;
   std::cout<<"sel:    "<<selLivia<<std::endl;
   std::cout<<"kin:    "<<kinLivia<<std::endl;
   std::cout<<"kin_scaling:    "<<kinScalLivia<<std::endl;
@@ -612,16 +617,16 @@ void NewDiPhoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
   // Loop over diphoton candidates
   if (diPhotons->size()>0) {
     onerecoLivia++;
-    // smearing of MC  #comment from livia: apply scale and smearing before everything
-
   
     // Diphoton candidates: preselection
     vector<int> preselDipho;
     vector<int> preselDiphoAcc;
+    vector<int> preselDiphoR9;
     vector<int> preselDiphoIso;
+    vector<int> preselDiphoIsoRel;
     vector<int> preselDiphoHoE;
-    if(diPhotons->size()>1)std::cout<<diPhotons->size()<<std::endl;
-    for( size_t diphotonlooper = 0; diphotonlooper < diPhotons->size(); diphotonlooper++ ) {
+    
+    for( size_t diphotonlooper = 0; diphotonlooper < diPhotons->size() /*&& diphotonlooper < 1*/; diphotonlooper++ ) {
 
       Ptr<flashgg::DiPhotonCandidate> diphoPtr = diPhotons->ptrAt( diphotonlooper );      
       
@@ -648,34 +653,44 @@ void NewDiPhoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
       passesLeadTrigSel = LeadPhoTriggerSel(leadScEta,leadHoE,leadR9noZS,leadSieie,leadPhIso,leadPt); 
       passesSubLeadTrigSel = SubLeadPhoTriggerSel(subleadScEta,subleadHoE,subleadR9noZS,subleadSieie,subleadPhIso,subleadChIsoNoRho,subleadPt); 
       float diPhoMass = diphoPtr->mass(); 
-      /* if (diPhoMass >= 95.0) passesMassTrigSel = true;
+       if (diPhoMass >= 95.0) passesMassTrigSel = true;
       if (passesMassTrigSel && passesLeadTrigSel && passesSubLeadTrigSel) passesTrigger = true; 
       if(leadPresel && subleadPresel && passesTrigger==0)notrigLivia++;
       if(leadPresel && subleadPresel && passesMassTrigSel==0)nomasstrigLivia++;
       if(leadPresel && subleadPresel && passesLeadTrigSel==0)noleadtrigLivia++;
-      if(leadPresel && subleadPresel && passesSubLeadTrigSel==0)nosubleadtrigLivia++;*/
+      if(leadPresel && subleadPresel && passesSubLeadTrigSel==0)nosubleadtrigLivia++;
      
-      // if(abs(leadScEta)<2.5 && abs(subleadScEta)<2.5 && (abs(leadScEta)<1.4442 || abs(leadScEta)>1.566 ) && (abs(subleadScEta)<1.4442 || abs(subleadScEta)>1.566 )){
+      //excercise for syncronyzation livia 
       if(geometrical_acceptance(leadScEta,subleadScEta)){
 	preselDiphoAcc.push_back(diphotonlooper);
-	if(subleadR9noZS>0.8 && leadR9noZS>0.8 && subleadChIso<20 && leadChIso < 20 && subleadChIso/subleadPt < 0.3 && leadChIso/leadPt < 0.3){
-	  preselDiphoIso.push_back(diphotonlooper);
-	  if(subleadHoE <0.8 && leadHoE< 0.8){
-	    preselDiphoHoE.push_back(diphotonlooper);
+	if(subleadR9noZS>0.8 && leadR9noZS>0.8){
+	  preselDiphoR9.push_back(diphotonlooper);
+	  if(subleadChIso<20 && leadChIso < 20){
+	    preselDiphoIso.push_back(diphotonlooper);
+	    if(subleadChIso/subleadPt < 0.3 && leadChIso/leadPt < 0.3){
+	      preselDiphoIsoRel.push_back(diphotonlooper);
+	      if(subleadHoE <0.8 && leadHoE< 0.8){
+		preselDiphoHoE.push_back(diphotonlooper);
+	      }
+	    }
 	  }
 	}
       }
       if (/*!passesTrigger ||*/ !leadPresel || !subleadPresel) continue;   
       preselDipho.push_back(diphotonlooper);
-
-     
-
     }
+     //excercise for synchronyzation livia 
     if (preselDiphoAcc.size()>0) {
       preselAccLivia++;
     }
+    if (preselDiphoR9.size()>0) {
+      preselR9Livia++;
+    }
     if (preselDiphoIso.size()>0) {
       preselIsoLivia++;
+    }
+    if (preselDiphoIsoRel.size()>0) {
+      preselIsoRelLivia++;
     }
     if (preselDiphoHoE.size()>0) {
       preselHoELivia++;
@@ -774,7 +789,20 @@ void NewDiPhoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
 	if (leadTightSelel || subleadTightSelel) numpassing++;
 	if (leadLooseSelel || subleadLooseSelel) numpassingloose++;
 
-	if (!leadLooseSelel || !subleadLooseSelel ) continue; //Livia Correction: applies pho ID selection 
+	if (!leadLooseSelel || !subleadLooseSelel ) continue; //loose cut based id
+	
+	// ADDED MVA PHOTON SELECTION
+	// MVA values come from FLASHgg and replace the Cut-Based Photon ID	
+	/*float leadMVA     = diphoPtr->leadingPhoton()->phoIdMvaDWrtVtx(diphoPtr->vtx());
+	float subleadMVA     = diphoPtr->subLeadingPhoton()->phoIdMvaDWrtVtx(diphoPtr->vtx());
+	
+	bool leadMVASel = false;
+	if (leadMVA > -0.9) leadMVASel = true;
+	bool subleadMVASel = false;
+	if (subleadMVA > -0.9) subleadMVASel = true;
+	*/
+	//if (!leadMVASel || !subleadMVASel) continue;
+
 
 	selectedDipho.push_back(theDiphoton);    
       }
@@ -818,19 +846,29 @@ void NewDiPhoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
 	    int theDiphoton = kineDipho[diphotonlooper];
 	    Ptr<flashgg::DiPhotonCandidate> diphoPtr = diPhotons->ptrAt( theDiphoton );
 	    
-	    float thisSystemMgg = diphoPtr->mass();
+	    //float thisSystemMgg = diphoPtr->mass();
 
-	    if (thisSystemMgg<50 ) continue; 
+	   
 	    float leadR9noZS = diphoPtr->leadingPhoton()->full5x5_r9();
 	    float leadScEta  = (diphoPtr->leadingPhoton()->superCluster())->eta();   	
+	    float leadPhi  = diphoPtr->leadingPhoton()->phi();   	
 	    float leadPt     = getPtCorrected(diphoPtr->leadingPhoton()->et(), leadScEta,leadR9noZS, run, sampleID);
 	 
 	    float subleadR9noZS = diphoPtr->subLeadingPhoton()->full5x5_r9();
 	    float subleadScEta  = (diphoPtr->subLeadingPhoton()->superCluster())->eta();   	
+	    float subleadPhi  = diphoPtr->subLeadingPhoton()->phi();   	
 	    float subleadPt     = getPtCorrected(diphoPtr->subLeadingPhoton()->et(), subleadScEta,subleadR9noZS, run, sampleID);
       
+	    TLorentzVector* p1=new TLorentzVector(0,0,0,0);;
+	    TLorentzVector* p2=new TLorentzVector(0,0,0,0);;
+	    p1->SetPtEtaPhiM(leadPt,diphoPtr->leadingPhoton()->eta() , leadPhi, 0);
+	    p2->SetPtEtaPhiM(subleadPt, diphoPtr->subLeadingPhoton()->eta(), subleadPhi, 0);
+	    float thisSystemMggCorr = (*p1+*p2).M();
 
-	    if (leadPt< thisSystemMgg/3 || subleadPt<thisSystemMgg/4) continue; //Livia correction: add scaling pt cuts
+	
+
+	    if (thisSystemMggCorr<50 ) continue; 
+	    if (leadPt< thisSystemMggCorr/3 || subleadPt<thisSystemMggCorr/4) continue; //Livia correction: add scaling pt cuts
 
 	    massDipho.push_back(theDiphoton);
 	  }
@@ -907,7 +945,7 @@ void NewDiPhoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
 		int vhtruth;
 
 		float massCorrSmear, massCorrScale, massRaw;
-		float massCorrSmearScaleUp, massCorrSmearScaleDown;
+		float massCorrSmearUp, massCorrSmearDown;
 
 		int genZ;
 		float ptZ;
@@ -978,22 +1016,20 @@ void NewDiPhoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
 		float subleadSmearing	= getSmearingValue( sceta2, r92 );
 
 		float gaussMean		= 1.0;
-                float gaussMeanScaleUp  = 1.01;
-		float gaussMeanScaleDown= 0.99; 
-		
+              	
 		TRandom Rand1(event);
 		float Smear1 		= Rand1.Gaus(gaussMean,leadSmearing);
-		float Smear1ScaleUp	= Rand1.Gaus(gaussMeanScaleUp,leadSmearing);
-		float Smear1ScaleDown	= Rand1.Gaus(gaussMeanScaleDown,leadSmearing);
+		float Smear1Up         	= Rand1.Gaus(gaussMean,leadSmearing*1.05);
+		float Smear1Down	= Rand1.Gaus(gaussMean,leadSmearing*1.05);
 
 		TRandom Rand2(event+83941);
 		float Smear2 		= Rand2.Gaus(gaussMean,subleadSmearing);
-		float Smear2ScaleUp	= Rand2.Gaus(gaussMeanScaleUp,subleadSmearing);
-		float Smear2ScaleDown	= Rand2.Gaus(gaussMeanScaleDown,subleadSmearing);
+		float Smear2Up	        = Rand2.Gaus(gaussMean,subleadSmearing*0.95);
+		float Smear2Down	= Rand2.Gaus(gaussMean,subleadSmearing*0.95);
 
 		massCorrSmear		= massRaw*sqrt(Smear1*Smear2);
-		massCorrSmearScaleUp	= massRaw*sqrt(Smear1ScaleUp*Smear2ScaleUp);
-		massCorrSmearScaleDown	= massRaw*sqrt(Smear1ScaleDown*Smear2ScaleDown);
+		massCorrSmearUp	        = massRaw*sqrt(Smear1Up*Smear2Up);
+		massCorrSmearDown	= massRaw*sqrt(Smear1Down*Smear2Down);
 
 		// scaling of Data
 		float leadScaling	= getScalingValue( sceta1, r91, run);
@@ -1427,8 +1463,8 @@ void NewDiPhoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
 		treeDipho_.metF_CSC = metF_CSC;
 		treeDipho_.metF_eeBadSC = metF_eeBadSC;
 		treeDipho_.massCorrSmear = massCorrSmear;
-		treeDipho_.massCorrSmearScaleUp = massCorrSmearScaleUp;
-		treeDipho_.massCorrSmearScaleDown = massCorrSmearScaleDown;
+		treeDipho_.massCorrSmearUp = massCorrSmearUp;
+		treeDipho_.massCorrSmearDown = massCorrSmearDown;
 		treeDipho_.massCorrScale = massCorrScale;
 		treeDipho_.massRaw = massRaw;
 		treeDipho_.genZ	= genZ;
@@ -1617,8 +1653,8 @@ void NewDiPhoAnalyzer::beginJob() {
   DiPhotonTree->Branch("metF_CSC",&(treeDipho_.metF_CSC),"metF_CSC/I");
   DiPhotonTree->Branch("metF_eeBadSC",&(treeDipho_.metF_eeBadSC),"metF_eeBadSC/I");
   DiPhotonTree->Branch("massCorrSmear",&(treeDipho_.massCorrSmear),"massCorrSmear/F");
-  DiPhotonTree->Branch("massCorrSmearScaleUp",&(treeDipho_.massCorrSmearScaleUp),"massCorrSmearScaleUp/F");
-  DiPhotonTree->Branch("massCorrSmearScaleDown",&(treeDipho_.massCorrSmearScaleDown),"massCorrSmearScaleDown/F");
+  DiPhotonTree->Branch("massCorrSmearUp",&(treeDipho_.massCorrSmearUp),"massCorrSmearUp/F");
+  DiPhotonTree->Branch("massCorrSmearDown",&(treeDipho_.massCorrSmearDown),"massCorrSmearDown/F");
   DiPhotonTree->Branch("massCorrScale",&(treeDipho_.massCorrScale),"massCorrScale/F");
   DiPhotonTree->Branch("massRaw",&(treeDipho_.massRaw),"massRaw/F");
   DiPhotonTree->Branch("genZ",&(treeDipho_.genZ),"genZ/I");
@@ -1751,8 +1787,8 @@ void NewDiPhoAnalyzer::initTreeStructure() {
   treeDipho_.metF_CSC = -500;
   treeDipho_.metF_eeBadSC = -500;
   treeDipho_.massCorrSmear = -500;
-  treeDipho_.massCorrSmearScaleUp = -500;
-  treeDipho_.massCorrSmearScaleDown = -500;
+  treeDipho_.massCorrSmearUp = -500;
+  treeDipho_.massCorrSmearDown = -500;
   treeDipho_.massCorrScale = -500;
   treeDipho_.massRaw = -500;
   treeDipho_.genZ = -500;
