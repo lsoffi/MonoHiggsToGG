@@ -28,7 +28,7 @@ ABCDMethod::ABCDMethod( SamplePairVec Samples, const Double_t inLumi, const TStr
   fSampleTitleMap["DYJetsToLL"]		= "Drell-Yan";
   fSampleTitleMap["GluGluHToGG"]	= "$H \\rightarrow \\gamma \\gamma$ (ggH)";
   fSampleTitleMap["DiPhoton"]		= "$\\gamma\\gamma$";
-  fSampleTitleMap["ttHJetsToGG"]	= "tt $\\rightarrow H \\rightarrow \\gamma\\gamma$";
+  fSampleTitleMap["ttHJetToGG"]		= "tt $\\rightarrow H \\rightarrow \\gamma\\gamma$";
   fSampleTitleMap["VBFHToGG"]		= "VBF $H \\rightarrow \\gamma\\gamma$";
   //fSampleTitleMap["DMHtoGG_M1"]	= "$\\bar{\\chi}\\chi HH, m_{\\chi}$ = 1 GeV (10 fb)";
   //fSampleTitleMap["DMHtoGG_M10"]	= "$\\bar{\\chi}\\chi HH, m_{\\chi}$ = 10 GeV (10 fb)";
@@ -131,7 +131,7 @@ void ABCDMethod::DoAnalysis(){
   fSampleTitleMap["VH"]			= "V + H";
   fSampleTitleMap["DYJetsToLL"]		= "Drell-Yan";
   fSampleTitleMap["GluGluHToGG"]	= "$H \\rightarrow \\gamma \\gamma$ (ggH)";
-  fSampleTitleMap["ttHJetsToGG"]	= "tt $\\rightarrow H \\rightarrow \\gamma\\gamma$";
+  fSampleTitleMap["ttHJetToGG"]		= "tt $\\rightarrow H \\rightarrow \\gamma\\gamma$";
   fSampleTitleMap["VBFHToGG"]		= "VBF $H \\rightarrow \\gamma\\gamma$";
 
   // find indices for the different bkg samples
@@ -142,7 +142,7 @@ void ABCDMethod::DoAnalysis(){
     if (fBkgNames[mc] == "GJets")	i_gj  = mc;
     if (fBkgNames[mc] == "DYJetsToLL")  i_dy  = mc;
     if (fBkgNames[mc] == "GluGluHToGG") i_hgg = mc;
-    if (fBkgNames[mc] == "ttHJetsToGG") i_tth = mc;
+    if (fBkgNames[mc] == "ttHJetToGG")  i_tth = mc;
     if (fBkgNames[mc] == "VBFHToGG")    i_vbf = mc;
   }
 

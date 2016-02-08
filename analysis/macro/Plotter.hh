@@ -126,6 +126,26 @@ private:
   Int_t		passSieie2;
   Int_t		passHoe1;
   Int_t		passHoe2;
+  Int_t         passLooseCHiso1;
+  Int_t         passLooseCHiso2;
+  Int_t         passLooseNHiso1;
+  Int_t         passLooseNHiso2;
+  Int_t         passLoosePHiso1;
+  Int_t         passLoosePHiso2;
+  Int_t         passLooseSieie1;
+  Int_t         passLooseSieie2;
+  Int_t         passLooseHoe1;
+  Int_t         passLooseHoe2;
+  Int_t         passTightCHiso1;
+  Int_t         passTightCHiso2;
+  Int_t         passTightNHiso1;
+  Int_t         passTightNHiso2;
+  Int_t         passTightPHiso1;
+  Int_t         passTightPHiso2;
+  Int_t         passTightSieie1;
+  Int_t         passTightSieie2;
+  Int_t         passTightHoe1;
+  Int_t         passTightHoe2;
   Int_t 	eleveto1;
   Int_t 	eleveto2;
   Int_t		sel1;
@@ -155,12 +175,16 @@ private:
   Float_t       higgsVtxY;
   Float_t       higgsVtxZ;
   Float_t       massCorrSmear;
-  Float_t       massCorrSmearScaleUp;
-  Float_t       massCorrSmearScaleDown;
+  Float_t       massCorrSmearUp;
+  Float_t       massCorrSmearDown;
   Float_t       massCorrScale;
   Float_t       massRaw;
   Float_t       mva1;
   Float_t       mva2;
+  Int_t         genZ;
+  Float_t       ptZ;
+  Float_t       etaZ;
+  Float_t       phiZ;
 
 
   // branches
@@ -207,6 +231,26 @@ private:
   TBranch	*b_passSieie2;
   TBranch	*b_passHoe1;
   TBranch	*b_passHoe2;
+  TBranch       *b_passLooseCHiso1;   //!
+  TBranch       *b_passLooseCHiso2;   //!
+  TBranch       *b_passLooseNHiso1;   //!
+  TBranch       *b_passLooseNHiso2;   //!
+  TBranch       *b_passLoosePHiso1;   //!
+  TBranch       *b_passLoosePHiso2;   //!
+  TBranch       *b_passLooseSieie1;   //!
+  TBranch       *b_passLooseSieie2;   //!
+  TBranch       *b_passLooseHoe1;   //!
+  TBranch       *b_passLooseHoe2;   //!
+  TBranch       *b_passTightCHiso1;   //!
+  TBranch       *b_passTightCHiso2;   //!
+  TBranch       *b_passTightNHiso1;   //!
+  TBranch       *b_passTightNHiso2;   //!
+  TBranch       *b_passTightPHiso1;   //!
+  TBranch       *b_passTightPHiso2;   //!
+  TBranch       *b_passTightSieie1;   //!
+  TBranch       *b_passTightSieie2;   //!
+  TBranch       *b_passTightHoe1;   //!
+  TBranch       *b_passTightHoe2;   //!
   TBranch	*b_eleveto1;
   TBranch	*b_eleveto2;
   TBranch	*b_sel1;
@@ -236,12 +280,16 @@ private:
   TBranch       *b_higgsVtxY;   //!
   TBranch       *b_higgsVtxZ;   //!
   TBranch       *b_massCorrSmear;   //!
-  TBranch       *b_massCorrSmearScaleUp;   //!
-  TBranch       *b_massCorrSmearScaleDown;   //!
+  TBranch       *b_massCorrSmearUp;   //!
+  TBranch       *b_massCorrSmearDown;   //!
   TBranch       *b_massCorrScale;   //!
   TBranch       *b_massRaw;   //!
   TBranch       *b_mva1;   //!
   TBranch       *b_mva2;   //!
+  TBranch       *b_b_genZ;   //!
+  TBranch       *b_b_ptZ;   //!
+  TBranch       *b_b_etaZ;   //!
+  TBranch       *b_b_phiZ;   //!
 
 };
 

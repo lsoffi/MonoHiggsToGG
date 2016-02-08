@@ -42,7 +42,7 @@ Combiner::Combiner( SamplePairVec Samples, const Double_t inLumi, const ColorMap
   fSampleTitleMap["DYJetsToLL"]		= "Drell-Yan";
   fSampleTitleMap["GluGluHToGG"]	= "H #rightarrow #gamma#gamma (ggH)";
   fSampleTitleMap["DiPhoton"]		= "#gamma + #gamma";
-  fSampleTitleMap["ttHJetsToGG"]	= "tt + H #rightarrow #gamma#gamma";
+  fSampleTitleMap["ttHJetToGG"]		= "tt + H #rightarrow #gamma#gamma";
   fSampleTitleMap["VBFHToGG"]		= "VBF H #rightarrow #gamma#gamma";
   //fSampleTitleMap["DMHtoGG_M1"]		= "m_{#chi} = 1 GeV";//#bar{#chi}#chi HH ,m_{#chi} = 1 GeV";
   //fSampleTitleMap["DMHtoGG_M10"]	= "m_{#chi} = 10 GeV";//#bar{#chi}#chi HH ,m_{#chi} = 10 GeV";
@@ -152,27 +152,36 @@ void Combiner::DoComb(){
     fOutBkgTH1DHists[th1d]->SetMarkerSize(0);
 
     // LEGEND 
-    // add data to legend if int > 0
-    Double_t dataInt = fOutDataTH1DHists[th1d]->Integral();
-    if (fNData > 0 && doStack && dataInt > 0) fTH1DLegends[th1d]->AddEntry(fOutDataTH1DHists[th1d],"Data","pl");
-    
-    // do sig[0] so that the bkg uncertainty is below it
-    fTH1DLegends[th1d]->AddEntry(fInSigTH1DHists[th1d][0],fSampleTitleMap[fSigNames[0]],"l");
+    // for sig and bkg 
+    UInt_t fNMaxMC = 0;
+    if (fNSig <= fNBkg) fNMaxMC = fNBkg;
+    else fNMaxMC = fNSig;
+    for (UInt_t mc = 0; mc < fNMaxMC; mc++){
+      if (mc < fNBkg){
+        if (doStack) fTH1DLegends[th1d]->AddEntry(fInBkgTH1DHists[th1d][mc],fSampleTitleMap[fBkgNames[mc]],"f");
+        else fTH1DLegends[th1d]->AddEntry(fInBkgTH1DHists[th1d][mc],fSampleTitleMap[fBkgNames[mc]],"l");
+      }
+      if (mc < fNSig) fTH1DLegends[th1d]->AddEntry(fInSigTH1DHists[th1d][mc],fSampleTitleMap[fSigNames[mc]],"l");
+    } 
     // add uncertainty in stack plot
     fOutBkgTH1DStacksForUncer[th1d]->Add(fOutBkgTH1DHists[th1d],"E2");
     if (doStack) fTH1DLegends[th1d]->AddEntry(fOutBkgTH1DHists[th1d],"Bkg Uncertainty","F");
+    // add data to legend if int > 0
+    Double_t dataInt = fOutDataTH1DHists[th1d]->Integral();
+    if (fNData > 0 && doStack && dataInt > 0) fTH1DLegends[th1d]->AddEntry(fOutDataTH1DHists[th1d],"Data","pl");
 
-    // sig: just add to legend
-    for (UInt_t mc = 1; mc < fNSig; mc++){
-      //fInSigTH1DHists[th1d][mc]->Scale(lumi);
-      fTH1DLegends[th1d]->AddEntry(fInSigTH1DHists[th1d][mc],fSampleTitleMap[fSigNames[mc]],"l");
-    }
-    // bkg : copy histos and add to stacks
-    for (UInt_t mc = 0; mc < fNBkg; mc++){
-      // draw bkg in legend as box for stack plots, and line for overlay plot
-      if (doStack) fTH1DLegends[th1d]->AddEntry(fInBkgTH1DHists[th1d][mc],fSampleTitleMap[fBkgNames[mc]],"f");
-      else fTH1DLegends[th1d]->AddEntry(fInBkgTH1DHists[th1d][mc],fSampleTitleMap[fBkgNames[mc]],"l");
-    }
+
+    //// sig: just add to legend
+    //for (UInt_t mc = 0; mc < fNSig; mc++){
+    //  //fInSigTH1DHists[th1d][mc]->Scale(lumi);
+    //  fTH1DLegends[th1d]->AddEntry(fInSigTH1DHists[th1d][mc],fSampleTitleMap[fSigNames[mc]],"l");
+    //}
+    //// bkg : copy histos and add to stacks
+    //for (UInt_t mc = 0; mc < fNBkg; mc++){
+    //  // draw bkg in legend as box for stack plots, and line for overlay plot
+    //  if (doStack) fTH1DLegends[th1d]->AddEntry(fInBkgTH1DHists[th1d][mc],fSampleTitleMap[fBkgNames[mc]],"f");
+    //  else fTH1DLegends[th1d]->AddEntry(fInBkgTH1DHists[th1d][mc],fSampleTitleMap[fBkgNames[mc]],"l");
+    //}
 
 
 
@@ -331,6 +340,7 @@ void Combiner::DrawCanvasOverlay(const UInt_t th1d, const Bool_t isLogY){
   //}
 
   fInSigTH1DHists[th1d][0]->SetTitle("");
+  fInSigTH1DHists[th1d][0]->GetYaxis()->SetTitle("");
   fInSigTH1DHists[th1d][0]->Draw("hist");
 
   for (UInt_t mc = 0; mc < fNBkg; mc++){
@@ -383,7 +393,6 @@ void Combiner::DrawCanvasStack(const UInt_t th1d, const Bool_t isLogY){
 
   // start by drawing the sig first
   fInSigTH1DHists[th1d][0]->SetTitle("");
-  fInSigTH1DHists[th1d][0]->GetYaxis()->SetTitle("Events");
   fInSigTH1DHists[th1d][0]->GetXaxis()->SetTitleOffset(999);
   fInSigTH1DHists[th1d][0]->GetXaxis()->SetLabelSize(0);
   if (isLogY){

@@ -39,9 +39,10 @@ int main(){
   //////////////////////////////////////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////////////////////////////////
 
-  TString inDir = "data/25ns_v1-1-0_ReReco_FullStat/"; 			// input directory of the samples
-  TString outDir = "./diPhoPlots/25ns_v1-1-0_ReReco_FullStat_OptSel_woMETcut/";	// output directory to send results
+  TString inDir = "data/25ns_v1-1-0_ReReco_Corrected/"; 		// input directory of the samples
+  TString outDir = "./diPhoPlots/25ns_v1-1-0_ReReco_Corrected_OptSel_woMETcut/";	// output directory to send results
 
+  TString type = "png";		// type of plots to be made
   bool doPlots = false;		// make plots for each sample individually
   bool doComb = false;		// make stack/overlay plots
   bool doABCD = true;		// run ABCD method, NB: it crashes first time making output file but will run fine next time - this should be fixed. 
@@ -53,9 +54,7 @@ int main(){
   bool doReweightPU = false;	// use PURW from old files if !makePURWfiles
   bool doCompare = false;	// call Comparer (not yet working) 
 
-
   Double_t lumi =  2.2;  // in fb^-1  
-  TString type = "pdf";  // type of plots to be made
   UInt_t nBins_vtx = 60; // number of bins for PURW 
   
   //////////////////////////////////////////////////////////////////////////////////////
@@ -220,11 +219,11 @@ int main(){
     delete GGHGG;
     std::cout << "Finished GluGluH sample" << std::endl;
 
-    std::cout << "Working on ttHJetsToGG sample" << std::endl;
-    Plotter * ttH = new Plotter(inDir,outDir,"ttHJetsToGG",puweights_MC,lumi,false,doBlind,type);
+    std::cout << "Working on ttHJetToGG sample" << std::endl;
+    Plotter * ttH = new Plotter(inDir,outDir,"ttHJetToGG",puweights_MC,lumi,false,doBlind,type);
     ttH->DoPlots(0);
     delete ttH;
-    std::cout << "Finished ttHJetsToGG sample" << std::endl;
+    std::cout << "Finished ttHJetToGG sample" << std::endl;
 
     std::cout << "Working on VBFHToGG sample" << std::endl;
     Plotter * VBF = new Plotter(inDir,outDir,"VBFHToGG",puweights_MC,lumi,false,doBlind,type);
@@ -325,7 +324,7 @@ int main(){
   colorMap["GJets"] 			= kGreen-9;
   colorMap["VH"]			= kOrange-3;
   colorMap["GluGluHToGG"]		= kOrange-2;
-  colorMap["ttHJetsToGG"]		= kOrange-4;
+  colorMap["ttHJetToGG"]		= kOrange-4;
   colorMap["VBFHToGG"]			= kYellow-7;
   colorMap["DiPhoton"]			= kTeal-1;
   colorMap["DYJetsToLL"]		= kTeal-7;
@@ -346,7 +345,7 @@ int main(){
 
   SamplePairVec Samples; // vector to also be used for stack plots
   //ordered to match Livia
-  Samples.push_back(SamplePair("ttHJetsToGG",1)); 
+  Samples.push_back(SamplePair("ttHJetToGG",1)); 
   Samples.push_back(SamplePair("VH",1));
   Samples.push_back(SamplePair("VBFHToGG",1)); 
   Samples.push_back(SamplePair("GluGluHToGG",1)); 

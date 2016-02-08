@@ -1,6 +1,6 @@
 #include "Plotter.hh"
 #include "Style.hh"
-//#include "../../../DataFormats/Math/interface/deltaPhi.h"
+#include "../../../DataFormats/Math/interface/deltaPhi.h"
 #include "mkPlotsLivia/CMS_lumi.C"
 
 Plotter::Plotter( TString inName, TString outName, TString inSpecies, const DblVec puweights, const Double_t lumi, Bool_t Data, Bool_t Blind, TString type){
@@ -103,6 +103,15 @@ void Plotter::DoPlots(int prompt){
   Int_t numDuplicateRemoved = 0;
   Int_t numPassingAll = 0;
  
+  Int_t numRelFailingMETfil = 0;
+  Int_t numRelOutOfMggRange = 0;
+  Int_t numRelFailEV = 0;
+
+  Int_t nRel0entries = nentries;
+  Int_t nRel1entries = 0;
+  Int_t nRel2entries = 0;
+  Int_t nRel3entries = 0;
+
   for (UInt_t entry = 0; entry < nentries; entry++){
     tpho->GetEntry(entry);
 
@@ -142,18 +151,32 @@ void Plotter::DoPlots(int prompt){
     Bool_t passEV1  = false; 
     Bool_t passEV2  = false; 
 
-    if (passCHiso1==1) passCH1 = true; 
-    if (passCHiso2==1) passCH2 = true; 
-    if (passNHiso1==1) passNH1 = true;
-    if (passNHiso2==1) passNH2 = true;
-    if (passPHiso1==1) passPH1 = true;
-    if (passPHiso2==1) passPH2 = true;
-    if (passSieie1==1) passS1  = true;
-    if (passSieie2==1) passS2  = true;
-    if (passHoe1==1)   passHE1 = true; 
-    if (passHoe2==1)   passHE2 = true; 
-    if (eleveto1==1)   passEV1 = true;
-    if (eleveto2==1)   passEV2 = true; 
+    // For LOOSE Photon ID Working Point
+    // Can replace "Loose" with "Tight" 
+    // OR remove "Loose" for Medium WP
+    if (passLooseCHiso1==1) passCH1 = true; 
+    if (passLooseCHiso2==1) passCH2 = true; 
+    if (passLooseNHiso1==1) passNH1 = true;
+    if (passLooseNHiso2==1) passNH2 = true;
+    if (passLoosePHiso1==1) passPH1 = true;
+    if (passLoosePHiso2==1) passPH2 = true;
+    if (passLooseSieie1==1) passS1  = true;
+    if (passLooseSieie2==1) passS2  = true;
+    if (passLooseHoe1==1)   passHE1 = true; 
+    if (passLooseHoe2==1)   passHE2 = true; 
+    if (eleveto1==1)	    passEV1 = true;
+    if (eleveto2==1)	    passEV2 = true; 
+
+    if (!passCH1) std::cout << "Fails CHIso1" << std::endl;
+    if (!passCH2) std::cout << "Fails CHIso2" << std::endl;
+    if (!passNH1) std::cout << "Fails NHIso1" << std::endl;
+    if (!passNH2) std::cout << "Fails NHIso2" << std::endl;
+    if (!passPH1) std::cout << "Fails PHIso1" << std::endl;
+    if (!passPH2) std::cout << "Fails PHIso2" << std::endl;
+    if (!passS1)  std::cout << "Fails SIEIE1" << std::endl;
+    if (!passS2)  std::cout << "Fails SIEIE2" << std::endl;
+    if (!passHE1) std::cout << "Fails HoE1"   << std::endl;
+    if (!passHE2) std::cout << "Fails HoE2"   << std::endl;
 
     if (passCH1 && passNH1 && passPH1 && passS1 && passHE1 && passEV1) passAll1 = true;
     if (passCH2 && passNH2 && passPH2 && passS2 && passHE2 && passEV2) passAll2 = true;
@@ -190,9 +213,24 @@ void Plotter::DoPlots(int prompt){
       if (genmatch1==1 && genmatch2==1) numDuplicateRemoved++;
     }
 
-    //start full selection for plots
+
+    if (mgg >= 100 && mgg < 180){
+      nRel1entries++;
+      if (!passBoth){
+        numRelFailEV++;
+      }
+      else{
+        nRel2entries++;
+	if (!passMETfil){
+	  numRelFailingMETfil++;
+	}
+	else nRel3entries++;
+      }
+    }  
+
+    // START full selection for plots
     if (passMETfil && !weightNegative){ //Data passes MET filters && not a negativeWeight
-      if (mgg >= 100 && mgg < 180 && passBoth &&  pt1 > 0.65*mgg && pt2 > 0.25*mgg & t1pfmet > 80 ){
+      if (mgg >= 100 && mgg < 180 && passEV1 && passEV2 &&  pt1 > 0.65*mgg && pt2 > 0.25*mgg /*&& t1pfmet > 80*/ ){
         fTH1DMap["eff_sel"]->Fill(1.5,Weight);
         if (hltDiphoton30Mass95==1){ //passes trigger
 
@@ -336,8 +374,8 @@ void Plotter::DoPlots(int prompt){
           fTH1DMap["eleveto2"]->Fill(eleveto2,Weight);
 
           fTH1DMap["phigg"]->Fill(fLorenzVecgg.Phi(),Weight); 
-          //fTH1DMap["dphi_ggmet"]->Fill(deltaPhi(fLorenzVecgg.Phi(),t1pfmetphi),Weight);
-          //fTH1DMap["absdphi_ggmet"]->Fill(TMath::Abs(deltaPhi(fLorenzVecgg.Phi(),t1pfmetphi)),Weight);
+          fTH1DMap["dphi_ggmet"]->Fill(deltaPhi(fLorenzVecgg.Phi(),t1pfmetphi),Weight);
+          fTH1DMap["absdphi_ggmet"]->Fill(TMath::Abs(deltaPhi(fLorenzVecgg.Phi(),t1pfmetphi)),Weight);
           fTH1DMap["deta_gg"]->Fill((eta1-eta2),Weight);
           fTH1DMap["absdeta_gg"]->Fill(TMath::Abs(eta1-eta2),Weight);
           //if (!isData){
@@ -465,6 +503,13 @@ void Plotter::DoPlots(int prompt){
   std::cout << "Number Events rejected by ElectronVeto:  " << numFailEV           << " out of " << nentries << " events. " << std::endl; 
   std::cout << "Number Events rejected by DupRemoval:    " << numDuplicateRemoved << " out of " << nentries << " events. " << std::endl;  
   std::cout << "Number Events PASSING all selection:     " << numPassingAll       << " out of " << nentries << " events. " << std::endl; 
+  
+  std::cout << "Number Events that have passed Analyzer: " << nentries << " events. " << std::endl;
+  std::cout << "Number Events rejected by Mgg range:     " << numOutOfMggRange       << " out of rel " << nRel0entries << " events. " << std::endl; 
+  std::cout << "Number Events rejected by ElectronVeto:  " << numRelFailEV           << " out of rel " << nRel1entries << " events. " << std::endl; 
+  std::cout << "Number Events rejected by MET filters:   " << numRelFailingMETfil    << " out of rel " << nRel2entries << " events. " << std::endl;
+  std::cout << "Number Events PASSING all selection:     " << numPassingAll          << " out of rel " << nRel3entries << " events. " << std::endl; 
+
 
   Double_t effPU = 0;
   Double_t effpt = 0;
@@ -510,8 +555,8 @@ void Plotter::SetUpPlots(){
   fTH1DMap["nvtx"]		= Plotter::MakeTH1DPlot("nvtx","",40,0.,40.,"nvtx","");
   fTH1DMap["mgg"]		= Plotter::MakeTH1DPlot("mgg","",26,99.,151.,"m_{#gamma#gamma} (GeV)","");  
   fTH1DMap["ptgg"]		= Plotter::MakeTH1DPlot("ptgg","",60,0.,600.,"p_{T,#gamma#gamma} (GeV)","");
-  fTH1DMap["t1pfmet"]		= Plotter::MakeTH1DPlot("t1pfmet","",75,0.,900,"t1PF MET (GeV)","");
-  fTH1DMap["t1pfmetphi"]	= Plotter::MakeTH1DPlot("t1pfmetphi","",20,-4.,4.,"t1PF MET #phi","");
+  fTH1DMap["t1pfmet"]		= Plotter::MakeTH1DPlot("t1pfmet","",75,0.,900,"E_{T}^{miss} (GeV)","");
+  fTH1DMap["t1pfmetphi"]	= Plotter::MakeTH1DPlot("t1pfmetphi","",20,-4.,4.,"E_{T}^{miss} #phi","");
   fTH1DMap["pfmet"]		= Plotter::MakeTH1DPlot("pfmet","",100,0.,1000,"PF MET (GeV)","");
   fTH1DMap["pfmetphi"]		= Plotter::MakeTH1DPlot("pfmetphi","",80,-4.,4.,"PF MET #phi","");
   fTH1DMap["calomet"]		= Plotter::MakeTH1DPlot("calomet","",100,0.,1000,"calo MET (GeV)","");
@@ -541,8 +586,8 @@ void Plotter::SetUpPlots(){
   fTH1DMap["nvtx_n-1"]		= Plotter::MakeTH1DPlot("nvtx_n-1","",40,0.,40.,"nvtx","");
   fTH1DMap["mgg_n-1"]		= Plotter::MakeTH1DPlot("mgg_n-1","",26,99.,151.,"m_{#gamma#gamma} (GeV)","");  
   fTH1DMap["ptgg_n-1"]		= Plotter::MakeTH1DPlot("ptgg_n-1","",60,0.,600.,"p_{T,#gamma#gamma} (GeV)","");
-  fTH1DMap["t1pfmet_n-1"]	= Plotter::MakeTH1DPlot("t1pfmet_n-1","",25,0.,200.,"t1PF MET (GeV)","");
-  fTH1DMap["t1pfmetphi_n-1"]	= Plotter::MakeTH1DPlot("t1pfmetphi_n-1","",20,-4.,4.,"t1PF MET #phi","");
+  fTH1DMap["t1pfmet_n-1"]	= Plotter::MakeTH1DPlot("t1pfmet_n-1","",25,0.,200.,"E_{T}^{miss} (GeV)","");
+  fTH1DMap["t1pfmetphi_n-1"]	= Plotter::MakeTH1DPlot("t1pfmetphi_n-1","",20,-4.,4.,"E_{T}^{miss} #phi","");
   fTH1DMap["pfmet_n-1"]		= Plotter::MakeTH1DPlot("pfmet_n-1","",100,0.,1000,"PF MET (GeV)","");
   fTH1DMap["pfmetphi_n-1"]	= Plotter::MakeTH1DPlot("pfmetphi_n-1","",80,-4.,4.,"PF MET #phi","");
   fTH1DMap["calomet_n-1"]	= Plotter::MakeTH1DPlot("calomet_n-1","",100,0.,1000,"calo MET (GeV)","");
@@ -570,16 +615,16 @@ void Plotter::SetUpPlots(){
   fTH1DMap["phigg"]		= Plotter::MakeTH1DPlot("phigg","",20,-4.,4.,"#phi(#gamma#gamma)","");
   fTH1DMap["dphi_ggmet"]	= Plotter::MakeTH1DPlot("dphi_ggmet","",20,-4.,4.,"#Delta#phi(#gamma#gamma,MET)","");
   fTH1DMap["absdphi_ggmet"]	= Plotter::MakeTH1DPlot("absdphi_ggmet","",20,0.,4.,"|#Delta#phi(#gamma#gamma,MET)|","");
-  fTH1DMap["t1pfmet_selmgg"]	= Plotter::MakeTH1DPlot("t1pfmet_selmgg","",100,0.,1000.,"t1PF MET (GeV)","");
+  fTH1DMap["t1pfmet_selmgg"]	= Plotter::MakeTH1DPlot("t1pfmet_selmgg","",100,0.,1000.,"E_{T}^{miss} (GeV)","");
   fTH1DMap["mgg_selt1pfmet"]	= Plotter::MakeTH1DPlot("mgg_selt1pfmet","",26,99.,151.,"m_{#gamma#gamma} (GeV)","");
   fTH1DMap["phi1_pho2pass"]     = Plotter::MakeTH1DPlot("phi1_pho2pass","",80,-4.,4.,"","");
   fTH1DMap["phi2_pho1pass"]     = Plotter::MakeTH1DPlot("phi2_pho1pass","",80,-4.,4.,"","");
-  fTH1DMap["t1pfmet_zoom"]	= Plotter::MakeTH1DPlot("t1pfmet_zoom","",60,0.,300.,"t1PF MET (GeV)","");
+  fTH1DMap["t1pfmet_zoom"]	= Plotter::MakeTH1DPlot("t1pfmet_zoom","",60,0.,300.,"E_{T}^{miss} (GeV)","");
   //fTH1DMap["t1pfmet_zoom_wofil"]= Plotter::MakeTH1DPlot("t1pfmet_zoom_wofil","",60,0.,300.,"t1PF MET (GeV)","");
   fTH1DMap["deta_gg"]		= Plotter::MakeTH1DPlot("deta_gg","",20,-3.,3.,"#Delta#eta(#gamma#gamma)","");
   fTH1DMap["absdeta_gg"]	= Plotter::MakeTH1DPlot("absdeta_gg","",20,0.,3.,"|#Delta#eta(#gamma#gamma)|","");
   fTH1DMap["ptgg_selt1pfmet"]	= Plotter::MakeTH1DPlot("ptgg_selt1pfmet","",60,0.,600.,"p_{T,#gamma#gamma} (GeV)","");
-  fTH1DMap["t1pfmet_selptgg"]	= Plotter::MakeTH1DPlot("t1pfmet_selptgg","",100,0.,1000.,"t1PF MET (GeV)","");
+  fTH1DMap["t1pfmet_selptgg"]	= Plotter::MakeTH1DPlot("t1pfmet_selptgg","",100,0.,1000.,"E_{T}^{miss} (GeV)","");
 
   //// pho cat plots
   //fTH1DMap["EBHighR9_mgg"]	= Plotter::MakeTH1DPlot("EBHighR9_mgg","",26,99.,151.,"m_{#gamma#gamma} (GeV)","");  
@@ -621,12 +666,13 @@ TH1D * Plotter::MakeTH1DPlot(const TString hname, const TString htitle, const In
   TString ytitleNew;
   Float_t binwidth = (xhigh-xlow)/nbins;
   //std::cout << "binwidth " <<  binwidth << std::endl;
-  if (ytitle=="") ytitleNew = Form("Events/(%d)",binwidth);
+  if (ytitle=="") ytitleNew = Form("Events/(%2.2f)",binwidth);
   else ytitleNew = ytitle;
+  //std::cout << "yTitle = " << ytitleNew.Data() << std::endl;
  
   TH1D * hist = new TH1D(hname.Data(),htitle.Data(),nbins,xlow,xhigh);
   hist->GetXaxis()->SetTitle(xtitle.Data());
-  hist->GetYaxis()->SetTitle(ytitle.Data());
+  hist->GetYaxis()->SetTitle(ytitleNew.Data());
   hist->Sumw2();
   gStyle->SetOptStat(1111111);
   return hist;
@@ -761,6 +807,26 @@ void Plotter::SetBranchAddresses(){
   tpho->SetBranchAddress("passSieie2", &passSieie2, &b_passSieie2);
   tpho->SetBranchAddress("passHoe1", &passHoe1, &b_passHoe1);
   tpho->SetBranchAddress("passHoe2", &passHoe2, &b_passHoe2);
+  tpho->SetBranchAddress("passLooseCHiso1", &passLooseCHiso1, &b_passLooseCHiso1);
+  tpho->SetBranchAddress("passLooseCHiso2", &passLooseCHiso2, &b_passLooseCHiso2);
+  tpho->SetBranchAddress("passLooseNHiso1", &passLooseNHiso1, &b_passLooseNHiso1);
+  tpho->SetBranchAddress("passLooseNHiso2", &passLooseNHiso2, &b_passLooseNHiso2);
+  tpho->SetBranchAddress("passLoosePHiso1", &passLoosePHiso1, &b_passLoosePHiso1);
+  tpho->SetBranchAddress("passLoosePHiso2", &passLoosePHiso2, &b_passLoosePHiso2);
+  tpho->SetBranchAddress("passLooseSieie1", &passLooseSieie1, &b_passLooseSieie1);
+  tpho->SetBranchAddress("passLooseSieie2", &passLooseSieie2, &b_passLooseSieie2);
+  tpho->SetBranchAddress("passLooseHoe1", &passLooseHoe1, &b_passLooseHoe1);
+  tpho->SetBranchAddress("passLooseHoe2", &passLooseHoe2, &b_passLooseHoe2);
+  tpho->SetBranchAddress("passTightCHiso1", &passTightCHiso1, &b_passTightCHiso1);
+  tpho->SetBranchAddress("passTightCHiso2", &passTightCHiso2, &b_passTightCHiso2);
+  tpho->SetBranchAddress("passTightNHiso1", &passTightNHiso1, &b_passTightNHiso1);
+  tpho->SetBranchAddress("passTightNHiso2", &passTightNHiso2, &b_passTightNHiso2);
+  tpho->SetBranchAddress("passTightPHiso1", &passTightPHiso1, &b_passTightPHiso1);
+  tpho->SetBranchAddress("passTightPHiso2", &passTightPHiso2, &b_passTightPHiso2);
+  tpho->SetBranchAddress("passTightSieie1", &passTightSieie1, &b_passTightSieie1);
+  tpho->SetBranchAddress("passTightSieie2", &passTightSieie2, &b_passTightSieie2);
+  tpho->SetBranchAddress("passTightHoe1", &passTightHoe1, &b_passTightHoe1);
+  tpho->SetBranchAddress("passTightHoe2", &passTightHoe2, &b_passTightHoe2);
   tpho->SetBranchAddress("hltPhoton26Photon16Mass60", &hltPhoton26Photon16Mass60, &b_hltPhoton26Photon16Mass60);
   tpho->SetBranchAddress("hltPhoton36Photon22Mass15", &hltPhoton36Photon22Mass15, &b_hltPhoton36Photon22Mass15);
   tpho->SetBranchAddress("hltPhoton42Photon25Mass15", &hltPhoton42Photon25Mass15, &b_hltPhoton42Photon25Mass15);
@@ -784,13 +850,16 @@ void Plotter::SetBranchAddresses(){
   tpho->SetBranchAddress("higgsVtxY", &higgsVtxY, &b_higgsVtxY);
   tpho->SetBranchAddress("higgsVtxZ", &higgsVtxZ, &b_higgsVtxZ);
   tpho->SetBranchAddress("massCorrSmear", &massCorrSmear, &b_massCorrSmear);
-  tpho->SetBranchAddress("massCorrSmearScaleUp", &massCorrSmearScaleUp, &b_massCorrSmearScaleUp);
-  tpho->SetBranchAddress("massCorrSmearScaleDown", &massCorrSmearScaleDown, &b_massCorrSmearScaleDown);
+  tpho->SetBranchAddress("massCorrSmearUp", &massCorrSmearUp, &b_massCorrSmearUp);
+  tpho->SetBranchAddress("massCorrSmearDown", &massCorrSmearDown, &b_massCorrSmearDown);
   tpho->SetBranchAddress("massCorrScale", &massCorrScale, &b_massCorrScale);
   tpho->SetBranchAddress("massRaw", &massRaw, &b_massRaw);
   tpho->SetBranchAddress("mva1", &mva1, &b_mva1);
   tpho->SetBranchAddress("mva2", &mva2, &b_mva2);
-
+  tpho->SetBranchAddress("genZ", &genZ, &b_b_genZ);
+  tpho->SetBranchAddress("ptZ", &ptZ, &b_b_ptZ);
+  tpho->SetBranchAddress("etaZ", &etaZ, &b_b_etaZ);
+  tpho->SetBranchAddress("phiZ", &phiZ, &b_b_phiZ);
 
   //tpho->SetBranchAddress("", &, &b_);
   

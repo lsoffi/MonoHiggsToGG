@@ -129,6 +129,16 @@ void addWeights(const char* filename, float lumiForW, float massTrue=1) {
   Int_t		  passSieie2;
   Int_t		  passHoe1;
   Int_t		  passHoe2;
+  Int_t		  passLooseCHiso1;
+  Int_t		  passLooseCHiso2;
+  Int_t		  passLooseNHiso1;
+  Int_t		  passLooseNHiso2;
+  Int_t		  passLoosePHiso1;
+  Int_t		  passLoosePHiso2;
+  Int_t		  passLooseSieie1;
+  Int_t		  passLooseSieie2;
+  Int_t		  passLooseHoe1;
+  Int_t		  passLooseHoe2;
   Int_t		  passTightCHiso1;
   Int_t		  passTightCHiso2;
   Int_t		  passTightNHiso1;
@@ -159,8 +169,8 @@ void addWeights(const char* filename, float lumiForW, float massTrue=1) {
   Int_t           metF_CSC;    
   Int_t           metF_eeBadSC;    
   Float_t         massCorrSmear;
-  Float_t         massCorrSmearScaleUp;
-  Float_t         massCorrSmearScaleDown;
+  Float_t         massCorrSmearUp;
+  Float_t         massCorrSmearDown;
   Float_t         massCorrScale;
   Float_t         massRaw;
   Float_t         mva1;
@@ -248,6 +258,16 @@ void addWeights(const char* filename, float lumiForW, float massTrue=1) {
   TBranch	 *b_passSieie2;
   TBranch	 *b_passHoe1;
   TBranch	 *b_passHoe2;
+  TBranch	 *b_passLooseCHiso1;
+  TBranch	 *b_passLooseCHiso2;
+  TBranch	 *b_passLooseNHiso1;
+  TBranch	 *b_passLooseNHiso2;
+  TBranch	 *b_passLoosePHiso1;
+  TBranch	 *b_passLoosePHiso2;
+  TBranch	 *b_passLooseSieie1;
+  TBranch	 *b_passLooseSieie2;
+  TBranch	 *b_passLooseHoe1;
+  TBranch	 *b_passLooseHoe2;
   TBranch	 *b_passTightCHiso1;
   TBranch	 *b_passTightCHiso2;
   TBranch	 *b_passTightNHiso1;
@@ -281,8 +301,8 @@ void addWeights(const char* filename, float lumiForW, float massTrue=1) {
   TBranch        *b_higgsVtxY;   //!
   TBranch        *b_higgsVtxZ;   //!
   TBranch        *b_massCorrSmear;   //!
-  TBranch        *b_massCorrSmearScaleUp;   //!
-  TBranch        *b_massCorrSmearScaleDown;   //!
+  TBranch        *b_massCorrSmearUp;   //!
+  TBranch        *b_massCorrSmearDown;   //!
   TBranch        *b_massCorrScale;   //!
   TBranch        *b_massRaw;   //!
   TBranch        *b_mva1;   //!
@@ -370,6 +390,16 @@ void addWeights(const char* filename, float lumiForW, float massTrue=1) {
   treeOrig->SetBranchAddress("passSieie2", &passSieie2, &b_passSieie2);
   treeOrig->SetBranchAddress("passHoe1", &passHoe1, &b_passHoe1);
   treeOrig->SetBranchAddress("passHoe2", &passHoe2, &b_passHoe2);
+  treeOrig->SetBranchAddress("passLooseCHiso1", &passLooseCHiso1, &b_passLooseCHiso1);
+  treeOrig->SetBranchAddress("passLooseCHiso2", &passLooseCHiso2, &b_passLooseCHiso2);
+  treeOrig->SetBranchAddress("passLooseNHiso1", &passLooseNHiso1, &b_passLooseNHiso1);
+  treeOrig->SetBranchAddress("passLooseNHiso2", &passLooseNHiso2, &b_passLooseNHiso2);
+  treeOrig->SetBranchAddress("passLoosePHiso1", &passLoosePHiso1, &b_passLoosePHiso1);
+  treeOrig->SetBranchAddress("passLoosePHiso2", &passLoosePHiso2, &b_passLoosePHiso2);
+  treeOrig->SetBranchAddress("passLooseSieie1", &passLooseSieie1, &b_passLooseSieie1);
+  treeOrig->SetBranchAddress("passLooseSieie2", &passLooseSieie2, &b_passLooseSieie2);
+  treeOrig->SetBranchAddress("passLooseHoe1", &passLooseHoe1, &b_passLooseHoe1);
+  treeOrig->SetBranchAddress("passLooseHoe2", &passLooseHoe2, &b_passLooseHoe2);
   treeOrig->SetBranchAddress("passTightCHiso1", &passTightCHiso1, &b_passTightCHiso1);
   treeOrig->SetBranchAddress("passTightCHiso2", &passTightCHiso2, &b_passTightCHiso2);
   treeOrig->SetBranchAddress("passTightNHiso1", &passTightNHiso1, &b_passTightNHiso1);
@@ -403,8 +433,8 @@ void addWeights(const char* filename, float lumiForW, float massTrue=1) {
   treeOrig->SetBranchAddress("higgsVtxY", &higgsVtxY, &b_higgsVtxY);
   treeOrig->SetBranchAddress("higgsVtxZ", &higgsVtxZ, &b_higgsVtxZ);
   treeOrig->SetBranchAddress("massCorrSmear", &massCorrSmear, &b_massCorrSmear);
-  treeOrig->SetBranchAddress("massCorrSmearScaleUp", &massCorrSmearScaleUp, &b_massCorrSmearScaleUp);
-  treeOrig->SetBranchAddress("massCorrSmearScaleDown", &massCorrSmearScaleDown, &b_massCorrSmearScaleDown);
+  treeOrig->SetBranchAddress("massCorrSmearUp", &massCorrSmearUp, &b_massCorrSmearUp);
+  treeOrig->SetBranchAddress("massCorrSmearDown", &massCorrSmearDown, &b_massCorrSmearDown);
   treeOrig->SetBranchAddress("massCorrScale", &massCorrScale, &b_massCorrScale);
   treeOrig->SetBranchAddress("massRaw", &massRaw, &b_massRaw);
   treeOrig->SetBranchAddress("mva1", &mva1, &b_mva1);
@@ -509,6 +539,16 @@ void addWeights(const char* filename, float lumiForW, float massTrue=1) {
     theTreeNew->Branch("passSieie2", &passSieie2, "passSieie2/I");
     theTreeNew->Branch("passHoe1", &passHoe1, "passHoe1/I");
     theTreeNew->Branch("passHoe2", &passHoe2, "passHoe2/I");
+    theTreeNew->Branch("passLooseCHiso1", &passLooseCHiso1, "passLooseCHiso1/I");
+    theTreeNew->Branch("passLooseCHiso2", &passLooseCHiso2, "passLooseCHiso2/I");
+    theTreeNew->Branch("passLooseNHiso1", &passLooseNHiso1, "passLooseNHiso1/I");
+    theTreeNew->Branch("passLooseNHiso2", &passLooseNHiso2, "passLooseNHiso2/I");
+    theTreeNew->Branch("passLoosePHiso1", &passLoosePHiso1, "passLoosePHiso1/I");
+    theTreeNew->Branch("passLoosePHiso2", &passLoosePHiso2, "passLoosePHiso2/I");
+    theTreeNew->Branch("passLooseSieie1", &passLooseSieie1, "passLooseSieie1/I");
+    theTreeNew->Branch("passLooseSieie2", &passLooseSieie2, "passLooseSieie2/I");
+    theTreeNew->Branch("passLooseHoe1", &passLooseHoe1, "passLooseHoe1/I");
+    theTreeNew->Branch("passLooseHoe2", &passLooseHoe2, "passLooseHoe2/I");
     theTreeNew->Branch("passTightCHiso1", &passTightCHiso1, "passTightCHiso1/I");
     theTreeNew->Branch("passTightCHiso2", &passTightCHiso2, "passTightCHiso2/I");
     theTreeNew->Branch("passTightNHiso1", &passTightNHiso1, "passTightNHiso1/I");
@@ -542,8 +582,8 @@ void addWeights(const char* filename, float lumiForW, float massTrue=1) {
     theTreeNew->Branch("higgsVtxY", &higgsVtxY, "b_higgsVtxY/F");
     theTreeNew->Branch("higgsVtxZ", &higgsVtxZ, "b_higgsVtxZ/F");
     theTreeNew->Branch("massCorrSmear", &massCorrSmear, "b_massCorrSmear/F");
-    theTreeNew->Branch("massCorrSmearScaleUp", &massCorrSmearScaleUp, "b_massCorrSmearScaleUp/F");
-    theTreeNew->Branch("massCorrSmearScaleDown", &massCorrSmearScaleDown, "b_massCorrSmearScaleDown/F");
+    theTreeNew->Branch("massCorrSmearUp", &massCorrSmearUp, "b_massCorrSmearUp/F");
+    theTreeNew->Branch("massCorrSmearDown", &massCorrSmearDown, "b_massCorrSmearDown/F");
     theTreeNew->Branch("massCorrScale", &massCorrScale, "b_massCorrScale/F");
     theTreeNew->Branch("massRaw", &massRaw, "b_massRaw/F");
     theTreeNew->Branch("mva1", &mva1, "b_mva1/F");
