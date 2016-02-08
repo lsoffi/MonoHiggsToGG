@@ -331,25 +331,25 @@ private:
   Int_t eff_end = 0;
 
   //counters Livia
-  Int_t totLivia;
-  Int_t trigLivia;
-  Int_t onerecoLivia;
-  Int_t notrigLivia;
-  Int_t nomasstrigLivia;
-  Int_t noleadtrigLivia;
-  Int_t nosubleadtrigLivia;
-  Int_t preselLivia;
-  Int_t preselAccLivia;
-  Int_t preselHoELivia;
-  Int_t preselIsoLivia;
-  Int_t preselIsoRelLivia;
-  Int_t preselR9Livia;
-  Int_t selLivia;
-  Int_t kinLivia;
-  Int_t kinScalLivia;
-  Int_t vtxLivia;
-  Int_t massLivia;
-  Int_t elvetoLivia;
+  Int_t totLivia = 0;
+  Int_t trigLivia = 0;
+  Int_t onerecoLivia = 0;
+  Int_t notrigLivia = 0;
+  Int_t nomasstrigLivia = 0;
+  Int_t noleadtrigLivia = 0;
+  Int_t nosubleadtrigLivia = 0;
+  Int_t preselLivia = 0;
+  Int_t preselAccLivia = 0;
+  Int_t preselHoELivia = 0;
+  Int_t preselIsoLivia = 0;
+  Int_t preselIsoRelLivia = 0;
+  Int_t preselR9Livia = 0;
+  Int_t selLivia = 0;
+  Int_t kinLivia = 0;
+  Int_t kinScalLivia = 0;
+  Int_t vtxLivia = 0;
+  Int_t massLivia = 0;
+  Int_t elvetoLivia = 0;
 
   // 74X only: met filters lists
   EventList listCSC, listEEbadSC;

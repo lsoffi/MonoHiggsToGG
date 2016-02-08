@@ -39,7 +39,7 @@ else:
     print "Using name PAT"
 
 
-process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32( 10000 ) )
+process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32( 200 ) )
 
 process.source = cms.Source("PoolSource",
                             fileNames=cms.untracked.vstring(
@@ -119,14 +119,14 @@ process.diPhoAna = cms.EDAnalyzer('DiPhoAnalyzer_MVASel',
                                   DiPhotonTag = cms.untracked.InputTag('flashggDiPhotons'),
                                   PileUpTag = cms.untracked.InputTag('slimmedAddPileupInfo'),
                                   generatorInfo = cms.InputTag("generator"),
-                                  dopureweight = cms.untracked.int32(0),
+                                  dopureweight = cms.untracked.int32(1),
                                   bits         = cms.InputTag('TriggerResults::HLT'),
                                   flags        = cms.InputTag(flag),
-				  sampleIndex  = cms.untracked.int32(105),
+				  sampleIndex  = cms.untracked.int32(15),
                                   puWFileName  = cms.string('/afs/cern.ch/user/m/mzientek/public/pileupWeights_fullReReco74X.root'),  
                                   xsec         = cms.untracked.double(1), #pb
                                   kfac         = cms.untracked.double(1.),
-                                  sumDataset   = cms.untracked.double(100.0),   # chiara
+                                  sumDataset   = cms.untracked.double(1.0),   # chiara
                                   )
 
 process.p = cms.Path(process.flashggUnpackedJets*process.diPhoAna )     
