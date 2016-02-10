@@ -215,6 +215,8 @@ struct diphoTree_struc_ {
   float massCorrSmearUp; 
   float massCorrSmearDown; 
   float massCorrScale;
+  float massCorrScaleUp;
+  float massCorrScaleDown;
   float massRaw;
   int genZ;
   float ptZ;
@@ -266,8 +268,8 @@ private:
   int passLoosePHisoCuts(float sceta, float phiso, float pt);
   int passLooseHoeCuts(float sceta, float hoe);
 
-  float getSmearingValue(float sceta, float r9);
-  float getScalingValue(float sceta, float r9, int runNumber);
+  float getSmearingValue(float sceta, float r9, int syst);
+  float getScalingValue(float sceta, float r9, int runNumber, int syst);
   float getPtCorrected(float pt, float sceta,float r9, int run, int sampleID);
   float applyEnergySmearing(float pt, float sceta,float r9, int run);
   float applyEnergyScaling(float pt, float sceta,float r9, int run);
@@ -946,6 +948,7 @@ void NewDiPhoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
 
 		float massCorrSmear, massCorrScale, massRaw;
 		float massCorrSmearUp, massCorrSmearDown;
+		float massCorrScaleUp, massCorrScaleDown;
 
 		int genZ;
 		float ptZ;
@@ -1011,31 +1014,49 @@ void NewDiPhoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
 		presel2 = isGammaPresel( sceta2, pt2, r92, chiso2, hoe2 ); 
 	
 		
-//correct mass for smearing and scaling
-		float leadSmearing	= getSmearingValue( sceta1, r91 );
-		float subleadSmearing	= getSmearingValue( sceta2, r92 );
+		//correct mass for smearing and scaling
+		float leadSmearing	= getSmearingValue( sceta1, r91 ,0);
+		float subleadSmearing	= getSmearingValue( sceta2, r92 ,0);
+
+		float leadSmearingUp	= getSmearingValue( sceta1, r91 ,1);
+		float subleadSmearingUp	= getSmearingValue( sceta2, r92 ,1);
+
+		float leadSmearingDown	= getSmearingValue( sceta1, r91 ,-1);
+		float subleadSmearingDown	= getSmearingValue( sceta2, r92,-1 );
 
 		float gaussMean		= 1.0;
               	
 		TRandom Rand1(event);
 		float Smear1 		= Rand1.Gaus(gaussMean,leadSmearing);
-		float Smear1Up         	= Rand1.Gaus(gaussMean,leadSmearing*1.05);
-		float Smear1Down	= Rand1.Gaus(gaussMean,leadSmearing*1.05);
+		float Smear1Up         	= Rand1.Gaus(gaussMean,leadSmearingUp);
+		float Smear1Down	= Rand1.Gaus(gaussMean,leadSmearingDown);
 
 		TRandom Rand2(event+83941);
 		float Smear2 		= Rand2.Gaus(gaussMean,subleadSmearing);
-		float Smear2Up	        = Rand2.Gaus(gaussMean,subleadSmearing*0.95);
-		float Smear2Down	= Rand2.Gaus(gaussMean,subleadSmearing*0.95);
+		float Smear2Up	        = Rand2.Gaus(gaussMean,subleadSmearingUp);
+		float Smear2Down	= Rand2.Gaus(gaussMean,subleadSmearingDown);
 
 		massCorrSmear		= massRaw*sqrt(Smear1*Smear2);
 		massCorrSmearUp	        = massRaw*sqrt(Smear1Up*Smear2Up);
 		massCorrSmearDown	= massRaw*sqrt(Smear1Down*Smear2Down);
 
 		// scaling of Data
-		float leadScaling	= getScalingValue( sceta1, r91, run);
-		float subleadScaling	= getScalingValue( sceta2, r92, run);
+		float leadScaling	= getScalingValue( sceta1, r91, run,0);
+		float subleadScaling	= getScalingValue( sceta2, r92, run,0);
+
+		float leadScalingUp	= getScalingValue( sceta1, r91 ,run,1);
+		float subleadScalingUp	= getScalingValue( sceta2, r92 ,run,1);
+
+		float leadScalingDown	= getScalingValue( sceta1, r91 ,run,-1);
+		float subleadScalingDown	= getScalingValue( sceta2, r92 ,run,-1);
+
 		float Scaling		= leadScaling*subleadScaling;
+		float ScalingUp		= leadScalingUp*subleadScalingUp;
+		float ScalingDown		= leadScalingDown*subleadScalingDown;
+
 		massCorrScale		= massRaw*sqrt(Scaling);
+		massCorrScaleUp		= massRaw*sqrt(ScalingUp);
+		massCorrScaleDown		= massRaw*sqrt(ScalingDown);
 
 
 
@@ -1466,6 +1487,8 @@ void NewDiPhoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
 		treeDipho_.massCorrSmearUp = massCorrSmearUp;
 		treeDipho_.massCorrSmearDown = massCorrSmearDown;
 		treeDipho_.massCorrScale = massCorrScale;
+		treeDipho_.massCorrScaleUp = massCorrScaleUp;
+		treeDipho_.massCorrScaleDown = massCorrScaleDown;
 		treeDipho_.massRaw = massRaw;
 		treeDipho_.genZ	= genZ;
 		treeDipho_.ptZ = ptZ;
@@ -1656,6 +1679,8 @@ void NewDiPhoAnalyzer::beginJob() {
   DiPhotonTree->Branch("massCorrSmearUp",&(treeDipho_.massCorrSmearUp),"massCorrSmearUp/F");
   DiPhotonTree->Branch("massCorrSmearDown",&(treeDipho_.massCorrSmearDown),"massCorrSmearDown/F");
   DiPhotonTree->Branch("massCorrScale",&(treeDipho_.massCorrScale),"massCorrScale/F");
+  DiPhotonTree->Branch("massCorrScaleUp",&(treeDipho_.massCorrScaleUp),"massCorrScaleUp/F");
+  DiPhotonTree->Branch("massCorrScaleDown",&(treeDipho_.massCorrScaleDown),"massCorrScaleDown/F");
   DiPhotonTree->Branch("massRaw",&(treeDipho_.massRaw),"massRaw/F");
   DiPhotonTree->Branch("genZ",&(treeDipho_.genZ),"genZ/I");
   DiPhotonTree->Branch("ptZ",&(treeDipho_.ptZ),"ptZ/F");
@@ -1790,6 +1815,8 @@ void NewDiPhoAnalyzer::initTreeStructure() {
   treeDipho_.massCorrSmearUp = -500;
   treeDipho_.massCorrSmearDown = -500;
   treeDipho_.massCorrScale = -500;
+  treeDipho_.massCorrScaleUp = -500;
+  treeDipho_.massCorrScaleDown = -500;
   treeDipho_.massRaw = -500;
   treeDipho_.genZ = -500;
   treeDipho_.ptZ = -500;
@@ -2101,33 +2128,58 @@ int NewDiPhoAnalyzer::effectiveAreaRegion(float sceta) {
   return theEAregion;
 }
 
-float NewDiPhoAnalyzer::getSmearingValue(float sceta, float r9){
+float NewDiPhoAnalyzer::getSmearingValue(float sceta, float r9, int syst){
   float smearingValue = 1.0;
+  float smearingError = 1.0;
 
   // Smearing values below taken from Smearing.txt which comes from:
   // https://gfasanel.web.cern.ch/gfasanel/RUN2_ECAL_Calibration/December2015_Rereco_C_D/step4/outFile-step4-invMass_SC_corr-loose-Et_20-noPF-HggRunEtaR9-smearEle_err.dat
 
   if (fabs(sceta)<=1.0){
-    if (r9 >= 0.94) smearingValue = 0.0079581;
-    else smearingValue = 0.0093795;
+    if (r9 >= 0.94){
+      smearingValue = 0.0079581;
+      smearingError = 0.00033622;
+    }else {
+      smearingValue = 0.0093795;
+      smearingError = 0.00036528;
+  }
   }
   if (fabs(sceta)>1.0 && fabs(sceta)<=1.4442){
-    if (r9 >= 0.94) smearingValue = 0.011545;
-    else smearingValue = 0.018267;
+    if (r9 >= 0.94){
+      smearingValue = 0.011545;
+      smearingError = 0.0015758;
+    }else{
+      smearingValue = 0.018267;
+      smearingError = 0.0004384;
+    }  
   }
   if (fabs(sceta)>1.4442 && fabs(sceta)<=2.0){
-    if (r9 >= 0.94) smearingValue = 0.020104;
-    else smearingValue = 0.022131;
+    if (r9 >= 0.94){
+      smearingValue = 0.020104;
+      smearingError = 0.00092618;
+    }else{
+      smearingValue = 0.022131;
+      smearingError = 0.00064383;
+    }
   }
   if (fabs(sceta)>2.0 && fabs(sceta)<=2.5){
-    if (r9 >= 0.94) smearingValue = 0.022984;
-    else smearingValue = 0.026830;
+    if (r9 >= 0.94){
+      smearingValue = 0.022984;
+      smearingError = 0.0005424;
+    }else {
+      smearingValue = 0.026830;
+      smearingError = 0.00069514;
+    }
   }
-  return smearingValue;
+  return smearingValue+syst*smearingError;
 }
 
-float NewDiPhoAnalyzer::getScalingValue(float sceta, float r9, int runNumber){
+
+
+
+float NewDiPhoAnalyzer::getScalingValue(float sceta, float r9, int runNumber, int syst){
   float scalingValue = 1.0;
+  float scalingError = 1.0;
  
   bool loR9 = false;
   bool hiR9 = false;
@@ -2258,12 +2310,135 @@ float NewDiPhoAnalyzer::getScalingValue(float sceta, float r9, int runNumber){
     if (runNumber >= 260536 && runNumber <= 260627 && loR9) scalingValue = 1.0046;
   }
 
-  return scalingValue;
+
+
+  if (fabs(sceta)<=1.0){
+    if (runNumber >= 254790 && runNumber <= 256629 && loR9) scalingError = 0.0007;
+    if (runNumber >= 254790 && runNumber <= 256629 && hiR9) scalingError = 0.0007;
+    if (runNumber >= 256630 && runNumber <= 257613 && loR9) scalingError = 0.0002;
+    if (runNumber >= 256630 && runNumber <= 257613 && hiR9) scalingError = 0.0002;
+    if (runNumber >= 257614 && runNumber <= 257818 && loR9) scalingError = 0.0002;
+    if (runNumber >= 257614 && runNumber <= 257818 && hiR9) scalingError = 0.0002;
+    if (runNumber >= 257819 && runNumber <= 258158 && loR9) scalingError = 0.0002;
+    if (runNumber >= 257819 && runNumber <= 258158 && hiR9) scalingError = 0.0002;
+    if (runNumber >= 258159 && runNumber <= 258213 && loR9) scalingError = 0.0002;
+    if (runNumber >= 258159 && runNumber <= 258213 && hiR9) scalingError = 0.0002;
+    if (runNumber >= 258214 && runNumber <= 258443 && loR9) scalingError = 0.0002;
+    if (runNumber >= 258214 && runNumber <= 258443 && hiR9) scalingError = 0.0002;
+    if (runNumber >= 258444 && runNumber <= 258704 && loR9) scalingError = 0.0002;
+    if (runNumber >= 258444 && runNumber <= 258704 && hiR9) scalingError = 0.0002;
+    if (runNumber >= 258705 && runNumber <= 258744 && loR9) scalingError = 0.0002;
+    if (runNumber >= 258705 && runNumber <= 258744 && hiR9) scalingError = 0.0002;
+    if (runNumber >= 258745 && runNumber <= 259625 && loR9) scalingError = 0.0003;
+    if (runNumber >= 258745 && runNumber <= 259625 && hiR9) scalingError = 0.0003;
+    if (runNumber >= 259626 && runNumber <= 259810 && loR9) scalingError = 0.0002;
+    if (runNumber >= 259626 && runNumber <= 259810 && hiR9) scalingError = 0.0002;
+    if (runNumber >= 259811 && runNumber <= 259890 && loR9) scalingError = 0.0002;
+    if (runNumber >= 259811 && runNumber <= 259890 && hiR9) scalingError = 0.0002;
+    if (runNumber >= 259891 && runNumber <= 260426 && loR9) scalingError = 0.0002;
+    if (runNumber >= 259891 && runNumber <= 260426 && hiR9) scalingError = 0.0002;
+    if (runNumber >= 260427 && runNumber <= 260535 && loR9) scalingError = 0.0002;
+    if (runNumber >= 260427 && runNumber <= 260535 && hiR9) scalingError = 0.0002;
+    if (runNumber >= 260536 && runNumber <= 260627 && loR9) scalingError = 0.0002;
+    if (runNumber >= 260536 && runNumber <= 260627 && hiR9) scalingError = 0.0002;
+  }									   
+  if (fabs(sceta)>1.0 && fabs(sceta)<=1.4442){				   
+    if (runNumber >= 254790 && runNumber <= 256629 && loR9) scalingError = 0.0031;
+    if (runNumber >= 254790 && runNumber <= 256629 && hiR9) scalingError = 0.0031;
+    if (runNumber >= 256630 && runNumber <= 257613 && loR9) scalingError = 0.0007;
+    if (runNumber >= 256630 && runNumber <= 257613 && hiR9) scalingError = 0.0008;
+    if (runNumber >= 257614 && runNumber <= 257818 && loR9) scalingError = 0.0009;
+    if (runNumber >= 257614 && runNumber <= 257818 && hiR9) scalingError = 0.0010;
+    if (runNumber >= 257819 && runNumber <= 258158 && loR9) scalingError = 0.0008;
+    if (runNumber >= 257819 && runNumber <= 258158 && hiR9) scalingError = 0.0009;
+    if (runNumber >= 258159 && runNumber <= 258213 && loR9) scalingError = 0.0009;
+    if (runNumber >= 258159 && runNumber <= 258213 && hiR9) scalingError = 0.0010;
+    if (runNumber >= 258214 && runNumber <= 258443 && loR9) scalingError = 0.0008;
+    if (runNumber >= 258214 && runNumber <= 258443 && hiR9) scalingError = 0.0009;
+    if (runNumber >= 258444 && runNumber <= 258704 && loR9) scalingError = 0.0008;
+    if (runNumber >= 258444 && runNumber <= 258704 && hiR9) scalingError = 0.0009;
+    if (runNumber >= 258705 && runNumber <= 258744 && loR9) scalingError = 0.0008;
+    if (runNumber >= 258705 && runNumber <= 258744 && hiR9) scalingError = 0.0009;
+    if (runNumber >= 258745 && runNumber <= 259625 && loR9) scalingError = 0.0011;
+    if (runNumber >= 258745 && runNumber <= 259625 && hiR9) scalingError = 0.0012;
+    if (runNumber >= 259626 && runNumber <= 259810 && loR9) scalingError = 0.0009;
+    if (runNumber >= 259626 && runNumber <= 259810 && hiR9) scalingError = 0.0010;
+    if (runNumber >= 259811 && runNumber <= 259890 && loR9) scalingError = 0.0009;
+    if (runNumber >= 259811 && runNumber <= 259890 && hiR9) scalingError = 0.0010;
+    if (runNumber >= 259891 && runNumber <= 260426 && loR9) scalingError = 0.0009;
+    if (runNumber >= 259891 && runNumber <= 260426 && hiR9) scalingError = 0.0010;
+    if (runNumber >= 260427 && runNumber <= 260535 && loR9) scalingError = 0.0009;
+    if (runNumber >= 260427 && runNumber <= 260535 && hiR9) scalingError = 0.0009;
+    if (runNumber >= 260536 && runNumber <= 260627 && loR9) scalingError = 0.0007;
+    if (runNumber >= 260536 && runNumber <= 260627 && hiR9) scalingError = 0.0008;
+  }									   
+  if (fabs(sceta)>=1.566 && fabs(sceta)<=2.0){				   
+    if (runNumber >= 254790 && runNumber <= 256629 && loR9) scalingError = 0.0034;
+    if (runNumber >= 254790 && runNumber <= 256629 && hiR9) scalingError = 0.0034;
+    if (runNumber >= 256630 && runNumber <= 257613 && loR9) scalingError = 0.0010;
+    if (runNumber >= 256630 && runNumber <= 257613 && hiR9) scalingError = 0.0011;
+    if (runNumber >= 257614 && runNumber <= 257818 && loR9) scalingError = 0.0011;
+    if (runNumber >= 257614 && runNumber <= 257818 && hiR9) scalingError = 0.0011;
+    if (runNumber >= 257819 && runNumber <= 258158 && loR9) scalingError = 0.0010;
+    if (runNumber >= 257819 && runNumber <= 258158 && hiR9) scalingError = 0.0011;
+    if (runNumber >= 258159 && runNumber <= 258213 && loR9) scalingError = 0.0011;
+    if (runNumber >= 258159 && runNumber <= 258213 && hiR9) scalingError = 0.0011;
+    if (runNumber >= 258214 && runNumber <= 258443 && loR9) scalingError = 0.0011;
+    if (runNumber >= 258214 && runNumber <= 258443 && hiR9) scalingError = 0.0012;
+    if (runNumber >= 258444 && runNumber <= 258704 && loR9) scalingError = 0.0010;
+    if (runNumber >= 258444 && runNumber <= 258704 && hiR9) scalingError = 0.0011;
+    if (runNumber >= 258705 && runNumber <= 258744 && loR9) scalingError = 0.0010;
+    if (runNumber >= 258705 && runNumber <= 258744 && hiR9) scalingError = 0.0011;
+    if (runNumber >= 258745 && runNumber <= 259625 && loR9) scalingError = 0.0016;
+    if (runNumber >= 258745 && runNumber <= 259625 && hiR9) scalingError = 0.0016;
+    if (runNumber >= 259626 && runNumber <= 259810 && loR9) scalingError = 0.0011;
+    if (runNumber >= 259626 && runNumber <= 259810 && hiR9) scalingError = 0.0012;
+    if (runNumber >= 259811 && runNumber <= 259890 && loR9) scalingError = 0.0011;
+    if (runNumber >= 259811 && runNumber <= 259890 && hiR9) scalingError = 0.0012;
+    if (runNumber >= 259891 && runNumber <= 260426 && loR9) scalingError = 0.0011;
+    if (runNumber >= 259891 && runNumber <= 260426 && hiR9) scalingError = 0.0012;
+    if (runNumber >= 260427 && runNumber <= 260535 && loR9) scalingError = 0.0011;
+    if (runNumber >= 260427 && runNumber <= 260535 && hiR9) scalingError = 0.0012;
+    if (runNumber >= 260536 && runNumber <= 260627 && loR9) scalingError = 0.0009;
+    if (runNumber >= 260536 && runNumber <= 260627 && hiR9) scalingError = 0.0009;
+  }									   
+  if (fabs(sceta)>2.0 && fabs(sceta)<=2.5){				   
+    if (runNumber >= 254790 && runNumber <= 256629 && hiR9) scalingError = 0.0033;
+    if (runNumber >= 254790 && runNumber <= 256629 && loR9) scalingError = 0.0033;
+    if (runNumber >= 256630 && runNumber <= 257613 && hiR9) scalingError = 0.0009;
+    if (runNumber >= 256630 && runNumber <= 257613 && loR9) scalingError = 0.0009;
+    if (runNumber >= 257614 && runNumber <= 257818 && hiR9) scalingError = 0.0010;
+    if (runNumber >= 257614 && runNumber <= 257818 && loR9) scalingError = 0.0010;
+    if (runNumber >= 257819 && runNumber <= 258158 && hiR9) scalingError = 0.0009;
+    if (runNumber >= 257819 && runNumber <= 258158 && loR9) scalingError = 0.0009;
+    if (runNumber >= 258159 && runNumber <= 258213 && hiR9) scalingError = 0.0010;
+    if (runNumber >= 258159 && runNumber <= 258213 && loR9) scalingError = 0.0010;
+    if (runNumber >= 258214 && runNumber <= 258443 && hiR9) scalingError = 0.0010;
+    if (runNumber >= 258214 && runNumber <= 258443 && loR9) scalingError = 0.0010;
+    if (runNumber >= 258444 && runNumber <= 258704 && hiR9) scalingError = 0.0009;
+    if (runNumber >= 258444 && runNumber <= 258704 && loR9) scalingError = 0.0010;
+    if (runNumber >= 258705 && runNumber <= 258744 && hiR9) scalingError = 0.0010;
+    if (runNumber >= 258705 && runNumber <= 258744 && loR9) scalingError = 0.0010;
+    if (runNumber >= 258745 && runNumber <= 259625 && hiR9) scalingError = 0.0014;
+    if (runNumber >= 258745 && runNumber <= 259625 && loR9) scalingError = 0.0015;
+    if (runNumber >= 259626 && runNumber <= 259810 && hiR9) scalingError = 0.0010;
+    if (runNumber >= 259626 && runNumber <= 259810 && loR9) scalingError = 0.0010;
+    if (runNumber >= 259811 && runNumber <= 259890 && hiR9) scalingError = 0.0010;
+    if (runNumber >= 259811 && runNumber <= 259890 && loR9) scalingError = 0.0011;
+    if (runNumber >= 259891 && runNumber <= 260426 && hiR9) scalingError = 0.0011;
+    if (runNumber >= 259891 && runNumber <= 260426 && loR9) scalingError = 0.0011;
+    if (runNumber >= 260427 && runNumber <= 260535 && hiR9) scalingError = 0.0010;
+    if (runNumber >= 260427 && runNumber <= 260535 && loR9) scalingError = 0.0011;
+    if (runNumber >= 260536 && runNumber <= 260627 && hiR9) scalingError = 0.0008;
+    if (runNumber >= 260536 && runNumber <= 260627 && loR9) scalingError = 0.0009;
+  }
+
+  return scalingValue+syst*scalingError;
 }
 
 
 float NewDiPhoAnalyzer::applyEnergySmearing(float ptUncorr, float sceta, float r9, int run){
-  float Smearing	= getSmearingValue( sceta, r9 );   
+  float Smearing	= getSmearingValue( sceta, r9,0 );   
   TRandom Rand(run);
   float Smear 		= Rand.Gaus(1,Smearing);
   float pt = ptUncorr*Smear;
@@ -2271,7 +2446,7 @@ float NewDiPhoAnalyzer::applyEnergySmearing(float ptUncorr, float sceta, float r
 }
 
 float NewDiPhoAnalyzer::applyEnergyScaling(float ptUncorr, float sceta, float r9, int run){
-    float Scaling	= getScalingValue( sceta, r9, run);
+  float Scaling	= getScalingValue( sceta, r9, run,0);
     float pt = ptUncorr*Scaling; 
     return pt;
 }
