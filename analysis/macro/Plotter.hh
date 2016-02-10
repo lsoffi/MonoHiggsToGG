@@ -178,6 +178,8 @@ private:
   Float_t       massCorrSmearUp;
   Float_t       massCorrSmearDown;
   Float_t       massCorrScale;
+  Float_t       massCorrScaleUp;
+  Float_t       massCorrScaleDown;
   Float_t       massRaw;
   Float_t       mva1;
   Float_t       mva2;
@@ -283,6 +285,8 @@ private:
   TBranch       *b_massCorrSmearUp;   //!
   TBranch       *b_massCorrSmearDown;   //!
   TBranch       *b_massCorrScale;   //!
+  TBranch       *b_massCorrScaleUp;   //!
+  TBranch       *b_massCorrScaleDown;   //!
   TBranch       *b_massRaw;   //!
   TBranch       *b_mva1;   //!
   TBranch       *b_mva2;   //!

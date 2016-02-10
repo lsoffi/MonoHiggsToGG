@@ -172,6 +172,8 @@ void addWeights(const char* filename, float lumiForW, float massTrue=1) {
   Float_t         massCorrSmearUp;
   Float_t         massCorrSmearDown;
   Float_t         massCorrScale;
+  Float_t         massCorrScaleUp;
+  Float_t         massCorrScaleDown;
   Float_t         massRaw;
   Float_t         mva1;
   Float_t         mva2;
@@ -304,6 +306,8 @@ void addWeights(const char* filename, float lumiForW, float massTrue=1) {
   TBranch        *b_massCorrSmearUp;   //!
   TBranch        *b_massCorrSmearDown;   //!
   TBranch        *b_massCorrScale;   //!
+  TBranch        *b_massCorrScaleUp;   //!
+  TBranch        *b_massCorrScaleDown;   //!
   TBranch        *b_massRaw;   //!
   TBranch        *b_mva1;   //!
   TBranch        *b_mva2;   //!
@@ -436,6 +440,8 @@ void addWeights(const char* filename, float lumiForW, float massTrue=1) {
   treeOrig->SetBranchAddress("massCorrSmearUp", &massCorrSmearUp, &b_massCorrSmearUp);
   treeOrig->SetBranchAddress("massCorrSmearDown", &massCorrSmearDown, &b_massCorrSmearDown);
   treeOrig->SetBranchAddress("massCorrScale", &massCorrScale, &b_massCorrScale);
+  treeOrig->SetBranchAddress("massCorrScaleUp", &massCorrScaleUp, &b_massCorrScaleUp);
+  treeOrig->SetBranchAddress("massCorrScaleDown", &massCorrScaleDown, &b_massCorrScaleDown);
   treeOrig->SetBranchAddress("massRaw", &massRaw, &b_massRaw);
   treeOrig->SetBranchAddress("mva1", &mva1, &b_mva1);
   treeOrig->SetBranchAddress("mva2", &mva2, &b_mva2);
@@ -585,6 +591,8 @@ void addWeights(const char* filename, float lumiForW, float massTrue=1) {
     theTreeNew->Branch("massCorrSmearUp", &massCorrSmearUp, "b_massCorrSmearUp/F");
     theTreeNew->Branch("massCorrSmearDown", &massCorrSmearDown, "b_massCorrSmearDown/F");
     theTreeNew->Branch("massCorrScale", &massCorrScale, "b_massCorrScale/F");
+    theTreeNew->Branch("massCorrScaleUp", &massCorrScaleUp, "b_massCorrScaleUp/F");
+    theTreeNew->Branch("massCorrScaleDown", &massCorrScaleDown, "b_massCorrScaleDown/F");
     theTreeNew->Branch("massRaw", &massRaw, "b_massRaw/F");
     theTreeNew->Branch("mva1", &mva1, "b_mva1/F");
     theTreeNew->Branch("mva2", &mva2, "b_mva2/F");

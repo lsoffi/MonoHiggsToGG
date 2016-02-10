@@ -215,6 +215,8 @@ struct diphoTree_struc_ {
   float massCorrSmearUp; 
   float massCorrSmearDown; 
   float massCorrScale;
+  float massCorrScaleUp;
+  float massCorrScaleDown;
   float massRaw;
   int genZ;
   float ptZ;
@@ -268,12 +270,13 @@ private:
   int passLoosePHisoCuts(float sceta, float phiso, float pt);
   int passLooseHoeCuts(float sceta, float hoe);
 
-  float getSmearingValue(float sceta, float r9);
-  float getScalingValue(float sceta, float r9, int runNumber);
+  float getSmearingValue(float sceta, float r9, int syst);
+  float getScalingValue(int sampleID, float sceta, float r9, int runNumber, int syst);
   float getPtCorrected(float pt, float sceta,float r9, int run, int sampleID);
   float applyEnergySmearing(float pt, float sceta,float r9, int run);
-  float applyEnergyScaling(float pt, float sceta,float r9, int run);
+  float applyEnergyScaling(int sampleID, float pt, float sceta,float r9, int run);
   bool geometrical_acceptance(float eta1, float eta2);
+
   EDGetTokenT<View<reco::Vertex> > vertexToken_;
   EDGetTokenT<edm::View<flashgg::DiPhotonCandidate> > diPhotonToken_; 
   EDGetTokenT<edm::View<PileupSummaryInfo> > PileUpToken_; 
@@ -949,11 +952,12 @@ void NewDiPhoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
                 int passCHiso1, passCHiso2, passNHiso1, passNHiso2, passPHiso1, passPHiso2, passSieie1, passSieie2, passHoe1, passHoe2;
                 int passTightCHiso1, passTightCHiso2, passTightNHiso1, passTightNHiso2, passTightPHiso1, passTightPHiso2, passTightSieie1, passTightSieie2, passTightHoe1, passTightHoe2;
                 int passLooseCHiso1, passLooseCHiso2, passLooseNHiso1, passLooseNHiso2, passLoosePHiso1, passLoosePHiso2, passLooseSieie1, passLooseSieie2, passLooseHoe1, passLooseHoe2;
-		//		int nEle, nMuons, nJets, nLooseBjets, nMediumBjets;
+		int nEle, nMuons, nJets, nLooseBjets, nMediumBjets;
 		int vhtruth;
 
 		float massCorrSmear, massCorrScale, massRaw;
 		float massCorrSmearUp, massCorrSmearDown;
+		float massCorrScaleUp, massCorrScaleDown;
 
 		int genZ;
 		float ptZ, etaZ, phiZ;
@@ -1019,33 +1023,51 @@ void NewDiPhoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
 		presel2 = isGammaPresel( sceta2, pt2, r92, chiso2, hoe2 ); 
 	
 		
-//correct mass for smearing and scaling
-		float leadSmearing	= getSmearingValue( sceta1, r91 );
-		float subleadSmearing	= getSmearingValue( sceta2, r92 );
+		// correct mass for smearing and scaling
+		float leadSmearing	  = getSmearingValue( sceta1, r91, 0 );
+		float subleadSmearing	  = getSmearingValue( sceta2, r92, 0 );
+		// smear up and down for systematics
+		float leadSmearingUp	  = getSmearingValue( sceta1, r91, 1 );
+		float subleadSmearingUp	  = getSmearingValue( sceta2, r92, 1 );
+		float leadSmearingDown	  = getSmearingValue( sceta1, r91, -1 );
+		float subleadSmearingDown = getSmearingValue( sceta2, r92, -1 );
+
+
 
 		float gaussMean		= 1.0;
               	
 		TRandom Rand1(event);
 		float Smear1 		= Rand1.Gaus(gaussMean,leadSmearing);
-		float Smear1Up         	= Rand1.Gaus(gaussMean,leadSmearing*1.05);
-		float Smear1Down	= Rand1.Gaus(gaussMean,leadSmearing*1.05);
+		float Smear1Up         	= Rand1.Gaus(gaussMean,leadSmearingUp);
+		float Smear1Down	= Rand1.Gaus(gaussMean,leadSmearingDown);
 
 		TRandom Rand2(event+83941);
 		float Smear2 		= Rand2.Gaus(gaussMean,subleadSmearing);
-		float Smear2Up	        = Rand2.Gaus(gaussMean,subleadSmearing*0.95);
-		float Smear2Down	= Rand2.Gaus(gaussMean,subleadSmearing*0.95);
+		float Smear2Up	        = Rand2.Gaus(gaussMean,subleadSmearingUp);
+		float Smear2Down	= Rand2.Gaus(gaussMean,subleadSmearingDown);
 
 		massCorrSmear		= massRaw*sqrt(Smear1*Smear2);
 		massCorrSmearUp	        = massRaw*sqrt(Smear1Up*Smear2Up);
 		massCorrSmearDown	= massRaw*sqrt(Smear1Down*Smear2Down);
 
 		// scaling of Data
-		float leadScaling	= getScalingValue( sceta1, r91, run);
-		float subleadScaling	= getScalingValue( sceta2, r92, run);
+		float leadScaling	= getScalingValue(sampleID, sceta1, r91, run, 0);
+		float subleadScaling	= getScalingValue(sampleID, sceta2, r92, run, 0);
+
+		// scale up and down for systematics
+		float leadScalingUp	= getScalingValue(sampleID, sceta1, r91 ,run, 1);
+		float subleadScalingUp	= getScalingValue(sampleID, sceta2, r92 ,run, 1);
+
+		float leadScalingDown	= getScalingValue(sampleID, sceta1, r91 ,run, -1);
+		float subleadScalingDown= getScalingValue(sampleID, sceta2, r92 ,run, -1);
+
 		float Scaling		= leadScaling*subleadScaling;
+		float ScalingUp		= leadScalingUp*subleadScalingUp;
+		float ScalingDown	= leadScalingDown*subleadScalingDown;
+
 		massCorrScale		= massRaw*sqrt(Scaling);
-
-
+		massCorrScaleUp		= massRaw*sqrt(ScalingUp);
+		massCorrScaleDown	= massRaw*sqrt(ScalingDown);
 
 	
 		// final mgg (has Smearing or Scaling applied)
@@ -1282,14 +1304,15 @@ void NewDiPhoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
 		    }
 		  }
 		}
-		/*
+		
 		// leptons and jets
 		nEle   = 0;
 		nMuons = 0;
 		nJets  = 0;     
 		nLooseBjets  = 0;   
 		nMediumBjets = 0;  
-		
+	 
+		/*	
 		// Muons =>
 		// 0.25 suggested by muon pog for loose isolation
 		// 0.3  (distance from the photons) => seems reasonable to me. 0.5 was used in globe
@@ -1460,11 +1483,11 @@ void NewDiPhoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
 		treeDipho_.passLooseSieie2 = passLooseSieie2;
 		treeDipho_.passLooseHoe1 = passLooseHoe1;
 		treeDipho_.passLooseHoe2 = passLooseHoe2;	
-		/*	treeDipho_.nEle   = nEle;
+		treeDipho_.nEle   = nEle;
 		treeDipho_.nMuons = nMuons;
 		treeDipho_.nJets  = nJets;
 		treeDipho_.nLooseBjets  = nLooseBjets;
-		treeDipho_.nMediumBjets = nMediumBjets;*/
+		treeDipho_.nMediumBjets = nMediumBjets;
 		treeDipho_.vhtruth = vhtruth;
 		treeDipho_.metF_GV = metF_GV;
 		treeDipho_.metF_HBHENoise = metF_HBHENoise;
@@ -1475,6 +1498,8 @@ void NewDiPhoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
 		treeDipho_.massCorrSmearUp = massCorrSmearUp;
 		treeDipho_.massCorrSmearDown = massCorrSmearDown;
 		treeDipho_.massCorrScale = massCorrScale;
+		treeDipho_.massCorrScaleUp = massCorrScaleUp;
+		treeDipho_.massCorrScaleDown = massCorrScaleDown;
 		treeDipho_.massRaw = massRaw;
 		treeDipho_.genZ	= genZ;
 		treeDipho_.ptZ = ptZ;
@@ -1667,6 +1692,8 @@ void NewDiPhoAnalyzer::beginJob() {
   DiPhotonTree->Branch("massCorrSmearUp",&(treeDipho_.massCorrSmearUp),"massCorrSmearUp/F");
   DiPhotonTree->Branch("massCorrSmearDown",&(treeDipho_.massCorrSmearDown),"massCorrSmearDown/F");
   DiPhotonTree->Branch("massCorrScale",&(treeDipho_.massCorrScale),"massCorrScale/F");
+  DiPhotonTree->Branch("massCorrScaleUp",&(treeDipho_.massCorrScaleUp),"massCorrScaleUp/F");
+  DiPhotonTree->Branch("massCorrScaleDown",&(treeDipho_.massCorrScaleDown),"massCorrScaleDown/F");
   DiPhotonTree->Branch("massRaw",&(treeDipho_.massRaw),"massRaw/F");
   DiPhotonTree->Branch("genZ",&(treeDipho_.genZ),"genZ/I");
   DiPhotonTree->Branch("ptZ",&(treeDipho_.ptZ),"ptZ/F");
@@ -1803,6 +1830,8 @@ void NewDiPhoAnalyzer::initTreeStructure() {
   treeDipho_.massCorrSmearUp = -500;
   treeDipho_.massCorrSmearDown = -500;
   treeDipho_.massCorrScale = -500;
+  treeDipho_.massCorrScaleUp = -500;
+  treeDipho_.massCorrScaleDown = -500;
   treeDipho_.massRaw = -500;
   treeDipho_.genZ = -500;
   treeDipho_.ptZ = -500;
@@ -2116,184 +2145,349 @@ int NewDiPhoAnalyzer::effectiveAreaRegion(float sceta) {
   return theEAregion;
 }
 
-float NewDiPhoAnalyzer::getSmearingValue(float sceta, float r9){
+float NewDiPhoAnalyzer::getSmearingValue(float sceta, float r9, int syst){
   float smearingValue = 1.0;
+  float smearingError = 1.0;
 
   // Smearing values below taken from Smearing.txt which comes from:
   // https://gfasanel.web.cern.ch/gfasanel/RUN2_ECAL_Calibration/December2015_Rereco_C_D/step4/outFile-step4-invMass_SC_corr-loose-Et_20-noPF-HggRunEtaR9-smearEle_err.dat
 
   if (fabs(sceta)<=1.0){
-    if (r9 >= 0.94) smearingValue = 0.0079581;
-    else smearingValue = 0.0093795;
+    if (r9 >= 0.94){
+      smearingValue = 0.0079581;
+      smearingError = 0.00033622;
+    }else {
+      smearingValue = 0.0093795;
+      smearingError = 0.00036528;
+  }
   }
   if (fabs(sceta)>1.0 && fabs(sceta)<=1.4442){
-    if (r9 >= 0.94) smearingValue = 0.011545;
-    else smearingValue = 0.018267;
+    if (r9 >= 0.94){
+      smearingValue = 0.011545;
+      smearingError = 0.0015758;
+    }else{
+      smearingValue = 0.018267;
+      smearingError = 0.0004384;
+    }  
   }
   if (fabs(sceta)>1.4442 && fabs(sceta)<=2.0){
-    if (r9 >= 0.94) smearingValue = 0.020104;
-    else smearingValue = 0.022131;
+    if (r9 >= 0.94){
+      smearingValue = 0.020104;
+      smearingError = 0.00092618;
+    }else{
+      smearingValue = 0.022131;
+      smearingError = 0.00064383;
+    }
   }
   if (fabs(sceta)>2.0 && fabs(sceta)<=2.5){
-    if (r9 >= 0.94) smearingValue = 0.022984;
-    else smearingValue = 0.026830;
+    if (r9 >= 0.94){
+      smearingValue = 0.022984;
+      smearingError = 0.0005424;
+    }else {
+      smearingValue = 0.026830;
+      smearingError = 0.00069514;
+    }
   }
-  return smearingValue;
+  return smearingValue+syst*smearingError;
 }
 
-float NewDiPhoAnalyzer::getScalingValue(float sceta, float r9, int runNumber){
+float NewDiPhoAnalyzer::getScalingValue(int sampleID, float sceta, float r9, int runNumber, int syst){
   float scalingValue = 1.0;
+  float scalingError = 1.0;
  
   bool loR9 = false;
   bool hiR9 = false;
   if (r9 >= 0.94) hiR9 = true;
   if (r9  < 0.94) loR9 = true;
 
-  // Scaling values below taken from Scaling.txt which comes from:
-  // https://gfasanel.web.cern.ch/gfasanel/RUN2_ECAL_Calibration/December2015_Rereco_C_D/step2/step2-invMass_SC_corr-loose-Et_20-noPF-HggRunEtaR9.dat
-
-  if (fabs(sceta)<=1.0){
-    if (runNumber >= 254790 && runNumber <= 256629 && loR9) scalingValue = 1.0028;
-    if (runNumber >= 254790 && runNumber <= 256629 && hiR9) scalingValue = 0.9987;
-    if (runNumber >= 256630 && runNumber <= 257613 && loR9) scalingValue = 0.9993;
-    if (runNumber >= 256630 && runNumber <= 257613 && hiR9) scalingValue = 0.9953;
-    if (runNumber >= 257614 && runNumber <= 257818 && loR9) scalingValue = 1.0007;
-    if (runNumber >= 257614 && runNumber <= 257818 && hiR9) scalingValue = 0.9966;
-    if (runNumber >= 257819 && runNumber <= 258158 && loR9) scalingValue = 1.0010;
-    if (runNumber >= 257819 && runNumber <= 258158 && hiR9) scalingValue = 0.9970;
-    if (runNumber >= 258159 && runNumber <= 258213 && loR9) scalingValue = 1.0006;
-    if (runNumber >= 258159 && runNumber <= 258213 && hiR9) scalingValue = 0.9966;
-    if (runNumber >= 258214 && runNumber <= 258443 && loR9) scalingValue = 1.0013;
-    if (runNumber >= 258214 && runNumber <= 258443 && hiR9) scalingValue = 0.9972;
-    if (runNumber >= 258444 && runNumber <= 258704 && loR9) scalingValue = 1.0005;
-    if (runNumber >= 258444 && runNumber <= 258704 && hiR9) scalingValue = 0.9965;
-    if (runNumber >= 258705 && runNumber <= 258744 && loR9) scalingValue = 1.0011;
-    if (runNumber >= 258705 && runNumber <= 258744 && hiR9) scalingValue = 0.9971;
-    if (runNumber >= 258745 && runNumber <= 259625 && loR9) scalingValue = 1.0007;
-    if (runNumber >= 258745 && runNumber <= 259625 && hiR9) scalingValue = 0.9966;
-    if (runNumber >= 259626 && runNumber <= 259810 && loR9) scalingValue = 1.0010;
-    if (runNumber >= 259626 && runNumber <= 259810 && hiR9) scalingValue = 0.9970;
-    if (runNumber >= 259811 && runNumber <= 259890 && loR9) scalingValue = 1.0011;
-    if (runNumber >= 259811 && runNumber <= 259890 && hiR9) scalingValue = 0.9970;
-    if (runNumber >= 259891 && runNumber <= 260426 && loR9) scalingValue = 1.0003;
-    if (runNumber >= 259891 && runNumber <= 260426 && hiR9) scalingValue = 0.9962;
-    if (runNumber >= 260427 && runNumber <= 260535 && loR9) scalingValue = 1.0002;
-    if (runNumber >= 260427 && runNumber <= 260535 && hiR9) scalingValue = 0.9962;
-    if (runNumber >= 260536 && runNumber <= 260627 && loR9) scalingValue = 1.0013;
-    if (runNumber >= 260536 && runNumber <= 260627 && hiR9) scalingValue = 0.9972;
-  }
-  if (fabs(sceta)>1.0 && fabs(sceta)<=1.4442){
-    if (runNumber >= 254790 && runNumber <= 256629 && loR9) scalingValue = 1.0036;
-    if (runNumber >= 254790 && runNumber <= 256629 && hiR9) scalingValue = 0.9923;
-    if (runNumber >= 256630 && runNumber <= 257613 && loR9) scalingValue = 1.0036;
-    if (runNumber >= 256630 && runNumber <= 257613 && hiR9) scalingValue = 0.9922;
-    if (runNumber >= 257614 && runNumber <= 257818 && loR9) scalingValue = 1.0078;
-    if (runNumber >= 257614 && runNumber <= 257818 && hiR9) scalingValue = 0.9964;
-    if (runNumber >= 257819 && runNumber <= 258158 && loR9) scalingValue = 1.0066;
-    if (runNumber >= 257819 && runNumber <= 258158 && hiR9) scalingValue = 0.9952;
-    if (runNumber >= 258159 && runNumber <= 258213 && loR9) scalingValue = 1.0064;
-    if (runNumber >= 258159 && runNumber <= 258213 && hiR9) scalingValue = 0.9951;
-    if (runNumber >= 258214 && runNumber <= 258443 && loR9) scalingValue = 1.0072;
-    if (runNumber >= 258214 && runNumber <= 258443 && hiR9) scalingValue = 0.9958;
-    if (runNumber >= 258444 && runNumber <= 258704 && loR9) scalingValue = 1.0068;
-    if (runNumber >= 258444 && runNumber <= 258704 && hiR9) scalingValue = 0.9954;
-    if (runNumber >= 258705 && runNumber <= 258744 && loR9) scalingValue = 1.0072;
-    if (runNumber >= 258705 && runNumber <= 258744 && hiR9) scalingValue = 0.9958;
-    if (runNumber >= 258745 && runNumber <= 259625 && loR9) scalingValue = 1.0075;
-    if (runNumber >= 258745 && runNumber <= 259625 && hiR9) scalingValue = 0.9961;
-    if (runNumber >= 259626 && runNumber <= 259810 && loR9) scalingValue = 1.0072;
-    if (runNumber >= 259626 && runNumber <= 259810 && hiR9) scalingValue = 0.9958;
-    if (runNumber >= 259811 && runNumber <= 259890 && loR9) scalingValue = 1.0090;
-    if (runNumber >= 259811 && runNumber <= 259890 && hiR9) scalingValue = 0.9976;
-    if (runNumber >= 259891 && runNumber <= 260426 && loR9) scalingValue = 1.0096;
-    if (runNumber >= 259891 && runNumber <= 260426 && hiR9) scalingValue = 0.9982;
-    if (runNumber >= 260427 && runNumber <= 260535 && loR9) scalingValue = 1.0083;
-    if (runNumber >= 260427 && runNumber <= 260535 && hiR9) scalingValue = 0.9969;
-    if (runNumber >= 260536 && runNumber <= 260627 && loR9) scalingValue = 1.0105;
-    if (runNumber >= 260536 && runNumber <= 260627 && hiR9) scalingValue = 0.9991;
-  }
-  if (fabs(sceta)>=1.566 && fabs(sceta)<=2.0){
-    if (runNumber >= 254790 && runNumber <= 256629 && loR9) scalingValue = 1.0138;
-    if (runNumber >= 254790 && runNumber <= 256629 && hiR9) scalingValue = 1.0055;
-    if (runNumber >= 256630 && runNumber <= 257613 && loR9) scalingValue = 1.0177;
-    if (runNumber >= 256630 && runNumber <= 257613 && hiR9) scalingValue = 1.0094;
-    if (runNumber >= 257614 && runNumber <= 257818 && loR9) scalingValue = 1.0101;
-    if (runNumber >= 257614 && runNumber <= 257818 && hiR9) scalingValue = 1.0018;
-    if (runNumber >= 257819 && runNumber <= 258158 && loR9) scalingValue = 1.0102;
-    if (runNumber >= 257819 && runNumber <= 258158 && hiR9) scalingValue = 1.0019;
-    if (runNumber >= 258159 && runNumber <= 258213 && loR9) scalingValue = 1.0087;
-    if (runNumber >= 258159 && runNumber <= 258213 && hiR9) scalingValue = 1.0004;
-    if (runNumber >= 258214 && runNumber <= 258443 && loR9) scalingValue = 1.0078;
-    if (runNumber >= 258214 && runNumber <= 258443 && hiR9) scalingValue = 0.9995;
-    if (runNumber >= 258444 && runNumber <= 258704 && loR9) scalingValue = 1.0080;
-    if (runNumber >= 258444 && runNumber <= 258704 && hiR9) scalingValue = 0.9998;
-    if (runNumber >= 258705 && runNumber <= 258744 && loR9) scalingValue = 1.0080;
-    if (runNumber >= 258705 && runNumber <= 258744 && hiR9) scalingValue = 0.9998;
-    if (runNumber >= 258745 && runNumber <= 259625 && loR9) scalingValue = 1.0096;
-    if (runNumber >= 258745 && runNumber <= 259625 && hiR9) scalingValue = 1.0013;
-    if (runNumber >= 259626 && runNumber <= 259810 && loR9) scalingValue = 1.0092;
-    if (runNumber >= 259626 && runNumber <= 259810 && hiR9) scalingValue = 1.0009;
-    if (runNumber >= 259811 && runNumber <= 259890 && loR9) scalingValue = 1.0061;
-    if (runNumber >= 259811 && runNumber <= 259890 && hiR9) scalingValue = 0.9978;
-    if (runNumber >= 259891 && runNumber <= 260426 && loR9) scalingValue = 1.0062;
-    if (runNumber >= 259891 && runNumber <= 260426 && hiR9) scalingValue = 0.9980;
-    if (runNumber >= 260427 && runNumber <= 260535 && loR9) scalingValue = 1.0061;
-    if (runNumber >= 260427 && runNumber <= 260535 && hiR9) scalingValue = 0.9978;
-    if (runNumber >= 260536 && runNumber <= 260627 && loR9) scalingValue = 1.0095;
-    if (runNumber >= 260536 && runNumber <= 260627 && hiR9) scalingValue = 1.0012;
-  }
-  if (fabs(sceta)>2.0 && fabs(sceta)<=2.5){
-    if (runNumber >= 254790 && runNumber <= 256629 && hiR9) scalingValue = 1.0194;
-    if (runNumber >= 254790 && runNumber <= 256629 && loR9) scalingValue = 1.0281;
-    if (runNumber >= 256630 && runNumber <= 257613 && hiR9) scalingValue = 1.0096;
-    if (runNumber >= 256630 && runNumber <= 257613 && loR9) scalingValue = 1.0182;
-    if (runNumber >= 257614 && runNumber <= 257818 && hiR9) scalingValue = 1.0017;
-    if (runNumber >= 257614 && runNumber <= 257818 && loR9) scalingValue = 1.0102;
-    if (runNumber >= 257819 && runNumber <= 258158 && hiR9) scalingValue = 1.0015;
-    if (runNumber >= 257819 && runNumber <= 258158 && loR9) scalingValue = 1.0100;
-    if (runNumber >= 258159 && runNumber <= 258213 && hiR9) scalingValue = 0.9987;
-    if (runNumber >= 258159 && runNumber <= 258213 && loR9) scalingValue = 1.0072;
-    if (runNumber >= 258214 && runNumber <= 258443 && hiR9) scalingValue = 0.9969;
-    if (runNumber >= 258214 && runNumber <= 258443 && loR9) scalingValue = 1.0054;
-    if (runNumber >= 258444 && runNumber <= 258704 && hiR9) scalingValue = 0.9986;
-    if (runNumber >= 258444 && runNumber <= 258704 && loR9) scalingValue = 1.0070;
-    if (runNumber >= 258705 && runNumber <= 258744 && hiR9) scalingValue = 0.9990;
-    if (runNumber >= 258705 && runNumber <= 258744 && loR9) scalingValue = 1.0075;
-    if (runNumber >= 258745 && runNumber <= 259625 && hiR9) scalingValue = 0.9979;
-    if (runNumber >= 258745 && runNumber <= 259625 && loR9) scalingValue = 1.0064;
-    if (runNumber >= 259626 && runNumber <= 259810 && hiR9) scalingValue = 0.9987;
-    if (runNumber >= 259626 && runNumber <= 259810 && loR9) scalingValue = 1.0072;
-    if (runNumber >= 259811 && runNumber <= 259890 && hiR9) scalingValue = 0.9964;
-    if (runNumber >= 259811 && runNumber <= 259890 && loR9) scalingValue = 1.0049;
-    if (runNumber >= 259891 && runNumber <= 260426 && hiR9) scalingValue = 0.9942;
-    if (runNumber >= 259891 && runNumber <= 260426 && loR9) scalingValue = 1.0026;
-    if (runNumber >= 260427 && runNumber <= 260535 && hiR9) scalingValue = 0.9961;
-    if (runNumber >= 260427 && runNumber <= 260535 && loR9) scalingValue = 1.0046;
-    if (runNumber >= 260536 && runNumber <= 260627 && hiR9) scalingValue = 0.9961;
-    if (runNumber >= 260536 && runNumber <= 260627 && loR9) scalingValue = 1.0046;
+  if (sampleID < 10000){ // if MC use the average of scaling for testing
+    if (fabs(sceta)<=1.0){
+      if (loR9) scalingValue = 1.00085;
+      else      scalingValue = 0.9968;
+    }    
+    if (fabs(sceta)>1.0 || fabs(sceta)<=1.442){
+      if (loR9) scalingValue = 1.0011;
+      else      scalingValue = 0.99585;
+    }    
+    if (fabs(sceta)>=1.566 || fabs(sceta)<=2.0){
+      if (loR9) scalingValue = 1.00936;
+      else      scalingValue = 1.0011;
+    }    
+    if (fabs(sceta)>2.0 || fabs(sceta)<=2.5){
+      if (loR9) scalingValue = 1.000885;
+      else      scalingValue = 1.00034;
+    }    
   }
 
-  return scalingValue;
+  else{ // if Data
+    // Scaling values below taken from Scaling.txt which comes from:
+    // https://gfasanel.web.cern.ch/gfasanel/RUN2_ECAL_Calibration/December2015_Rereco_C_D/step2/step2-invMass_SC_corr-loose-Et_20-noPF-HggRunEtaR9.dat
+
+    if (fabs(sceta)<=1.0){
+      if (runNumber >= 254790 && runNumber <= 256629 && loR9) scalingValue = 1.0028;
+      if (runNumber >= 254790 && runNumber <= 256629 && hiR9) scalingValue = 0.9987;
+      if (runNumber >= 256630 && runNumber <= 257613 && loR9) scalingValue = 0.9993;
+      if (runNumber >= 256630 && runNumber <= 257613 && hiR9) scalingValue = 0.9953;
+      if (runNumber >= 257614 && runNumber <= 257818 && loR9) scalingValue = 1.0007;
+      if (runNumber >= 257614 && runNumber <= 257818 && hiR9) scalingValue = 0.9966;
+      if (runNumber >= 257819 && runNumber <= 258158 && loR9) scalingValue = 1.0010;
+      if (runNumber >= 257819 && runNumber <= 258158 && hiR9) scalingValue = 0.9970;
+      if (runNumber >= 258159 && runNumber <= 258213 && loR9) scalingValue = 1.0006;
+      if (runNumber >= 258159 && runNumber <= 258213 && hiR9) scalingValue = 0.9966;
+      if (runNumber >= 258214 && runNumber <= 258443 && loR9) scalingValue = 1.0013;
+      if (runNumber >= 258214 && runNumber <= 258443 && hiR9) scalingValue = 0.9972;
+      if (runNumber >= 258444 && runNumber <= 258704 && loR9) scalingValue = 1.0005;
+      if (runNumber >= 258444 && runNumber <= 258704 && hiR9) scalingValue = 0.9965;
+      if (runNumber >= 258705 && runNumber <= 258744 && loR9) scalingValue = 1.0011;
+      if (runNumber >= 258705 && runNumber <= 258744 && hiR9) scalingValue = 0.9971;
+      if (runNumber >= 258745 && runNumber <= 259625 && loR9) scalingValue = 1.0007;
+      if (runNumber >= 258745 && runNumber <= 259625 && hiR9) scalingValue = 0.9966;
+      if (runNumber >= 259626 && runNumber <= 259810 && loR9) scalingValue = 1.0010;
+      if (runNumber >= 259626 && runNumber <= 259810 && hiR9) scalingValue = 0.9970;
+      if (runNumber >= 259811 && runNumber <= 259890 && loR9) scalingValue = 1.0011;
+      if (runNumber >= 259811 && runNumber <= 259890 && hiR9) scalingValue = 0.9970;
+      if (runNumber >= 259891 && runNumber <= 260426 && loR9) scalingValue = 1.0003;
+      if (runNumber >= 259891 && runNumber <= 260426 && hiR9) scalingValue = 0.9962;
+      if (runNumber >= 260427 && runNumber <= 260535 && loR9) scalingValue = 1.0002;
+      if (runNumber >= 260427 && runNumber <= 260535 && hiR9) scalingValue = 0.9962;
+      if (runNumber >= 260536 && runNumber <= 260627 && loR9) scalingValue = 1.0013;
+      if (runNumber >= 260536 && runNumber <= 260627 && hiR9) scalingValue = 0.9972;
+    }
+    if (fabs(sceta)>1.0 && fabs(sceta)<=1.4442){
+      if (runNumber >= 254790 && runNumber <= 256629 && loR9) scalingValue = 1.0036;
+      if (runNumber >= 254790 && runNumber <= 256629 && hiR9) scalingValue = 0.9923;
+      if (runNumber >= 256630 && runNumber <= 257613 && loR9) scalingValue = 1.0036;
+      if (runNumber >= 256630 && runNumber <= 257613 && hiR9) scalingValue = 0.9922;
+      if (runNumber >= 257614 && runNumber <= 257818 && loR9) scalingValue = 1.0078;
+      if (runNumber >= 257614 && runNumber <= 257818 && hiR9) scalingValue = 0.9964;
+      if (runNumber >= 257819 && runNumber <= 258158 && loR9) scalingValue = 1.0066;
+      if (runNumber >= 257819 && runNumber <= 258158 && hiR9) scalingValue = 0.9952;
+      if (runNumber >= 258159 && runNumber <= 258213 && loR9) scalingValue = 1.0064;
+      if (runNumber >= 258159 && runNumber <= 258213 && hiR9) scalingValue = 0.9951;
+      if (runNumber >= 258214 && runNumber <= 258443 && loR9) scalingValue = 1.0072;
+      if (runNumber >= 258214 && runNumber <= 258443 && hiR9) scalingValue = 0.9958;
+      if (runNumber >= 258444 && runNumber <= 258704 && loR9) scalingValue = 1.0068;
+      if (runNumber >= 258444 && runNumber <= 258704 && hiR9) scalingValue = 0.9954;
+      if (runNumber >= 258705 && runNumber <= 258744 && loR9) scalingValue = 1.0072;
+      if (runNumber >= 258705 && runNumber <= 258744 && hiR9) scalingValue = 0.9958;
+      if (runNumber >= 258745 && runNumber <= 259625 && loR9) scalingValue = 1.0075;
+      if (runNumber >= 258745 && runNumber <= 259625 && hiR9) scalingValue = 0.9961;
+      if (runNumber >= 259626 && runNumber <= 259810 && loR9) scalingValue = 1.0072;
+      if (runNumber >= 259626 && runNumber <= 259810 && hiR9) scalingValue = 0.9958;
+      if (runNumber >= 259811 && runNumber <= 259890 && loR9) scalingValue = 1.0090;
+      if (runNumber >= 259811 && runNumber <= 259890 && hiR9) scalingValue = 0.9976;
+      if (runNumber >= 259891 && runNumber <= 260426 && loR9) scalingValue = 1.0096;
+      if (runNumber >= 259891 && runNumber <= 260426 && hiR9) scalingValue = 0.9982;
+      if (runNumber >= 260427 && runNumber <= 260535 && loR9) scalingValue = 1.0083;
+      if (runNumber >= 260427 && runNumber <= 260535 && hiR9) scalingValue = 0.9969;
+      if (runNumber >= 260536 && runNumber <= 260627 && loR9) scalingValue = 1.0105;
+      if (runNumber >= 260536 && runNumber <= 260627 && hiR9) scalingValue = 0.9991;
+    }
+    if (fabs(sceta)>=1.566 && fabs(sceta)<=2.0){
+      if (runNumber >= 254790 && runNumber <= 256629 && loR9) scalingValue = 1.0138;
+      if (runNumber >= 254790 && runNumber <= 256629 && hiR9) scalingValue = 1.0055;
+      if (runNumber >= 256630 && runNumber <= 257613 && loR9) scalingValue = 1.0177;
+      if (runNumber >= 256630 && runNumber <= 257613 && hiR9) scalingValue = 1.0094;
+      if (runNumber >= 257614 && runNumber <= 257818 && loR9) scalingValue = 1.0101;
+      if (runNumber >= 257614 && runNumber <= 257818 && hiR9) scalingValue = 1.0018;
+      if (runNumber >= 257819 && runNumber <= 258158 && loR9) scalingValue = 1.0102;
+      if (runNumber >= 257819 && runNumber <= 258158 && hiR9) scalingValue = 1.0019;
+      if (runNumber >= 258159 && runNumber <= 258213 && loR9) scalingValue = 1.0087;
+      if (runNumber >= 258159 && runNumber <= 258213 && hiR9) scalingValue = 1.0004;
+      if (runNumber >= 258214 && runNumber <= 258443 && loR9) scalingValue = 1.0078;
+      if (runNumber >= 258214 && runNumber <= 258443 && hiR9) scalingValue = 0.9995;
+      if (runNumber >= 258444 && runNumber <= 258704 && loR9) scalingValue = 1.0080;
+      if (runNumber >= 258444 && runNumber <= 258704 && hiR9) scalingValue = 0.9998;
+      if (runNumber >= 258705 && runNumber <= 258744 && loR9) scalingValue = 1.0080;
+      if (runNumber >= 258705 && runNumber <= 258744 && hiR9) scalingValue = 0.9998;
+      if (runNumber >= 258745 && runNumber <= 259625 && loR9) scalingValue = 1.0096;
+      if (runNumber >= 258745 && runNumber <= 259625 && hiR9) scalingValue = 1.0013;
+      if (runNumber >= 259626 && runNumber <= 259810 && loR9) scalingValue = 1.0092;
+      if (runNumber >= 259626 && runNumber <= 259810 && hiR9) scalingValue = 1.0009;
+      if (runNumber >= 259811 && runNumber <= 259890 && loR9) scalingValue = 1.0061;
+      if (runNumber >= 259811 && runNumber <= 259890 && hiR9) scalingValue = 0.9978;
+      if (runNumber >= 259891 && runNumber <= 260426 && loR9) scalingValue = 1.0062;
+      if (runNumber >= 259891 && runNumber <= 260426 && hiR9) scalingValue = 0.9980;
+      if (runNumber >= 260427 && runNumber <= 260535 && loR9) scalingValue = 1.0061;
+      if (runNumber >= 260427 && runNumber <= 260535 && hiR9) scalingValue = 0.9978;
+      if (runNumber >= 260536 && runNumber <= 260627 && loR9) scalingValue = 1.0095;
+      if (runNumber >= 260536 && runNumber <= 260627 && hiR9) scalingValue = 1.0012;
+    }
+    if (fabs(sceta)>2.0 && fabs(sceta)<=2.5){
+      if (runNumber >= 254790 && runNumber <= 256629 && hiR9) scalingValue = 1.0194;
+      if (runNumber >= 254790 && runNumber <= 256629 && loR9) scalingValue = 1.0281;
+      if (runNumber >= 256630 && runNumber <= 257613 && hiR9) scalingValue = 1.0096;
+      if (runNumber >= 256630 && runNumber <= 257613 && loR9) scalingValue = 1.0182;
+      if (runNumber >= 257614 && runNumber <= 257818 && hiR9) scalingValue = 1.0017;
+      if (runNumber >= 257614 && runNumber <= 257818 && loR9) scalingValue = 1.0102;
+      if (runNumber >= 257819 && runNumber <= 258158 && hiR9) scalingValue = 1.0015;
+      if (runNumber >= 257819 && runNumber <= 258158 && loR9) scalingValue = 1.0100;
+      if (runNumber >= 258159 && runNumber <= 258213 && hiR9) scalingValue = 0.9987;
+      if (runNumber >= 258159 && runNumber <= 258213 && loR9) scalingValue = 1.0072;
+      if (runNumber >= 258214 && runNumber <= 258443 && hiR9) scalingValue = 0.9969;
+      if (runNumber >= 258214 && runNumber <= 258443 && loR9) scalingValue = 1.0054;
+      if (runNumber >= 258444 && runNumber <= 258704 && hiR9) scalingValue = 0.9986;
+      if (runNumber >= 258444 && runNumber <= 258704 && loR9) scalingValue = 1.0070;
+      if (runNumber >= 258705 && runNumber <= 258744 && hiR9) scalingValue = 0.9990;
+      if (runNumber >= 258705 && runNumber <= 258744 && loR9) scalingValue = 1.0075;
+      if (runNumber >= 258745 && runNumber <= 259625 && hiR9) scalingValue = 0.9979;
+      if (runNumber >= 258745 && runNumber <= 259625 && loR9) scalingValue = 1.0064;
+      if (runNumber >= 259626 && runNumber <= 259810 && hiR9) scalingValue = 0.9987;
+      if (runNumber >= 259626 && runNumber <= 259810 && loR9) scalingValue = 1.0072;
+      if (runNumber >= 259811 && runNumber <= 259890 && hiR9) scalingValue = 0.9964;
+      if (runNumber >= 259811 && runNumber <= 259890 && loR9) scalingValue = 1.0049;
+      if (runNumber >= 259891 && runNumber <= 260426 && hiR9) scalingValue = 0.9942;
+      if (runNumber >= 259891 && runNumber <= 260426 && loR9) scalingValue = 1.0026;
+      if (runNumber >= 260427 && runNumber <= 260535 && hiR9) scalingValue = 0.9961;
+      if (runNumber >= 260427 && runNumber <= 260535 && loR9) scalingValue = 1.0046;
+      if (runNumber >= 260536 && runNumber <= 260627 && hiR9) scalingValue = 0.9961;
+      if (runNumber >= 260536 && runNumber <= 260627 && loR9) scalingValue = 1.0046;
+    }
+
+    if (fabs(sceta)<=1.0){
+      if (runNumber >= 254790 && runNumber <= 256629 && loR9) scalingError = 0.0007;
+      if (runNumber >= 254790 && runNumber <= 256629 && hiR9) scalingError = 0.0007;
+      if (runNumber >= 256630 && runNumber <= 257613 && loR9) scalingError = 0.0002;
+      if (runNumber >= 256630 && runNumber <= 257613 && hiR9) scalingError = 0.0002;
+      if (runNumber >= 257614 && runNumber <= 257818 && loR9) scalingError = 0.0002;
+      if (runNumber >= 257614 && runNumber <= 257818 && hiR9) scalingError = 0.0002;
+      if (runNumber >= 257819 && runNumber <= 258158 && loR9) scalingError = 0.0002;
+      if (runNumber >= 257819 && runNumber <= 258158 && hiR9) scalingError = 0.0002;
+      if (runNumber >= 258159 && runNumber <= 258213 && loR9) scalingError = 0.0002;
+      if (runNumber >= 258159 && runNumber <= 258213 && hiR9) scalingError = 0.0002;
+      if (runNumber >= 258214 && runNumber <= 258443 && loR9) scalingError = 0.0002;
+      if (runNumber >= 258214 && runNumber <= 258443 && hiR9) scalingError = 0.0002;
+      if (runNumber >= 258444 && runNumber <= 258704 && loR9) scalingError = 0.0002;
+      if (runNumber >= 258444 && runNumber <= 258704 && hiR9) scalingError = 0.0002;
+      if (runNumber >= 258705 && runNumber <= 258744 && loR9) scalingError = 0.0002;
+      if (runNumber >= 258705 && runNumber <= 258744 && hiR9) scalingError = 0.0002;
+      if (runNumber >= 258745 && runNumber <= 259625 && loR9) scalingError = 0.0003;
+      if (runNumber >= 258745 && runNumber <= 259625 && hiR9) scalingError = 0.0003;
+      if (runNumber >= 259626 && runNumber <= 259810 && loR9) scalingError = 0.0002;
+      if (runNumber >= 259626 && runNumber <= 259810 && hiR9) scalingError = 0.0002;
+      if (runNumber >= 259811 && runNumber <= 259890 && loR9) scalingError = 0.0002;
+      if (runNumber >= 259811 && runNumber <= 259890 && hiR9) scalingError = 0.0002;
+      if (runNumber >= 259891 && runNumber <= 260426 && loR9) scalingError = 0.0002;
+      if (runNumber >= 259891 && runNumber <= 260426 && hiR9) scalingError = 0.0002;
+      if (runNumber >= 260427 && runNumber <= 260535 && loR9) scalingError = 0.0002;
+      if (runNumber >= 260427 && runNumber <= 260535 && hiR9) scalingError = 0.0002;
+      if (runNumber >= 260536 && runNumber <= 260627 && loR9) scalingError = 0.0002;
+      if (runNumber >= 260536 && runNumber <= 260627 && hiR9) scalingError = 0.0002;
+    }									   
+    if (fabs(sceta)>1.0 && fabs(sceta)<=1.4442){				   
+      if (runNumber >= 254790 && runNumber <= 256629 && loR9) scalingError = 0.0031;
+      if (runNumber >= 254790 && runNumber <= 256629 && hiR9) scalingError = 0.0031;
+      if (runNumber >= 256630 && runNumber <= 257613 && loR9) scalingError = 0.0007;
+      if (runNumber >= 256630 && runNumber <= 257613 && hiR9) scalingError = 0.0008;
+      if (runNumber >= 257614 && runNumber <= 257818 && loR9) scalingError = 0.0009;
+      if (runNumber >= 257614 && runNumber <= 257818 && hiR9) scalingError = 0.0010;
+      if (runNumber >= 257819 && runNumber <= 258158 && loR9) scalingError = 0.0008;
+      if (runNumber >= 257819 && runNumber <= 258158 && hiR9) scalingError = 0.0009;
+      if (runNumber >= 258159 && runNumber <= 258213 && loR9) scalingError = 0.0009;
+      if (runNumber >= 258159 && runNumber <= 258213 && hiR9) scalingError = 0.0010;
+      if (runNumber >= 258214 && runNumber <= 258443 && loR9) scalingError = 0.0008;
+      if (runNumber >= 258214 && runNumber <= 258443 && hiR9) scalingError = 0.0009;
+      if (runNumber >= 258444 && runNumber <= 258704 && loR9) scalingError = 0.0008;
+      if (runNumber >= 258444 && runNumber <= 258704 && hiR9) scalingError = 0.0009;
+      if (runNumber >= 258705 && runNumber <= 258744 && loR9) scalingError = 0.0008;
+      if (runNumber >= 258705 && runNumber <= 258744 && hiR9) scalingError = 0.0009;
+      if (runNumber >= 258745 && runNumber <= 259625 && loR9) scalingError = 0.0011;
+      if (runNumber >= 258745 && runNumber <= 259625 && hiR9) scalingError = 0.0012;
+      if (runNumber >= 259626 && runNumber <= 259810 && loR9) scalingError = 0.0009;
+      if (runNumber >= 259626 && runNumber <= 259810 && hiR9) scalingError = 0.0010;
+      if (runNumber >= 259811 && runNumber <= 259890 && loR9) scalingError = 0.0009;
+      if (runNumber >= 259811 && runNumber <= 259890 && hiR9) scalingError = 0.0010;
+      if (runNumber >= 259891 && runNumber <= 260426 && loR9) scalingError = 0.0009;
+      if (runNumber >= 259891 && runNumber <= 260426 && hiR9) scalingError = 0.0010;
+      if (runNumber >= 260427 && runNumber <= 260535 && loR9) scalingError = 0.0009;
+      if (runNumber >= 260427 && runNumber <= 260535 && hiR9) scalingError = 0.0009;
+      if (runNumber >= 260536 && runNumber <= 260627 && loR9) scalingError = 0.0007;
+      if (runNumber >= 260536 && runNumber <= 260627 && hiR9) scalingError = 0.0008;
+    }									   
+    if (fabs(sceta)>=1.566 && fabs(sceta)<=2.0){				   
+      if (runNumber >= 254790 && runNumber <= 256629 && loR9) scalingError = 0.0034;
+      if (runNumber >= 254790 && runNumber <= 256629 && hiR9) scalingError = 0.0034;
+      if (runNumber >= 256630 && runNumber <= 257613 && loR9) scalingError = 0.0010;
+      if (runNumber >= 256630 && runNumber <= 257613 && hiR9) scalingError = 0.0011;
+      if (runNumber >= 257614 && runNumber <= 257818 && loR9) scalingError = 0.0011;
+      if (runNumber >= 257614 && runNumber <= 257818 && hiR9) scalingError = 0.0011;
+      if (runNumber >= 257819 && runNumber <= 258158 && loR9) scalingError = 0.0010;
+      if (runNumber >= 257819 && runNumber <= 258158 && hiR9) scalingError = 0.0011;
+      if (runNumber >= 258159 && runNumber <= 258213 && loR9) scalingError = 0.0011;
+      if (runNumber >= 258159 && runNumber <= 258213 && hiR9) scalingError = 0.0011;
+      if (runNumber >= 258214 && runNumber <= 258443 && loR9) scalingError = 0.0011;
+      if (runNumber >= 258214 && runNumber <= 258443 && hiR9) scalingError = 0.0012;
+      if (runNumber >= 258444 && runNumber <= 258704 && loR9) scalingError = 0.0010;
+      if (runNumber >= 258444 && runNumber <= 258704 && hiR9) scalingError = 0.0011;
+      if (runNumber >= 258705 && runNumber <= 258744 && loR9) scalingError = 0.0010;
+      if (runNumber >= 258705 && runNumber <= 258744 && hiR9) scalingError = 0.0011;
+      if (runNumber >= 258745 && runNumber <= 259625 && loR9) scalingError = 0.0016;
+      if (runNumber >= 258745 && runNumber <= 259625 && hiR9) scalingError = 0.0016;
+      if (runNumber >= 259626 && runNumber <= 259810 && loR9) scalingError = 0.0011;
+      if (runNumber >= 259626 && runNumber <= 259810 && hiR9) scalingError = 0.0012;
+      if (runNumber >= 259811 && runNumber <= 259890 && loR9) scalingError = 0.0011;
+      if (runNumber >= 259811 && runNumber <= 259890 && hiR9) scalingError = 0.0012;
+      if (runNumber >= 259891 && runNumber <= 260426 && loR9) scalingError = 0.0011;
+      if (runNumber >= 259891 && runNumber <= 260426 && hiR9) scalingError = 0.0012;
+      if (runNumber >= 260427 && runNumber <= 260535 && loR9) scalingError = 0.0011;
+      if (runNumber >= 260427 && runNumber <= 260535 && hiR9) scalingError = 0.0012;
+      if (runNumber >= 260536 && runNumber <= 260627 && loR9) scalingError = 0.0009;
+      if (runNumber >= 260536 && runNumber <= 260627 && hiR9) scalingError = 0.0009;
+    }									   
+    if (fabs(sceta)>2.0 && fabs(sceta)<=2.5){				   
+      if (runNumber >= 254790 && runNumber <= 256629 && hiR9) scalingError = 0.0033;
+      if (runNumber >= 254790 && runNumber <= 256629 && loR9) scalingError = 0.0033;
+      if (runNumber >= 256630 && runNumber <= 257613 && hiR9) scalingError = 0.0009;
+      if (runNumber >= 256630 && runNumber <= 257613 && loR9) scalingError = 0.0009;
+      if (runNumber >= 257614 && runNumber <= 257818 && hiR9) scalingError = 0.0010;
+      if (runNumber >= 257614 && runNumber <= 257818 && loR9) scalingError = 0.0010;
+      if (runNumber >= 257819 && runNumber <= 258158 && hiR9) scalingError = 0.0009;
+      if (runNumber >= 257819 && runNumber <= 258158 && loR9) scalingError = 0.0009;
+      if (runNumber >= 258159 && runNumber <= 258213 && hiR9) scalingError = 0.0010;
+      if (runNumber >= 258159 && runNumber <= 258213 && loR9) scalingError = 0.0010;
+      if (runNumber >= 258214 && runNumber <= 258443 && hiR9) scalingError = 0.0010;
+      if (runNumber >= 258214 && runNumber <= 258443 && loR9) scalingError = 0.0010;
+      if (runNumber >= 258444 && runNumber <= 258704 && hiR9) scalingError = 0.0009;
+      if (runNumber >= 258444 && runNumber <= 258704 && loR9) scalingError = 0.0010;
+      if (runNumber >= 258705 && runNumber <= 258744 && hiR9) scalingError = 0.0010;
+      if (runNumber >= 258705 && runNumber <= 258744 && loR9) scalingError = 0.0010;
+      if (runNumber >= 258745 && runNumber <= 259625 && hiR9) scalingError = 0.0014;
+      if (runNumber >= 258745 && runNumber <= 259625 && loR9) scalingError = 0.0015;
+      if (runNumber >= 259626 && runNumber <= 259810 && hiR9) scalingError = 0.0010;
+      if (runNumber >= 259626 && runNumber <= 259810 && loR9) scalingError = 0.0010;
+      if (runNumber >= 259811 && runNumber <= 259890 && hiR9) scalingError = 0.0010;
+      if (runNumber >= 259811 && runNumber <= 259890 && loR9) scalingError = 0.0011;
+      if (runNumber >= 259891 && runNumber <= 260426 && hiR9) scalingError = 0.0011;
+      if (runNumber >= 259891 && runNumber <= 260426 && loR9) scalingError = 0.0011;
+      if (runNumber >= 260427 && runNumber <= 260535 && hiR9) scalingError = 0.0010;
+      if (runNumber >= 260427 && runNumber <= 260535 && loR9) scalingError = 0.0011;
+      if (runNumber >= 260536 && runNumber <= 260627 && hiR9) scalingError = 0.0008;
+      if (runNumber >= 260536 && runNumber <= 260627 && loR9) scalingError = 0.0009;
+    }
+
+  }
+
+  return scalingValue+syst*scalingError;
 }
 
 
 float NewDiPhoAnalyzer::applyEnergySmearing(float ptUncorr, float sceta, float r9, int run){
-  float Smearing	= getSmearingValue( sceta, r9 );   
+  float Smearing	= getSmearingValue( sceta, r9, 0 );   
   TRandom Rand(run);
   float Smear 		= Rand.Gaus(1,Smearing);
   float pt = ptUncorr*Smear;
   return pt;
 }
 
-float NewDiPhoAnalyzer::applyEnergyScaling(float ptUncorr, float sceta, float r9, int run){
-    float Scaling	= getScalingValue( sceta, r9, run);
+float NewDiPhoAnalyzer::applyEnergyScaling(int sampleID, float ptUncorr, float sceta, float r9, int run){
+    float Scaling	= getScalingValue(sampleID, sceta, r9, run, 0 );
     float pt = ptUncorr*Scaling; 
     return pt;
 }
 
  float NewDiPhoAnalyzer::getPtCorrected(float ptUncorr, float sceta, float r9, int run, int sampleID){
    float pt;
-   if(sampleID>=10000) pt = applyEnergyScaling(ptUncorr,sceta,r9, run);// is data
+   if(sampleID>=10000) pt = applyEnergyScaling(sampleID, ptUncorr,sceta,r9, run);// is data
    else pt = applyEnergySmearing(ptUncorr,sceta,r9, run);// is MC
    return pt;
  }

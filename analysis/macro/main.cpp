@@ -39,8 +39,8 @@ int main(){
   //////////////////////////////////////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////////////////////////////////
 
-  TString inDir = "data/25ns_v1-1-0_ReReco_Corrected/"; 		// input directory of the samples
-  TString outDir = "./diPhoPlots/25ns_v1-1-0_ReReco_Corrected_OptSel_woMETcut/";	// output directory to send results
+  TString inDir = "data/25ns_v1-1-0_ReReco_wSyst/"; 		// input directory of the samples
+  TString outDir = "./diPhoPlots/25ns_v1-1-0_ReReco_wSyst/";	// output directory to send results
 
   TString type = "png";		// type of plots to be made
   bool doPlots = false;		// make plots for each sample individually

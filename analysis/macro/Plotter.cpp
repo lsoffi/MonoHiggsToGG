@@ -167,16 +167,16 @@ void Plotter::DoPlots(int prompt){
     if (eleveto1==1)	    passEV1 = true;
     if (eleveto2==1)	    passEV2 = true; 
 
-    if (!passCH1) std::cout << "Fails CHIso1" << std::endl;
-    if (!passCH2) std::cout << "Fails CHIso2" << std::endl;
-    if (!passNH1) std::cout << "Fails NHIso1" << std::endl;
-    if (!passNH2) std::cout << "Fails NHIso2" << std::endl;
-    if (!passPH1) std::cout << "Fails PHIso1" << std::endl;
-    if (!passPH2) std::cout << "Fails PHIso2" << std::endl;
-    if (!passS1)  std::cout << "Fails SIEIE1" << std::endl;
-    if (!passS2)  std::cout << "Fails SIEIE2" << std::endl;
-    if (!passHE1) std::cout << "Fails HoE1"   << std::endl;
-    if (!passHE2) std::cout << "Fails HoE2"   << std::endl;
+    //if (!passCH1) std::cout << "Fails CHIso1" << std::endl;
+    //if (!passCH2) std::cout << "Fails CHIso2" << std::endl;
+    //if (!passNH1) std::cout << "Fails NHIso1" << std::endl;
+    //if (!passNH2) std::cout << "Fails NHIso2" << std::endl;
+    //if (!passPH1) std::cout << "Fails PHIso1" << std::endl;
+    //if (!passPH2) std::cout << "Fails PHIso2" << std::endl;
+    //if (!passS1)  std::cout << "Fails SIEIE1" << std::endl;
+    //if (!passS2)  std::cout << "Fails SIEIE2" << std::endl;
+    //if (!passHE1) std::cout << "Fails HoE1"   << std::endl;
+    //if (!passHE2) std::cout << "Fails HoE2"   << std::endl;
 
     if (passCH1 && passNH1 && passPH1 && passS1 && passHE1 && passEV1) passAll1 = true;
     if (passCH2 && passNH2 && passPH2 && passS2 && passHE2 && passEV2) passAll2 = true;
@@ -230,7 +230,7 @@ void Plotter::DoPlots(int prompt){
 
     // START full selection for plots
     if (passMETfil && !weightNegative){ //Data passes MET filters && not a negativeWeight
-      if (mgg >= 100 && mgg < 180 && passEV1 && passEV2 &&  pt1 > 0.65*mgg && pt2 > 0.25*mgg /*&& t1pfmet > 80*/ ){
+      if (mgg >= 100 && mgg < 180 && passEV1 && passEV2 /*&&  pt1 > 0.65*mgg && pt2 > 0.25*mgg */ /*&& t1pfmet > 80*/ ){
         fTH1DMap["eff_sel"]->Fill(1.5,Weight);
         if (hltDiphoton30Mass95==1){ //passes trigger
 
@@ -853,6 +853,8 @@ void Plotter::SetBranchAddresses(){
   tpho->SetBranchAddress("massCorrSmearUp", &massCorrSmearUp, &b_massCorrSmearUp);
   tpho->SetBranchAddress("massCorrSmearDown", &massCorrSmearDown, &b_massCorrSmearDown);
   tpho->SetBranchAddress("massCorrScale", &massCorrScale, &b_massCorrScale);
+  tpho->SetBranchAddress("massCorrScaleUp", &massCorrScaleUp, &b_massCorrScaleUp);
+  tpho->SetBranchAddress("massCorrScaleDown", &massCorrScaleDown, &b_massCorrScaleDown);
   tpho->SetBranchAddress("massRaw", &massRaw, &b_massRaw);
   tpho->SetBranchAddress("mva1", &mva1, &b_mva1);
   tpho->SetBranchAddress("mva2", &mva2, &b_mva2);

@@ -18,6 +18,8 @@
 ./submitBatchDiPho.py --cfg diPhoAnaBATCH_MVA.py GluGluHToGG	     		1 10  /afs/cern.ch/user/m/mzientek/public/pileupWeights_fullReReco74X.root 0.087842 1 
 ./submitBatchDiPho.py --cfg diPhoAnaBATCH_MVA.py VH				1 11  /afs/cern.ch/user/m/mzientek/public/pileupWeights_fullReReco74X.root 0.004499 1 
 ./submitBatchDiPho.py --cfg diPhoAnaBATCH_MVA.py DYJetsToLL			1 12  /afs/cern.ch/user/m/mzientek/public/pileupWeights_fullReReco74X.root 6025.2   1 
+./submitBatchDiPho.py --cfg diPhoAnaBATCH_MVA.py ttHJetToGG			1 21  /afs/cern.ch/user/m/mzientek/public/pileupWeights_fullReReco74X.root 0.00107  1  
+./submitBatchDiPho.py --cfg diPhoAnaBATCH_MVA.py VBFHToGG			1 22  /afs/cern.ch/user/m/mzientek/public/pileupWeights_fullReReco74X.root 0.007496 1 
                                                                                                                                                           
 ./submitBatchDiPho.py --cfg diPhoAnaBATCH_MVA.py privMC_2HDM_MZP600		1 100 /afs/cern.ch/user/m/mzientek/public/pileupWeights_fullReReco74X.root 0.001 1 #0.00009338  1 #46.69fb xsec * 0.002br
 ./submitBatchDiPho.py --cfg diPhoAnaBATCH_MVA.py privMC_2HDM_MZP800		1 101 /afs/cern.ch/user/m/mzientek/public/pileupWeights_fullReReco74X.root 0.001 1 #0.00010348  1 #51.74fb xsec * 0.002br
