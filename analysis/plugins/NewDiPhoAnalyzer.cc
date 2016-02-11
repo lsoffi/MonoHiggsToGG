@@ -114,6 +114,21 @@ struct diphoTree_struc_ {
   float pfmetPhi;
   float pfmetSumEt;
   float t1pfmet;
+  float t1p2pfmet;
+  float t1pfmetJetEnUp ;            
+  float t1pfmetJetEnDown ;          
+  float t1pfmetJetResUp   ;         
+  float t1pfmetJetResDown   ;       
+  float t1pfmetMuonEnUp      ;      
+  float t1pfmetMuonEnDown      ;      
+  float t1pfmetElectronEnUp  ; 
+  float t1pfmetElectronEnDown  ; 
+  float t1pfmetTauEnUp        ;
+  float t1pfmetTauEnDown        ;
+  float t1pfmetPhotonEnUp     ;
+  float t1pfmetPhotonEnDown     ;
+  float t1pfmetUnclusteredEnUp;
+  float t1pfmetUnclusteredEnDown;
   float t1pfmetPhi;
   float t1pfmetSumEt;
   float ptgg;
@@ -408,6 +423,7 @@ NewDiPhoAnalyzer::~NewDiPhoAnalyzer() {
   std::cout<<"vtx:    "<<vtxLivia<<std::endl;
   std::cout<<"mass:   "<<massLivia<<std::endl;
   std::cout<<"elveto: "<<elvetoLivia<<std::endl;
+ 
   // std::cout << "Number of Initial Events = " << eff_start << std::endl;
   // std::cout << "Number of Events Passing HLT = " << eff_passingHLT << std::endl;
   //std::cout << "Number Events After Sel. = " << eff_end   << std::endl;
@@ -447,7 +463,6 @@ void NewDiPhoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
   h_entries->Fill(5);
 
   totLivia++;
-
   eff_start++;
 
   Handle<View<pat::MET> > METs;
@@ -502,7 +517,6 @@ void NewDiPhoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
     //if( (TString::Format((triggerNames.triggerName( index )).c_str())).Contains("HLT_Diphoton") && (TString::Format((triggerNames.triggerName( index )).c_str())).Contains("Mass")  ) cout << index << " " << triggerNames.triggerName( index ) << " " << triggerBits->accept( index ) << endl;
     //print ALL HLT triggers: 
     //if( (TString::Format((triggerNames.triggerName( index )).c_str())).Contains("HLT") ) cout << index << " " << triggerNames.triggerName( index ) << " " << triggerBits->accept( index ) << endl;
-
 
     // store trigger bits of interest
     if( (TString::Format((triggerNames.triggerName( index )).c_str())).Contains("HLT_Photon26") && (TString::Format((triggerNames.triggerName( index )).c_str())).Contains("Photon16")&& (TString::Format((triggerNames.triggerName( index )).c_str())).Contains("Mass60")  )hltPhoton26Photon16Mass60 = triggerBits->accept( index );
@@ -604,13 +618,14 @@ void NewDiPhoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
     h_sumW->Fill(5,sumDataset);
     isFilled = true;
   }
-
+  if (sampleID>0 && sampleID<10000)hltDiphoton30Mass95=1;
   // Events breakdown
   if (hltDiphoton30Mass95){
+    std::cout<<"passing trigger"<<std::endl;
     trigLivia++;
     h_selection->Fill(0.,perEveW);
     numPassingCuts[0]++;
-  
+  } 
   //if (hltDiphoton30Mass95) std::cout << "  MADE IT PASSED HLT !!!! " << std::endl; 
  
   // Setup bool to check that events in MC actually pass trigger requirements
@@ -785,10 +800,10 @@ void NewDiPhoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
 	int passLooseSubLeadHoe   = passLooseHoeCuts( subleadScEta, subleadHoE );
 
       
-        int passSubLeadElVeto = 0;
-        int numberpassingEV2 = 0;
-	if (diphoPtr->subLeadingPhoton()->passElectronVeto()) passSubLeadElVeto = 1;
-	if (passSubLeadElVeto) numberpassingEV2++;
+        //int passSubLeadElVeto = 0;
+        //int numberpassingEV2 = 0;
+	//if (diphoPtr->subLeadingPhoton()->passElectronVeto()) passSubLeadElVeto = 1;
+	//if (passSubLeadElVeto) numberpassingEV2++;
 	bool subleadSelel      = testPhotonIsolation( passSubLeadSieie, passSubLeadCHiso, passSubLeadNHiso, passSubLeadPHiso, passSubLeadHoe, 1);// passSubLeadElVeto);// FIXME
         bool subleadTightSelel = testPhotonIsolation( passTightSubLeadSieie, passTightSubLeadCHiso, passTightSubLeadNHiso, passTightSubLeadPHiso, passTightSubLeadHoe, 1);
         bool subleadLooseSelel = testPhotonIsolation( passLooseSubLeadSieie, passLooseSubLeadCHiso, passLooseSubLeadNHiso, passLooseSubLeadPHiso, passLooseSubLeadHoe, 1);
@@ -800,22 +815,21 @@ void NewDiPhoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
 	if (leadTightSelel || subleadTightSelel) numpassing++;
 	if (leadLooseSelel || subleadLooseSelel) numpassingloose++;
 
-	if (!leadLooseSelel || !subleadLooseSelel ) continue; //loose cut based id
+	//if (!leadLooseSelel || !subleadLooseSelel ) continue; //loose cut based id
 	
 	// ADDED MVA PHOTON SELECTION
 	// MVA values come from FLASHgg and replace the Cut-Based Photon ID	
-	/*float leadMVA     = diphoPtr->leadingPhoton()->phoIdMvaDWrtVtx(diphoPtr->vtx());
+	float leadMVA     = diphoPtr->leadingPhoton()->phoIdMvaDWrtVtx(diphoPtr->vtx());
 	float subleadMVA     = diphoPtr->subLeadingPhoton()->phoIdMvaDWrtVtx(diphoPtr->vtx());
 	
 	bool leadMVASel = false;
 	if (leadMVA > -0.9) leadMVASel = true;
 	bool subleadMVASel = false;
 	if (subleadMVA > -0.9) subleadMVASel = true;
-	*/
-	//if (!leadMVASel || !subleadMVASel) continue;
 
-
-	selectedDipho.push_back(theDiphoton);    
+	if (!leadMVASel || !subleadMVASel) continue;
+	selectedDipho.push_back(theDiphoton); 
+	
       }
      
       if (selectedDipho.size()>0) {
@@ -823,35 +837,54 @@ void NewDiPhoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
 	h_selection->Fill(2.,perEveW);
 	numPassingCuts[2]++;
         
-
-	// Diphoton candidates: pT cuts
-	vector<int> kineDipho;
-        for( size_t diphotonlooper = 0; diphotonlooper < selectedDipho.size(); diphotonlooper++ ) {
-
-	  int theDiphoton = selectedDipho[diphotonlooper];
-	  Ptr<flashgg::DiPhotonCandidate> diphoPtr = diPhotons->ptrAt( theDiphoton );
+	vector<int> elvetoDipho;
+	for( size_t diphotonlooper = 0; diphotonlooper < selectedDipho.size(); diphotonlooper++ ) {
+	int theDiphoton = selectedDipho[diphotonlooper];
+	Ptr<flashgg::DiPhotonCandidate> diphoPtr = diPhotons->ptrAt( theDiphoton );
+	int passSubLeadElVeto = 0;
+        int numberpassingEV2 = 0;
+	if (diphoPtr->subLeadingPhoton()->passElectronVeto()) passSubLeadElVeto = 1;
+	if (passSubLeadElVeto) numberpassingEV2++;
+	//eleveto
+        int passLeadElVeto = 0;
+        int numberpassingEV1 = 0;
+	if (diphoPtr->leadingPhoton()->passElectronVeto()) passLeadElVeto = 1;
+        if (passLeadElVeto) numberpassingEV1++;
+	if(!passLeadElVeto || !passSubLeadElVeto)continue;
+	elvetoDipho.push_back(theDiphoton);
+      }
+	if (elvetoDipho.size()>0) {
+	  elvetoLivia++;
+	  h_selection->Fill(3.,perEveW);
+	  numPassingCuts[3]++;
 	
-	  float leadR9noZS = diphoPtr->leadingPhoton()->full5x5_r9();
-	  float leadScEta  = (diphoPtr->leadingPhoton()->superCluster())->eta();   	
-	  float leadPt     = getPtCorrected(diphoPtr->leadingPhoton()->et(), leadScEta,leadR9noZS, run, sampleID);
-	 
-	  float subleadR9noZS = diphoPtr->subLeadingPhoton()->full5x5_r9();
-	  float subleadScEta  = (diphoPtr->subLeadingPhoton()->superCluster())->eta();   	
-	  float subleadPt     = getPtCorrected(diphoPtr->subLeadingPhoton()->et(), subleadScEta,subleadR9noZS, run, sampleID);
-      
-	  if (leadPt<30 || subleadPt<20) continue;      
-
-	  kineDipho.push_back(theDiphoton);
-	}
-
+	// Diphoton candidates: pT cuts
+	  vector<int> kineDipho;
+	  for( size_t diphotonlooper = 0; diphotonlooper < elvetoDipho.size(); diphotonlooper++ ) {
+	    
+	    int theDiphoton = elvetoDipho[diphotonlooper];
+	    Ptr<flashgg::DiPhotonCandidate> diphoPtr = diPhotons->ptrAt( theDiphoton );
+	    
+	    float leadR9noZS = diphoPtr->leadingPhoton()->full5x5_r9();
+	    float leadScEta  = (diphoPtr->leadingPhoton()->superCluster())->eta();   	
+	    float leadPt     = getPtCorrected(diphoPtr->leadingPhoton()->et(), leadScEta,leadR9noZS, run, sampleID);
+	    
+	    float subleadR9noZS = diphoPtr->subLeadingPhoton()->full5x5_r9();
+	    float subleadScEta  = (diphoPtr->subLeadingPhoton()->superCluster())->eta();   	
+	    float subleadPt     = getPtCorrected(diphoPtr->subLeadingPhoton()->et(), subleadScEta,subleadR9noZS, run, sampleID);
+	    
+	    if (leadPt<30 || subleadPt<20) continue;      
+	    
+	    kineDipho.push_back(theDiphoton);
+	  }
 
 	if (kineDipho.size()>0) {
 	  kinLivia++;
-            h_selection->Fill(3.,perEveW);
-            numPassingCuts[3]++;
+            h_selection->Fill(4.,perEveW);
+            numPassingCuts[4]++;
          
 	  // Diphoton candidates: mgg cut
-	  vector<int> massDipho;
+	  vector<int> kinScalDipho;
 	  for( size_t diphotonlooper = 0; diphotonlooper < kineDipho.size(); diphotonlooper++ ) {
 
 	    int theDiphoton = kineDipho[diphotonlooper];
@@ -877,41 +910,21 @@ void NewDiPhoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
 	    float thisSystemMggCorr = (*p1+*p2).M();
 
 	
-
-	    if (thisSystemMggCorr<50 ) continue; 
+	    // if (thisSystemMggCorr<50 ) continue; 
 	    if (leadPt< thisSystemMggCorr/3 || subleadPt<thisSystemMggCorr/4) continue; //Livia correction: add scaling pt cuts
 
-	    massDipho.push_back(theDiphoton);
+	    kinScalDipho.push_back(theDiphoton);
 	  }
   
-	  if (massDipho.size()>0) {
+	  if (kinScalDipho.size()>0) {
 	    kinScalLivia++;
-	    h_selection->Fill(4.,perEveW);
-	    numPassingCuts[4]++;
+	    h_selection->Fill(5.,perEveW);
+	    numPassingCuts[5]++;
             
-
-	    // Diphoton candidates choice: highest scalar sum pT
-	    float maxSumPt = -999.;
-	    int candIndex = 9999; // This int will store the index of the best diphoton candidate
-	    for( size_t diphotonlooper = 0; diphotonlooper < massDipho.size(); diphotonlooper++ ) {  
-
-	      int theDiphoton = massDipho[diphotonlooper];
-	      Ptr<flashgg::DiPhotonCandidate> diphoPtr = diPhotons->ptrAt( theDiphoton );
-
-	      float thisSumPt = diphoPtr->leadingPhoton()->et() + diphoPtr->subLeadingPhoton()->et();
-	      if (thisSumPt>maxSumPt) {
-		maxSumPt = thisSumPt;
-		candIndex = theDiphoton;
-	      }
-	    }
-	    
-	    if (candIndex<999) {
-
-	      Ptr<flashgg::DiPhotonCandidate> candDiphoPtr = diPhotons->ptrAt( candIndex );
-	    
-	      // analysis cuts: good vertex  
-	      // Since diphoton candidates have already an associated vtx, I check it only and discard the event if bad 
-	      // this is why I put this selection AFTER the diphoton choice
+	    vector<int> vtxDipho;
+	    for( size_t diphotonlooper = 0; diphotonlooper < kinScalDipho.size(); diphotonlooper++ ) {  
+	      int theDiphoton = kinScalDipho[diphotonlooper];
+	      Ptr<flashgg::DiPhotonCandidate> candDiphoPtr = diPhotons->ptrAt( theDiphoton );
 	      bool goodVtx = true;
 	      int theVertex = candDiphoPtr->vertexIndex();
 	      float vtxX = (primaryVertices->ptrAt(theVertex))->position().x();
@@ -922,13 +935,104 @@ void NewDiPhoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
 	      if (fabs((primaryVertices->ptrAt(theVertex))->position().z())>=24) goodVtx = false;
 	      bool isVtxFake = ((primaryVertices->ptrAt(theVertex))->ndof()==0) && ((primaryVertices->ptrAt(theVertex))->chi2()==0);   // chiara: also && tracks.empty, but can not be used here
 	      if (isVtxFake) goodVtx = false;
+	      if(!goodVtx)continue;
+	      vtxDipho.push_back(theDiphoton);
+	    }
+	    
+	    if(vtxDipho.size()>0){
+	      vtxLivia++;
+	      h_selection->Fill(6.,perEveW);
+	      numPassingCuts[6]++;
+	      vector<int> massDipho;
+	      for( size_t diphotonlooper = 0; diphotonlooper < vtxDipho.size(); diphotonlooper++ ) {  
+		int theDiphoton = vtxDipho[diphotonlooper];
+		Ptr<flashgg::DiPhotonCandidate> diphoPtr = diPhotons->ptrAt( theDiphoton );
+		float theMass = diphoPtr->mass();
+		
+		//correct mass for smearing and scaling
+		float leadR9noZS = diphoPtr->leadingPhoton()->full5x5_r9();
+		float leadScEta  = (diphoPtr->leadingPhoton()->superCluster())->eta();   	
+		float subleadR9noZS = diphoPtr->subLeadingPhoton()->full5x5_r9();
+		float subleadScEta  = (diphoPtr->subLeadingPhoton()->superCluster())->eta();   	
+	      
+		float leadSmearing	= getSmearingValue( leadScEta, leadR9noZS,0);
+		float subleadSmearing	= getSmearingValue( subleadScEta,subleadR9noZS  ,0);
 
-	      if (goodVtx) {
-		vtxLivia++;
-                  h_selection->Fill(5.,perEveW);
-		  numPassingCuts[5]++;
-                
-		// to be kept in the tree
+		//float leadSmearingUp	= getSmearingValue(leadScEta, leadR9noZS,1);
+		//float subleadSmearingUp	= getSmearingValue( subleadScEta,subleadR9noZS ,1);
+
+		//float leadSmearingDown	= getSmearingValue( leadScEta, leadR9noZS ,-1);
+		//float subleadSmearingDown	= getSmearingValue( subleadScEta,subleadR9noZS,-1 );
+
+		float gaussMean		= 1.0;
+              	
+		TRandom Rand1(event);
+		float Smear1 		= Rand1.Gaus(gaussMean,leadSmearing);
+		//float Smear1Up         	= Rand1.Gaus(gaussMean,leadSmearingUp);
+		//float Smear1Down	= Rand1.Gaus(gaussMean,leadSmearingDown);
+
+		TRandom Rand2(event+83941);
+		float Smear2 		= Rand2.Gaus(gaussMean,subleadSmearing);
+		//float Smear2Up	        = Rand2.Gaus(gaussMean,subleadSmearingUp);
+		//float Smear2Down	= Rand2.Gaus(gaussMean,subleadSmearingDown);
+
+		float massCorrSmear	= theMass*sqrt(Smear1*Smear2);
+		//float massCorrSmearUp	= theMass*sqrt(Smear1Up*Smear2Up);
+		//float massCorrSmearDown	= theMass*sqrt(Smear1Down*Smear2Down);
+		
+		// scaling of Data
+		float leadScaling	= getScalingValue( sampleID, leadScEta, leadR9noZS , run, 0);
+		float subleadScaling	= getScalingValue( sampleID, subleadScEta, subleadR9noZS, run, 0);
+
+		//float leadScalingUp	= getScalingValue(leadScEta, leadR9noZS,run,1);
+		//float subleadScalingUp	= getScalingValue(subleadScEta,subleadR9noZS ,run,1);
+
+		//float leadScalingDown	= getScalingValue(leadScEta, leadR9noZS ,run,-1);
+		//float subleadScalingDown= getScalingValue(subleadScEta,subleadR9noZS ,run,-1);
+
+		float Scaling		= leadScaling*subleadScaling;
+		//float ScalingUp		= leadScalingUp*subleadScalingUp;
+		//float ScalingDown	= leadScalingDown*subleadScalingDown;
+
+		float massCorrScale	= theMass*sqrt(Scaling);
+		//float massCorrScaleUp	= theMass*sqrt(ScalingUp);
+		//float massCorrScaleDown	= theMass*sqrt(ScalingDown);
+		
+		float theMassCorr = theMass;
+	
+		// final theMassCorr (has Smearing or Scaling applied)
+		if (sampleID>0 && sampleID<10000){
+		  theMassCorr = massCorrSmear;	  // smear mass for MC
+		  }
+                else theMassCorr = massCorrScale; // scale mass for Data
+		
+		if (theMassCorr <= 100 || theMassCorr >= 180) continue;
+		massDipho.push_back(theDiphoton);
+	      }
+
+	      if(massDipho.size()>0){
+		massLivia++;
+		h_selection->Fill(7.,perEveW);
+		numPassingCuts[7]++;
+		
+		// Diphoton candidates choice: highest scalar sum pT
+		float maxSumPt = -999.;
+		int candIndex = 9999; // This int will store the index of the best diphoton candidate
+		for( size_t diphotonlooper = 0; diphotonlooper < massDipho.size(); diphotonlooper++ ) {  
+		  int theDiphoton = massDipho[diphotonlooper];
+		  Ptr<flashgg::DiPhotonCandidate> diphoPtr = diPhotons->ptrAt( theDiphoton );
+		  float thisSumPt = diphoPtr->leadingPhoton()->et() + diphoPtr->subLeadingPhoton()->et();
+		  if (thisSumPt>maxSumPt) {
+		    maxSumPt = thisSumPt;
+		    candIndex = theDiphoton;
+		  }
+		}
+	    
+	    if (candIndex<999) {
+	      
+	      Ptr<flashgg::DiPhotonCandidate> candDiphoPtr = diPhotons->ptrAt( candIndex );
+		 
+	     	// to be kept in the tree
 		float ptgg, mgg;
 		int eventClass;
 		float pt1,ptUncorr1, ptOverM1, eta1, phi1;
@@ -948,7 +1052,8 @@ void NewDiPhoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
 		float higgsVtxX, higgsVtxY, higgsVtxZ;
 		float genVtxX, genVtxY, genVtxZ; 
 		int eleveto1, eleveto2;
-		float pfmet,pfmetPhi, pfmetSumEt,t1pfmet,t1pfmetPhi, t1pfmetSumEt,calomet,calometPhi, calometSumEt;
+		float pfmet,pfmetPhi, pfmetSumEt,t1pfmet,t1pfmetPhi, t1pfmetSumEt,calomet,calometPhi, calometSumEt, t1p2pfmet;
+		float t1pfmetJetEnUp ,t1pfmetJetEnDown ,t1pfmetJetResUp,t1pfmetJetResDown,t1pfmetMuonEnUp, t1pfmetMuonEnDown,t1pfmetElectronEnUp   ,t1pfmetElectronEnDown   ,t1pfmetTauEnUp,t1pfmetTauEnDown, t1pfmetPhotonEnUp, t1pfmetPhotonEnDown,t1pfmetUnclusteredEnUp,t1pfmetUnclusteredEnDown;
                 int passCHiso1, passCHiso2, passNHiso1, passNHiso2, passPHiso1, passPHiso2, passSieie1, passSieie2, passHoe1, passHoe2;
                 int passTightCHiso1, passTightCHiso2, passTightNHiso1, passTightNHiso2, passTightPHiso1, passTightPHiso2, passTightSieie1, passTightSieie2, passTightHoe1, passTightHoe2;
                 int passLooseCHiso1, passLooseCHiso2, passLooseNHiso1, passLooseNHiso2, passLoosePHiso1, passLoosePHiso2, passLooseSieie1, passLooseSieie2, passLooseHoe1, passLooseHoe2;
@@ -958,17 +1063,38 @@ void NewDiPhoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
 		float massCorrSmear, massCorrScale, massRaw;
 		float massCorrSmearUp, massCorrSmearDown;
 		float massCorrScaleUp, massCorrScaleDown;
-
 		int genZ;
 		float ptZ, etaZ, phiZ;
 
 		// fully selected event: tree re-initialization                                                                          
 		initTreeStructure();        
 		
-		//met
+		//met type1 corrected
 		t1pfmet = theMET->pt();
 		t1pfmetPhi = theMET->phi();
 		t1pfmetSumEt = theMET->sumEt();
+
+
+		//add MET systematic variables Livia
+		t1pfmetJetEnUp           = theMET->shiftedPt(pat::MET::JetEnUp);
+		t1pfmetJetEnDown         = theMET->shiftedPt(pat::MET::JetEnDown);
+		t1pfmetJetResUp          = theMET->shiftedPt(pat::MET::JetResUp);
+		t1pfmetJetResDown        = theMET->shiftedPt(pat::MET::JetResDown);
+		t1pfmetMuonEnUp          = theMET->shiftedPt(pat::MET::MuonEnUp);
+		t1pfmetMuonEnDown          = theMET->shiftedPt(pat::MET::MuonEnDown);
+		t1pfmetElectronEnUp   = theMET->shiftedPt(pat::MET::ElectronEnUp);
+		t1pfmetElectronEnDown    = theMET->shiftedPt(pat::MET::ElectronEnDown);
+		t1pfmetTauEnUp         = theMET->shiftedPt(pat::MET::TauEnUp);
+		t1pfmetTauEnDown         = theMET->shiftedPt(pat::MET::TauEnDown);
+		t1pfmetPhotonEnUp      = theMET->shiftedPt(pat::MET::PhotonEnUp);
+		t1pfmetPhotonEnDown      = theMET->shiftedPt(pat::MET::PhotonEnDown);
+	  	t1pfmetUnclusteredEnUp = theMET->shiftedPt(pat::MET::UnclusteredEnUp);
+		t1pfmetUnclusteredEnDown = theMET->shiftedPt(pat::MET::UnclusteredEnDown);
+
+		//met correction type 1+2
+		t1p2pfmet = theMET->corPt(pat::MET::Type1XY);
+
+		//uncorrected met
 		pfmet = theMET->uncorPt();
 		pfmetPhi = theMET->uncorPhi();
 		pfmetSumEt = theMET->uncorSumEt();
@@ -980,9 +1106,6 @@ void NewDiPhoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
 		//-------> diphoton system properties 
 		ptgg = candDiphoPtr->pt();
 		massRaw  = candDiphoPtr->mass();
-				
-
-	
 
 		//-------> individual photon properties
 		sceta1    = (candDiphoPtr->leadingPhoton()->superCluster())->eta();
@@ -1033,7 +1156,6 @@ void NewDiPhoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
 		float subleadSmearingDown = getSmearingValue( sceta2, r92, -1 );
 
 
-
 		float gaussMean		= 1.0;
               	
 		TRandom Rand1(event);
@@ -1069,29 +1191,16 @@ void NewDiPhoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
 		massCorrScaleUp		= massRaw*sqrt(ScalingUp);
 		massCorrScaleDown	= massRaw*sqrt(ScalingDown);
 
-	
 		// final mgg (has Smearing or Scaling applied)
 		if (sampleID>0 && sampleID<10000){
-		  mgg = massCorrSmear;	// smear mass for MC
-		}
-                else mgg = massCorrScale; 		// scale mass for Data
-
-
-		if (mgg >= 100 && mgg <= 180){
-		  massLivia++;
-		  h_selection->Fill(6.,perEveW);
-		  numPassingCuts[6]++;
-		  
-		    if (eleveto1&&eleveto2){
-		      elvetoLivia++;
-		      eff_end++;
-		      h_selection->Fill(7.,perEveW);
-		    }
+		  mgg = massCorrSmear;	  // smear mass for MC
 		  }
-	
+                else mgg = massCorrScale; // scale mass for Data
+		
+		eff_end++;	  
 		
 	
-	
+		std::cout<<"run: "<<run<<" event: "<<event<<" mass: "<<massRaw<<std::endl;
                 //-------> pass each photon ID cut separately
 		// medium working point selection
 		passSieie1 = passSieieCuts( sceta1, sieie1);
@@ -1262,7 +1371,6 @@ void NewDiPhoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
 		    phiZ = genParticles->ptrAt( genLoop )->phi();
 		  }
 		}
-
 		//--------> gen level mgg for signal samples
 		genmgg = -999.;
 		if (sampleID>99 && sampleID<10000) {  // signal only 
@@ -1311,14 +1419,13 @@ void NewDiPhoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
 		nJets  = 0;     
 		nLooseBjets  = 0;   
 		nMediumBjets = 0;  
-	 
 		/*	
 		// Muons =>
 		// 0.25 suggested by muon pog for loose isolation
 		// 0.3  (distance from the photons) => seems reasonable to me. 0.5 was used in globe
 		// pT>20
 		vector<Ptr<flashgg::Muon> > goodMuons = 
-		  selectMuons( theMuons->ptrs(), candDiphoPtr, primaryVertices->ptrs(), 2.4, 20., 0.25, 0.3, 0.3);  
+		  selectMuons( theMuons->ptrs(), candDiphoPtr, pirmaryVertices->ptrs(), 2.4, 20., 0.25, 0.3, 0.3);  
 		nMuons = goodMuons.size();
 
 		// Electrons =>
@@ -1394,6 +1501,24 @@ void NewDiPhoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
 		treeDipho_.pfmet = pfmetPhi;
 		treeDipho_.pfmet = pfmetSumEt;
 		treeDipho_.t1pfmet = t1pfmet;
+		treeDipho_.t1p2pfmet = t1p2pfmet;
+		treeDipho_.t1pfmetJetEnUp          = t1pfmetJetEnUp;           
+		treeDipho_.t1pfmetJetEnDown        = t1pfmetJetEnDown        ;
+		treeDipho_.t1pfmetJetResUp         = t1pfmetJetResUp         ;
+		treeDipho_.t1pfmetJetResDown       = t1pfmetJetResDown       ;
+		treeDipho_.t1pfmetMuonEnUp         = t1pfmetMuonEnUp         ;
+		treeDipho_.t1pfmetMuonEnDown         = t1pfmetMuonEnDown         ;
+		treeDipho_.t1pfmetElectronEnUp   = t1pfmetElectronEnUp   ;
+		treeDipho_.t1pfmetElectronEnDown   = t1pfmetElectronEnDown   ;
+		treeDipho_.t1pfmetTauEnUp        = t1pfmetTauEnUp        ;
+		treeDipho_.t1pfmetTauEnDown        = t1pfmetTauEnDown        ;
+		treeDipho_.t1pfmetPhotonEnUp     = t1pfmetPhotonEnUp     ;
+		treeDipho_.t1pfmetPhotonEnDown     = t1pfmetPhotonEnDown     ;
+		treeDipho_.t1pfmetUnclusteredEnUp= t1pfmetUnclusteredEnUp;
+		treeDipho_.t1pfmetUnclusteredEnDown= t1pfmetUnclusteredEnDown;
+
+
+
 		treeDipho_.t1pfmetPhi = t1pfmetPhi;
 		treeDipho_.t1pfmetSumEt = t1pfmetSumEt;
 		treeDipho_.calomet = calomet;
@@ -1506,21 +1631,18 @@ void NewDiPhoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
 		treeDipho_.etaZ = etaZ;
 		treeDipho_.phiZ = phiZ;
 	
-
 		// Filling the trees
 		DiPhotonTree->Fill();
 		
-	      } // good vertex found
-	    }   // final diphoton candidate found
-	  }     // diphoton candidate passing mass cuts
-	}       // diphoton candidate passing pT cuts
-      }       // diphoton candidate passing ID+iso
-    }         // diphoton candidate passing trigger cuts & preselection
-
-  }          // at least 1 reco diphoton candidate  
-  }//trigLivia
-
-
+	      } // candIndex>-999
+	    } // mass dipho
+	  } // vtx dipho
+	} // kin scaling 
+      } // kine
+      } // elveto
+    } // selected
+  } // preselected  
+  }// at least one reco
 
   // delete
   //delete lazyToolnoZS;
@@ -1588,6 +1710,24 @@ void NewDiPhoAnalyzer::beginJob() {
   DiPhotonTree->Branch("pfmetPhi",&(treeDipho_.pfmetPhi),"pfmetPhi/F");
   DiPhotonTree->Branch("pfmetSumEt",&(treeDipho_.pfmetSumEt),"pfmetSumEt/F");
   DiPhotonTree->Branch("t1pfmet",&(treeDipho_.t1pfmet),"t1pfmet/F");
+  DiPhotonTree->Branch("t1p2pfmet",&(treeDipho_.t1p2pfmet),"t1p2pfmet/F");
+
+
+  DiPhotonTree->Branch("t1pfmetJetEnUp",&(treeDipho_.t1pfmetJetEnUp),"t1pfmetJetEnUp/F");         
+  DiPhotonTree->Branch("t1pfmetJetEnDown",&(treeDipho_.t1pfmetJetEnDown),"t1pfmetJetEnDown/F");        
+  DiPhotonTree->Branch("t1pfmetJetResUp",&(treeDipho_.t1pfmetJetResUp),"t1pfmetJetResUp/F");         
+  DiPhotonTree->Branch("t1pfmetJetResDown",&(treeDipho_.t1pfmetJetResDown),"t1pfmetJetResDown/F");       
+  DiPhotonTree->Branch("t1pfmetMuonEnUp",&(treeDipho_.t1pfmetMuonEnUp),"t1pfmetMuonEnUp/F");         
+  DiPhotonTree->Branch("t1pfmetMuonEnDown",&(treeDipho_.t1pfmetMuonEnDown),"t1pfmetMuonEnDown/F");         
+  DiPhotonTree->Branch("t1pfmetElectronEnUp",&(treeDipho_.t1pfmetElectronEnUp),"t1pfmetElectronEnUp/F");   
+  DiPhotonTree->Branch("t1pfmetElectronEnDown",&(treeDipho_.t1pfmetElectronEnDown),"t1pfmetElectronEnDown/F");   
+  DiPhotonTree->Branch("t1pfmetTauEnUp",&(treeDipho_.t1pfmetTauEnUp),"t1pfmetTauEnUp/F");        
+  DiPhotonTree->Branch("t1pfmetTauEnDown",&(treeDipho_.t1pfmetTauEnDown),"t1pfmetTauEnDown/F");        
+  DiPhotonTree->Branch("t1pfmetPhotonEnUp",&(treeDipho_.t1pfmetPhotonEnUp),"t1pfmetPhotonEnUp/F");     
+  DiPhotonTree->Branch("t1pfmetPhotonEnDown",&(treeDipho_.t1pfmetPhotonEnDown),"t1pfmetPhotonEnDown/F");     
+  DiPhotonTree->Branch("t1pfmetUnclusteredEnUp",&(treeDipho_.t1pfmetUnclusteredEnUp),"t1pfmetUnclusteredEnUp/F");
+  DiPhotonTree->Branch("t1pfmetUnclusteredEnDown",&(treeDipho_.t1pfmetUnclusteredEnDown),"t1pfmetUnclusteredEnDown/F");
+
   DiPhotonTree->Branch("t1pfmetPhi",&(treeDipho_.t1pfmetPhi),"t1pfmetPhi/F");
   DiPhotonTree->Branch("t1pfmetSumEt",&(treeDipho_.t1pfmetSumEt),"t1pfmetSumEt/F");
   DiPhotonTree->Branch("calomet",&(treeDipho_.calomet),"calomet/F");
@@ -2202,20 +2342,20 @@ float NewDiPhoAnalyzer::getScalingValue(int sampleID, float sceta, float r9, int
 
   if (sampleID < 10000){ // if MC use the average of scaling for testing
     if (fabs(sceta)<=1.0){
-      if (loR9) scalingValue = 1.00085;
-      else      scalingValue = 0.9968;
+      scalingValue = 0.998825;
+      scalingError = 0.0002428;  
     }    
     if (fabs(sceta)>1.0 || fabs(sceta)<=1.442){
-      if (loR9) scalingValue = 1.0011;
-      else      scalingValue = 0.99585;
+      scalingValue = 1.001543;
+      scalingError = 0.001057;
     }    
     if (fabs(sceta)>=1.566 || fabs(sceta)<=2.0){
-      if (loR9) scalingValue = 1.00936;
-      else      scalingValue = 1.0011;
+      scalingValue = 1.005211;
+      scalingError = 0.001289;
     }    
     if (fabs(sceta)>2.0 || fabs(sceta)<=2.5){
-      if (loR9) scalingValue = 1.000885;
-      else      scalingValue = 1.00034;
+      scalingValue = 1.004596;
+      scalingError = 0.001182;
     }    
   }
 
@@ -2466,6 +2606,7 @@ float NewDiPhoAnalyzer::getScalingValue(int sampleID, float sceta, float r9, int
     }
 
   }
+
 
   return scalingValue+syst*scalingError;
 }
