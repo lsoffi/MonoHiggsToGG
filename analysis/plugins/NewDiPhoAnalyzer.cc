@@ -621,7 +621,7 @@ void NewDiPhoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
   if (sampleID>0 && sampleID<10000)hltDiphoton30Mass95=1;
   // Events breakdown
   if (hltDiphoton30Mass95){
-    std::cout<<"passing trigger"<<std::endl;
+    //std::cout<<"passing trigger"<<std::endl;
     trigLivia++;
     h_selection->Fill(0.,perEveW);
     numPassingCuts[0]++;
