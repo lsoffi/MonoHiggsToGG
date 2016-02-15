@@ -260,6 +260,7 @@ private:
   void SetPuWeights(std::string puWeightFile);
   float GetPUWeight(float pun);
   bool isGammaPresel( float sceta, float pt, float r9, float chiso, float hoe);
+  bool rediscoveryHLT(float sceta, float pt, float r9,float sieie, float pfIso,float trkSum03 );
   bool isGammaSelected( float rho, float pt, float sceta, float r9, float chiso, float nhiso, float phoiso, float hoe, float sieie, bool passElectronVeto);
   int effectiveAreaRegion(float sceta);
   bool testPhotonIsolation(int passSieie, int passCHiso, int passNHiso, int passPHiso, int passHoe, int passEleVeto);
@@ -357,6 +358,7 @@ private:
   Int_t noleadtrigLivia = 0;
   Int_t nosubleadtrigLivia = 0;
   Int_t preselLivia = 0;
+  Int_t preselHLTLivia = 0;
   Int_t preselAccLivia = 0;
   Int_t preselHoELivia = 0;
   Int_t preselIsoLivia = 0;
@@ -417,12 +419,14 @@ NewDiPhoAnalyzer::~NewDiPhoAnalyzer() {
   std::cout<<"IsoRel: "<<preselIsoRelLivia<<std::endl;
   std::cout<<"HoE: "<<preselHoELivia<<std::endl;
   std::cout<<"presel:    "<<preselLivia<<std::endl;
+  std::cout<<"presel + HLT:    "<<preselHLTLivia<<std::endl;
   std::cout<<"sel:    "<<selLivia<<std::endl;
+  std::cout<<"elveto: "<<elvetoLivia<<std::endl;
   std::cout<<"kin:    "<<kinLivia<<std::endl;
   std::cout<<"kin_scaling:    "<<kinScalLivia<<std::endl;
   std::cout<<"vtx:    "<<vtxLivia<<std::endl;
   std::cout<<"mass:   "<<massLivia<<std::endl;
-  std::cout<<"elveto: "<<elvetoLivia<<std::endl;
+
  
   // std::cout << "Number of Initial Events = " << eff_start << std::endl;
   // std::cout << "Number of Events Passing HLT = " << eff_passingHLT << std::endl;
@@ -511,9 +515,9 @@ void NewDiPhoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
   const edm::TriggerNames &triggerNames = iEvent.triggerNames( *triggerBits );
   //  vector<std::string> const &names = triggerNames.triggerNames();  
   for( unsigned index = 0; index < triggerNames.size(); ++index ) {
-   
     // print out triggers that match "HLT_Photon or HLT_Diphoton" and have "Mass" as well
-    //if( (TString::Format((triggerNames.triggerName( index )).c_str())).Contains("HLT_Photon") && (TString::Format((triggerNames.triggerName( index )).c_str())).Contains("Mass")  ) cout << index << " " << triggerNames.triggerName( index ) << " " << triggerBits->accept( index ) << endl;
+    //if( (TString::Format((triggerNames.triggerName( index )).c_str())).Contains("HLT_Photon") /*&& (TString::Format((triggerNames.triggerName( index )).c_str())).Contains("Mass") */ ) cout << index << " " << triggerNames.triggerName( index ) << " " << triggerBits->accept( index ) << endl;
+
     //if( (TString::Format((triggerNames.triggerName( index )).c_str())).Contains("HLT_Diphoton") && (TString::Format((triggerNames.triggerName( index )).c_str())).Contains("Mass")  ) cout << index << " " << triggerNames.triggerName( index ) << " " << triggerBits->accept( index ) << endl;
     //print ALL HLT triggers: 
     //if( (TString::Format((triggerNames.triggerName( index )).c_str())).Contains("HLT") ) cout << index << " " << triggerNames.triggerName( index ) << " " << triggerBits->accept( index ) << endl;
@@ -625,15 +629,10 @@ void NewDiPhoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
     trigLivia++;
     h_selection->Fill(0.,perEveW);
     numPassingCuts[0]++;
-  } 
+ 
   //if (hltDiphoton30Mass95) std::cout << "  MADE IT PASSED HLT !!!! " << std::endl; 
  
-  // Setup bool to check that events in MC actually pass trigger requirements
-  bool passesLeadTrigSel = false;
-  bool passesSubLeadTrigSel = false;
-  bool passesMassTrigSel = false;
-  bool passesTrigger = false;
-
+  
   // Get MET
   if( METs->size() != 1 )
     { std::cout << "WARNING number of MET is not equal to 1" << std::endl; }
@@ -646,6 +645,7 @@ void NewDiPhoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
   
     // Diphoton candidates: preselection
     vector<int> preselDipho;
+    vector<int> preselHLTDipho;
     vector<int> preselDiphoAcc;
     vector<int> preselDiphoR9;
     vector<int> preselDiphoIso;
@@ -661,7 +661,6 @@ void NewDiPhoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
       float leadPt     = getPtCorrected(diphoPtr->leadingPhoton()->et(), leadScEta,leadR9noZS, run, sampleID);
       float leadSieie  = diphoPtr->leadingPhoton()->full5x5_sigmaIetaIeta();
       float leadHoE    = diphoPtr->leadingPhoton()->hadTowOverEm();
-      float leadPhIso  = diphoPtr->leadingPhoton()->egPhotonIso();
       float leadChIso  = diphoPtr->leadingPhoton()->egChargedHadronIso()- rho * getChargedHadronEAForPhotonIso((diphoPtr->leadingPhoton()->superCluster())->eta());
      
       bool leadPresel  = isGammaPresel( leadScEta, leadPt, leadR9noZS, leadChIso, leadHoE); 
@@ -671,22 +670,19 @@ void NewDiPhoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
       float subleadPt     = getPtCorrected(diphoPtr->subLeadingPhoton()->et(), leadScEta, subleadR9noZS,run, sampleID);
       float subleadSieie  = diphoPtr->subLeadingPhoton()->full5x5_sigmaIetaIeta(); 
       float subleadHoE    = diphoPtr->subLeadingPhoton()->hadTowOverEm();
-      float subleadPhIso  = diphoPtr->leadingPhoton()->egPhotonIso();
-      float subleadChIsoNoRho = diphoPtr->subLeadingPhoton()->egChargedHadronIso();
       float subleadChIso  = diphoPtr->subLeadingPhoton()->egChargedHadronIso()- rho * getChargedHadronEAForPhotonIso((diphoPtr->subLeadingPhoton()->superCluster())->eta());      
       bool subleadPresel  = isGammaPresel( subleadScEta, subleadPt, subleadR9noZS, subleadChIso, subleadHoE); 
 
-      passesLeadTrigSel = LeadPhoTriggerSel(leadScEta,leadHoE,leadR9noZS,leadSieie,leadPhIso,leadPt); 
-      passesSubLeadTrigSel = SubLeadPhoTriggerSel(subleadScEta,subleadHoE,subleadR9noZS,subleadSieie,subleadPhIso,subleadChIsoNoRho,subleadPt); 
-      float diPhoMass = diphoPtr->mass(); 
-       if (diPhoMass >= 95.0) passesMassTrigSel = true;
-      if (passesMassTrigSel && passesLeadTrigSel && passesSubLeadTrigSel) passesTrigger = true; 
-      if(leadPresel && subleadPresel && passesTrigger==0)notrigLivia++;
-      if(leadPresel && subleadPresel && passesMassTrigSel==0)nomasstrigLivia++;
-      if(leadPresel && subleadPresel && passesLeadTrigSel==0)noleadtrigLivia++;
-      if(leadPresel && subleadPresel && passesSubLeadTrigSel==0)nosubleadtrigLivia++;
+     //rediscovery HLT
+      float leadPfPhIso = diphoPtr->leadingPhoton()->pfPhoIso03();
+      float leadTrkSum03 = diphoPtr->leadingPhoton()->trkSumPtHollowConeDR03();
+      float subleadPfPhIso = diphoPtr->leadingPhoton()->pfPhoIso03();
+      float subleadTrkSum03 = diphoPtr->leadingPhoton()->trkSumPtHollowConeDR03();
      
-      //excercise for syncronyzation livia 
+      bool leadHLTok = rediscoveryHLT( leadScEta,leadPt, leadR9noZS,leadSieie,leadPfPhIso,leadTrkSum03 );
+      bool subleadHLTok = rediscoveryHLT( subleadScEta,subleadPt, subleadR9noZS,subleadSieie,subleadPfPhIso,subleadTrkSum03 );
+      
+      //excercise for synchronyzation livia 
       if(geometrical_acceptance(leadScEta,subleadScEta)){
 	preselDiphoAcc.push_back(diphotonlooper);
 	if(subleadR9noZS>0.8 && leadR9noZS>0.8){
@@ -695,7 +691,7 @@ void NewDiPhoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
 	    preselDiphoIso.push_back(diphotonlooper);
 	    if(subleadChIso/subleadPt < 0.3 && leadChIso/leadPt < 0.3){
 	      preselDiphoIsoRel.push_back(diphotonlooper);
-	      if(subleadHoE <0.8 && leadHoE< 0.8){
+	      if(subleadHoE <0.08 && leadHoE< 0.08){
 		preselDiphoHoE.push_back(diphotonlooper);
 	      }
 	    }
@@ -704,6 +700,8 @@ void NewDiPhoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
       }
       if (/*!passesTrigger ||*/ !leadPresel || !subleadPresel) continue;   
       preselDipho.push_back(diphotonlooper);
+      if(!leadHLTok || !subleadHLTok)continue;
+      preselHLTDipho.push_back(diphotonlooper);
     }
      //excercise for synchronyzation livia 
     if (preselDiphoAcc.size()>0) {
@@ -723,14 +721,18 @@ void NewDiPhoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
     }
     if (preselDipho.size()>0) {
       preselLivia++;
+    }
+    
+    if (preselHLTDipho.size()>0) {
+      preselHLTLivia++;
       h_selection->Fill(1.,perEveW);
       numPassingCuts[1]++;
      
       // Diphoton candidates: Id/isolation selection
       vector<int> selectedDipho;
-      for( size_t diphotonlooper = 0; diphotonlooper < preselDipho.size(); diphotonlooper++ ) {
+      for( size_t diphotonlooper = 0; diphotonlooper < preselHLTDipho.size(); diphotonlooper++ ) {
 
-	int theDiphoton = preselDipho[diphotonlooper];
+	int theDiphoton = preselHLTDipho[diphotonlooper];
 	Ptr<flashgg::DiPhotonCandidate> diphoPtr = diPhotons->ptrAt( theDiphoton );
 
 	float leadR9noZS = diphoPtr->leadingPhoton()->full5x5_r9();
@@ -815,19 +817,19 @@ void NewDiPhoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
 	if (leadTightSelel || subleadTightSelel) numpassing++;
 	if (leadLooseSelel || subleadLooseSelel) numpassingloose++;
 
-	//if (!leadLooseSelel || !subleadLooseSelel ) continue; //loose cut based id
+	if (!leadLooseSelel || !subleadLooseSelel ) continue; //loose cut based id
 	
 	// ADDED MVA PHOTON SELECTION
 	// MVA values come from FLASHgg and replace the Cut-Based Photon ID	
-	float leadMVA     = diphoPtr->leadingPhoton()->phoIdMvaDWrtVtx(diphoPtr->vtx());
+	/*	float leadMVA     = diphoPtr->leadingPhoton()->phoIdMvaDWrtVtx(diphoPtr->vtx());
 	float subleadMVA     = diphoPtr->subLeadingPhoton()->phoIdMvaDWrtVtx(diphoPtr->vtx());
 	
 	bool leadMVASel = false;
 	if (leadMVA > -0.9) leadMVASel = true;
 	bool subleadMVASel = false;
 	if (subleadMVA > -0.9) subleadMVASel = true;
-
-	if (!leadMVASel || !subleadMVASel) continue;
+	*/
+	//	if (!leadMVASel || !subleadMVASel) continue;
 	selectedDipho.push_back(theDiphoton); 
 	
       }
@@ -1643,7 +1645,7 @@ void NewDiPhoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
     } // selected
   } // preselected  
   }// at least one reco
-
+  }//hlt trigger
   // delete
   //delete lazyToolnoZS;
 }
@@ -2046,20 +2048,37 @@ float NewDiPhoAnalyzer::GetPUWeight(float pun) {
 // miniAOD preselection + ECAL acceptance
 bool NewDiPhoAnalyzer::isGammaPresel( float sceta, float pt, float r9, float chiso, float hoe) {
 
-  bool isPresel = true;
+  bool isPresel = false;
 
   // ECAL good acceptance
-  if (fabs(sceta)>2.5) return false;
-  if (fabs(sceta)>1.4442 && fabs(sceta)<1.566) return false;
-  
-  // miniAOD preselection
-  if (r9<=0.8)         return false;
-  if (chiso>=20)       return false;
-  if ((chiso/pt)>=0.3) return false;
-  if (hoe>=0.8)        return false;
-  
+  if (fabs(sceta)<1.4442 || (fabs(sceta)>1.566 && fabs(sceta)<2.5)){
+    // miniAOD preselection
+    if(r9>0.8 || chiso<20 || (chiso/pt)<0.3){      
+      if (hoe<0.08)        isPresel=true;
+    } 
+  }
   return isPresel;
 }
+
+bool NewDiPhoAnalyzer::rediscoveryHLT(float sceta, float pt, float r9,float sieie, float pfIso,float trkSum03 ){
+  bool isEB=false;
+  bool isEE=false;
+  bool HLTok=false;
+  if (fabs(sceta)<1.4442) isEB=true;
+  if(fabs(sceta)>1.566 && fabs(sceta)<2.5)isEE=true;
+  if(isEB && r9>0.85){
+    if(pfIso<100000 && trkSum03<100000&&sieie<100000&& r9>0.5) HLTok = true;
+  }else if(isEE && r9>0.9){
+    if(pfIso<100000 && trkSum03<100000&&sieie<100000&& r9>0.8) HLTok = true;
+  }else if(isEB && r9<=0.85){
+    if(pfIso<4 && trkSum03<6&&sieie<0.015&& r9>0.5) HLTok = true;
+  }else if(isEE && r9<=0.9){
+    if(pfIso<4 && trkSum03<6&&sieie<0.035&& r9>0.8) HLTok = true;
+  }
+
+  return HLTok;
+}
+
 
 double NewDiPhoAnalyzer::getChargedHadronEAForPhotonIso(float eta){
 // There is NO correction of EffArea for the CH iso in Spr15 25ns ID
